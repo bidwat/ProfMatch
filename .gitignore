@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+apps/backend/venv/
+.venv/
+
+# builds/cache
+.next/
+out/
+dist/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+playwright-report/
+test-results/
+
+# runtime/secrets
+.env
+.env.*
+!.env.example
+*.log
+logs/
+
+# local runtime databases/backups
+/db/*.sqlite-wal
+/db/*.sqlite-shm
+/db/*backup*.sqlite
+/db/*test*.sqlite
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+AGENTS.md
+CLAUDE.md
+.claude/
+
+DEPLOYMENT_PLAN.md

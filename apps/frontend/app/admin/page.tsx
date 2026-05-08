@@ -1,0 +1,202 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { deleteIndexedDepartment, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment } from '@/lib/api';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
+
+export default function AdminDashboardPage() {
+  const [groups, setGroups] = useState<IndexedDepartment[]>([]);
+  const [jobs, setJobs] = useState<AgenticJobGroups>({ ongoing: [], ready_to_publish: [], completed: [] });
+  const [requests, setRequests] = useState<any[]>([]);
+  const [jobStatus, setJobStatus] = useState<{ status: string; message: string }>({ status: 'idle', message: 'No active jobs' });
+  const [activeTab, setActiveTab] = useState<'ongoing' | 'ready_to_publish' | 'completed'>('ongoing');
+  const [message, setMessage] = useState('');
+  const [authorized, setAuthorized] = useState(false);
+  const [refreshing, setRefreshing] = useState<string | null>(null);
+  const [refreshGroup, setRefreshGroup] = useState<IndexedDepartment | null>(null);
+  const [refreshUrl, setRefreshUrl] = useState('');
+  const [deleteGroup, setDeleteGroup] = useState<IndexedDepartment | null>(null);
+
+  const load = () => {
+    listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
+    listAgenticJobGroups().then(setJobs).catch(() => undefined);
+    listRecommendationRequests().then(r => setRequests(r.requests)).catch(() => undefined);
+    getScanStatus().then(setJobStatus).catch(() => undefined);
+  };
+
+  useEffect(() => {
+    getCurrentUser().then(response => {
+      if (response.user.role !== 'admin') {
+        setMessage('Admin role required.');
+        return;
+      }
+      setAuthorized(true);
+      load();
+    }).catch(e => setMessage(e.message || 'Admin access required.'));
+  }, []);
+
+  useEffect(() => {
+    if (!authorized) return;
+    const shouldRefresh = jobs.ongoing.length > 0 || jobStatus.status === 'running';
+    if (!shouldRefresh) return;
+    const interval = setInterval(() => { if (!document.hidden) load(); }, 15000);
+    return () => clearInterval(interval);
+  }, [authorized, jobs.ongoing.length, jobStatus.status]);
+
+  const totals = useMemo(() => groups.reduce((acc, g) => ({ professors: acc.professors + g.professor_count, publications: acc.publications + g.publication_count }), { professors: 0, publications: 0 }), [groups]);
+
+  async function confirmRefresh() {
+    if (!refreshGroup) return;
+    const key = `${refreshGroup.university}-${refreshGroup.department}`;
+    setRefreshing(key);
+    setMessage('');
+    try {
+      const result = await refreshIndexedDepartment({ university: refreshGroup.university, department: refreshGroup.department, faculty_page_url: refreshUrl });
+      setMessage(result.message);
+      setActiveTab('ongoing');
+      setRefreshGroup(null);
+      setRefreshUrl('');
+      load();
+    } catch (e: any) {
+      setMessage(e.message || 'Could not start refresh.');
+    } finally {
+      setRefreshing(null);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteGroup) return;
+    setMessage('');
+    try {
+      const result = await deleteIndexedDepartment({ university: deleteGroup.university, department: deleteGroup.department, confirm: true });
+      setMessage(`Deleted ${result.professors_deleted} professors and ${result.publications_deleted} publications.`);
+      setDeleteGroup(null);
+      load();
+    } catch (e: any) {
+      setMessage(e.message || 'Delete failed.');
+    }
+  }
+
+  const tabJobs = jobs[activeTab] || [];
+
+  if (!authorized) {
+    return <div className="page narrow"><div className="card"><h2>Admin Dashboard</h2><p className="muted">{message || 'Checking admin access…'}</p></div></div>;
+  }
+
+  return (
+    <div className="page">
+      <div className="row between" style={{ marginBottom: 24 }}>
+        <div>
+          <p className="muted small-text">Local admin</p>
+          <h2>Admin Dashboard</h2>
+          <p className="muted">Manage indexed universities, user requests, and QA-gated agentic workflows. Existing data is only replaced after a staged workflow is published.</p>
+        </div>
+        <div className="row">
+          <button className="button secondary" onClick={load}>Refresh</button>
+          <Link className="button primary" href="/admin/onboarding">New agentic scan</Link>
+        </div>
+      </div>
+
+      <div className="grid">
+        <div className="card stat"><strong>{groups.length}</strong><span>indexed departments</span></div>
+        <div className="card stat"><strong>{totals.professors}</strong><span>indexed professors</span></div>
+        <div className="card stat"><strong>{jobs.ongoing.length}</strong><span>ongoing workflows</span></div>
+        <div className="card stat"><strong>{requests.length}</strong><span>requested items</span></div>
+      </div>
+
+      {jobStatus.status !== 'idle' && <div className={`card ${jobStatus.status === 'error' ? 'error' : ''}`} style={{ marginTop: 22 }}><strong>{jobStatus.status}:</strong> {jobStatus.message}</div>}
+      {message && <div className="notice" style={{ marginTop: 22 }}>{message}</div>}
+
+      <section className="card" style={{ overflowX: 'auto', marginTop: 22 }}>
+        <h3>Indexed Universities and Departments</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, tableLayout: 'fixed' }}>
+          <thead><tr className="muted small-text"><th align="left" style={{ width: '30%' }}>University</th><th align="left" style={{ width: '30%' }}>Department</th><th style={{ width: '12%' }}>Professors</th><th style={{ width: '12%' }}>Publications</th><th align="right" style={{ width: '16%' }}>Actions</th></tr></thead>
+          <tbody>
+            {groups.map(group => {
+              const key = `${group.university}-${group.department}`;
+              return (
+                <tr key={key} className="table-row">
+                  <td style={{ padding: 10, overflow: 'hidden', textOverflow: 'ellipsis' }}><strong>{group.university}</strong></td>
+                  <td style={{ padding: 10, overflow: 'hidden', textOverflow: 'ellipsis' }} className="muted">{group.department}</td>
+                  <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
+                  <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
+                  <td style={{ padding: 10 }} align="right">
+                    <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>{refreshing === key ? 'Starting…' : 'Update'}</button>{' '}
+                    <button className="button secondary danger-button" onClick={() => setDeleteGroup(group)}>Delete</button>
+                  </td>
+                </tr>
+              );
+            })}
+            {groups.length === 0 && <tr><td colSpan={5} style={{ padding: 18 }} className="muted">No indexed departments yet.</td></tr>}
+          </tbody>
+        </table>
+      </section>
+
+      <div className="grid two" style={{ marginTop: 22, alignItems: 'start' }}>
+        <section className="card">
+          <div className="row between">
+            <h3>Requested Universities and Departments</h3>
+            <Link className="accent" href="/recommend">Recommend page</Link>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {requests.length === 0 ? <p className="muted">No user requests yet.</p> : requests.slice(0, 8).map(request => (
+              <div className="card soft" key={request.id || `${request.university}-${request.created_at}`}>
+                <div className="row between"><strong>{request.university}</strong><span className="tag">{request.status || 'submitted'}</span></div>
+                <p className="muted small-text">{request.department} · {request.user_email || 'unknown user'}</p>
+                {request.faculty_page_url && <a className="accent small-text" href={request.faculty_page_url} target="_blank" rel="noreferrer">{request.faculty_page_url}</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="row between">
+            <h3>Agentic scan dashboard</h3>
+            <Link className="accent" href="/admin/onboarding">Open wizard</Link>
+          </div>
+          <div className="tabs" style={{ marginTop: 12 }}>
+            <button className={`tab ${activeTab === 'ongoing' ? 'active' : ''}`} onClick={() => setActiveTab('ongoing')}>Ongoing ({jobs.ongoing.length})</button>
+            <button className={`tab ${activeTab === 'ready_to_publish' ? 'active' : ''}`} onClick={() => setActiveTab('ready_to_publish')}>Ready ({jobs.ready_to_publish.length})</button>
+            <button className={`tab ${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>Completed ({jobs.completed.length})</button>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {tabJobs.length === 0 ? <p className="muted">No jobs in this tab.</p> : tabJobs.map(job => (
+              <Link className="card soft" key={job.id} href={`/admin/onboarding?job=${job.id}`}>
+                <div className="row between">
+                  <div><strong>{job.university || 'Unknown university'}</strong><p className="muted small-text">{job.department || 'Department unknown'} · {job.step || job.status}</p></div>
+                  <span className="tag">{job.status}</span>
+                </div>
+                <p className="muted small-text" style={{ marginTop: 8 }}>{job.message}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <ConfirmDialog
+        open={!!refreshGroup}
+        title="Stage department refresh"
+        message="Enter the faculty page URL. This starts a staged agentic workflow; existing indexed data is not replaced until publish is confirmed."
+        confirmLabel="Start refresh"
+        value={refreshUrl}
+        valueLabel="Faculty page URL"
+        valuePlaceholder="https://example.edu/cs/faculty"
+        onValueChange={setRefreshUrl}
+        onCancel={() => setRefreshGroup(null)}
+        onConfirm={confirmRefresh}
+        confirming={!!refreshing}
+      />
+      <ConfirmDialog
+        open={!!deleteGroup}
+        variant="danger"
+        title="Delete indexed department?"
+        message={`Delete local professors/publications for ${deleteGroup?.university || ''} · ${deleteGroup?.department || ''}?`}
+        confirmLabel="Delete indexed data"
+        onCancel={() => setDeleteGroup(null)}
+        onConfirm={confirmDelete}
+      />
+    </div>
+  );
+}
