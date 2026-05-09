@@ -1,4 +1,6 @@
-.PHONY: setup db-init scrape-seed backend frontend test qa
+SHELL := /usr/bin/env bash
+
+.PHONY: setup db-init scrape-seed backend backend-setup frontend frontend-setup frontend-test frontend-e2e test qa env-check
 
 setup:
 	@echo "Python scraper package is ready; install optional extras (beautifulsoup4, pytest) if desired."
@@ -9,14 +11,28 @@ db-init:
 scrape-seed:
 	@python -m packages.scraper --adapter stanford --fixture packages/scraper/tests/fixtures/stanford_faculty_roster.html --output-root .
 
-backend:
-	cd apps/backend && venv/bin/uvicorn apps.backend.app.main:app --app-dir ../.. --reload --host 127.0.0.1 --port 8000
+env-check: backend-setup
+	@apps/backend/venv/bin/python -c "from dotenv import dotenv_values; c=dotenv_values('.env'); print('DATABASE_URL is set; backend will use Postgres/Supabase.' if (c.get('DATABASE_URL') or '').strip() else ('Supabase component vars are set; backend will build a Postgres URL.' if c.get('SUPABASE_DB_PASSWORD') and (c.get('SUPABASE_POOLER_HOST') or c.get('SUPABASE_DB_HOST')) else 'No Supabase/Postgres env found; backend will fall back to SQLite.'))"
 
-frontend-setup: apps/frontend/package.json apps/frontend/package-lock.json apps/frontend/node_modules/.package-lock.json
-	cd apps/frontend && npm install
+backend-setup: apps/backend/requirements.txt
+	@if [[ ! -x apps/backend/venv/bin/python ]]; then \
+		python3 -m venv apps/backend/venv; \
+	fi
+	@apps/backend/venv/bin/python -m pip install -r apps/backend/requirements.txt
+
+backend: backend-setup
+	@echo "Starting backend on http://127.0.0.1:8000"
+	@echo "Environment is loaded by python-dotenv from .env; not shell-sourced, so passwords with special characters are safe."
+	@PYTHONPATH=. apps/backend/venv/bin/uvicorn apps.backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+
+frontend-setup: apps/frontend/package.json apps/frontend/package-lock.json
+	@if [[ ! -d apps/frontend/node_modules ]]; then \
+		cd apps/frontend && npm install; \
+	fi
 
 frontend: frontend-setup
-	cd apps/frontend && npm run dev
+	@echo "Starting frontend on http://localhost:3000 -> $${BACKEND_URL:-http://localhost:8000}"
+	@cd apps/frontend && BACKEND_URL="$${BACKEND_URL:-http://localhost:8000}" npm run dev
 
 frontend-test: frontend-setup
 	cd apps/frontend && npm run test
