@@ -8,6 +8,7 @@ import { TagList, Signal, cleanTitle, Avatar } from '@/components/ProfessorCard'
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
 import { LoginModal } from '@/components/LoginModal';
+import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
 
@@ -72,7 +73,7 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
   };
 
   if (error) return <div className="page"><div className="error">{error}</div></div>;
-  if (!data) return <div className="page">Loading professor…</div>;
+  if (!data) return <DetailSkeleton />;
   
   const p = data.professor;
   const tags = Array.isArray(p.extra?.tags) ? p.extra?.tags as string[] : [];

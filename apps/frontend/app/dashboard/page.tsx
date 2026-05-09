@@ -6,6 +6,7 @@ import { getProfessor, getUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import { Icon } from '@/components/Icon';
 import { Avatar } from '@/components/ProfessorCard';
+import { ProfessorCardSkeleton } from '@/components/Skeleton';
 import type { LocalUser, MatchResponse, ProfessorSummary, StudentProfile } from '@/lib/types';
 
 function ProfileValue({ value, field }: { value?: string | number | null; field: string }) {
@@ -146,7 +147,7 @@ export default function DashboardPage() {
                 <span><strong>{professor.name}</strong><small>{professor.university} · {professor.publication_count} papers</small></span>
                 <span className="mini-saved-chip">Saved</span>
               </Link>
-            )) : savedIds.length ? <p className="muted">Loading saved professor previews…</p> : <p className="muted">No saved professors yet.</p>}
+            )) : savedIds.length ? <ProfessorCardSkeleton /> : <p className="muted">No saved professors yet.</p>}
             {savedIds.length < 3 && (
               <p className="save-more-note">Save more professors from <Link href="/match">Matches</Link> or <Link href="/professors">Discover</Link>.</p>
             )}

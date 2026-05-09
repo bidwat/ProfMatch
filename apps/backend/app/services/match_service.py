@@ -4,7 +4,6 @@ import json
 import math
 import os
 import re
-import sqlite3
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -66,7 +65,7 @@ class MatchService:
 
         if student.rerank:
             self._load_openrouter_env()
-            rerank_model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash:free").strip()
+            rerank_model = os.environ.get("OPENROUTER_MODEL", "inclusionai/ring-2.6-1t:free").strip()
             if not rerank_model.endswith(":free"):
                 notes.append("LLM rerank skipped because OPENROUTER_MODEL must end with ':free' for this local MVP.")
             else:
@@ -107,6 +106,9 @@ class MatchService:
         }
 
     def _fts_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
+        if self._dialect_name() != "sqlite":
+            return self._portable_text_shortlist(query_text, shortlist_limit)
+
         self._ensure_fts_index()
         safe_query = self._fts_query(query_text)
         if not safe_query:
@@ -133,6 +135,50 @@ class MatchService:
         normalized = {prof_id: max(0.0, min(1.0, 1.0 - ((rank - best) / spread))) for prof_id, rank in ranked_ids}
 
         return self._hydrate_candidates([prof_id for prof_id, _ in ranked_ids], normalized)
+
+    def _dialect_name(self) -> str:
+        bind = self.db.get_bind()
+        return bind.dialect.name if bind is not None else "sqlite"
+
+    def _portable_text_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
+        """Database-portable shortlist for Postgres free-tier deployment.
+
+        SQLite local dev uses FTS5. Production Postgres initially uses this
+        deterministic in-process lexical shortlist so we can migrate without
+        adding pg_trgm/tsvector migrations yet.
+        """
+        query_terms = self._extract_keywords(query_text)
+        if not query_terms:
+            return self._fallback_shortlist(shortlist_limit)
+        professors = self.db.exec(select(Professor)).all()
+        scored: list[tuple[int, float]] = []
+        for prof in professors:
+            if prof.id is None:
+                continue
+            tags = self._extract_tags(prof)
+            text_value = " ".join([
+                prof.name or "",
+                prof.title or "",
+                prof.department or "",
+                prof.university or "",
+                prof.research_text or "",
+                prof.research_summary if self._has_meaningful_text(prof.research_summary) else "",
+                " ".join(tags),
+                prof.recruiting_evidence_text or "",
+            ])
+            prof_terms = self._extract_keywords(text_value)
+            overlap = len(query_terms & prof_terms)
+            if overlap == 0:
+                continue
+            score = self._jaccard_similarity(query_terms, prof_terms)
+            if tags:
+                score += min(0.08, 0.01 * len(tags))
+            if self._has_meaningful_text(prof.research_summary):
+                score += 0.04
+            scored.append((int(prof.id), max(0.0, min(1.0, score))))
+        scored.sort(key=lambda item: (item[1], -item[0]), reverse=True)
+        ranked = scored[:shortlist_limit]
+        return self._hydrate_candidates([prof_id for prof_id, _ in ranked], dict(ranked))
 
     def _fallback_shortlist(self, shortlist_limit: int) -> list[Candidate]:
         professors = self.db.exec(select(Professor).limit(shortlist_limit)).all()

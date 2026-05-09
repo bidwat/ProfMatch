@@ -7,6 +7,7 @@ import { getCurrentUser, getUserState, logoutUser } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import { Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
+import { PageSkeleton } from '@/components/Skeleton';
 import type { LocalUser } from '@/lib/types';
 
 const studentNav = [
@@ -108,11 +109,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!authChecked && !publicRoutes.has(pathname)) {
-    return <main className="public-main"><div className="page narrow"><div className="card"><p className="muted">Checking your session…</p></div></div></main>;
+    return <main className="public-main"><PageSkeleton /></main>;
   }
 
   if (!user && !publicRoutes.has(pathname)) {
-    return <main className="public-main"><div className="page narrow"><div className="card"><p className="muted">Redirecting to sign in…</p></div></div></main>;
+    return <main className="public-main"><PageSkeleton /></main>;
   }
 
   return (

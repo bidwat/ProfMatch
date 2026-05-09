@@ -141,6 +141,15 @@ export default function ProfilePage() {
 
   const dirty = JSON.stringify(composedProfile) !== JSON.stringify(initial);
 
+  useEffect(() => {
+    if (!recommendOpen || recommendSubmitting) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setRecommendOpen(false);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [recommendOpen, recommendSubmitting]);
+
   function update<K extends keyof StudentProfile>(key: K, value: StudentProfile[K]) {
     setProfile(current => ({ ...current, [key]: value }));
   }
@@ -249,7 +258,7 @@ export default function ProfilePage() {
           <h3>Don’t see who you’re looking for?</h3>
           <p className="muted">Recommend universities and departments so they can be added to Professor Match.</p>
         </div>
-        <button className="button primary" type="button" onClick={() => setRecommendOpen(true)}><Icon name="plus" size={14} />Add Universities and Departments</button>
+        <button className="button primary" type="button" onClick={() => setRecommendOpen(true)}><Icon name="plus" size={14} />Recommend Universities and Departments</button>
       </div>
 
       <div className="row between" style={{ marginBottom: 22 }}>
@@ -316,8 +325,8 @@ export default function ProfilePage() {
         <button className="button danger-primary" onClick={() => setConfirmDelete(true)} disabled={deleting}><Icon name="trash" size={13} />{deleting ? 'Deleting…' : 'Delete account'}</button>
       </div>
       {recommendOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="recommend-title">
-          <form className="modal-card form" onSubmit={submitRecommendationRequest}>
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => !recommendSubmitting && setRecommendOpen(false)}>
+          <form className="modal-card form" role="dialog" aria-modal="true" aria-labelledby="recommend-title" onMouseDown={event => event.stopPropagation()} onSubmit={submitRecommendationRequest}>
             <div className="modal-icon"><Icon name="plus" size={16} /></div>
             <h3 id="recommend-title">Recommend a university or department</h3>
             <p className="muted small-text">Tell us which faculty directory should be considered next.</p>

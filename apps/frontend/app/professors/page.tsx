@@ -6,6 +6,7 @@ import { localStore } from '@/lib/local-store';
 import type { ProfessorSummary } from '@/lib/types';
 import { ProfessorCard } from '@/components/ProfessorCard';
 import { LoginModal } from '@/components/LoginModal';
+import { ProfessorListSkeleton } from '@/components/Skeleton';
 import { FilterSortBar, MultiSelectFilter, SearchBox, SingleSelectFilter, SortSelect } from '@/components/Filters';
 
 function useDebouncedValue(value: string, delay = 350) {
@@ -99,7 +100,7 @@ export default function ProfessorsPage() {
         {professors.map(p => (
           <ProfessorCard key={p.id} professor={p} saved={saved.includes(p.id)} onSave={() => toggleSave(p.id)} from="/professors" />
         ))}
-        {loading && <span className="muted">Loading professors…</span>}
+        {loading && <ProfessorListSkeleton count={cursorToLoad ? 2 : 4} />}
         {!loading && !error && professors.length === 0 && (
           <div className="card soft">
             <h3>No professors match these filters.</h3>

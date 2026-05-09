@@ -17,7 +17,7 @@ ONBOARDING_DIR = PROJECT_ROOT / "data" / "qa" / "onboarding"
 
 
 def _get_model() -> str:
-    model_name = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash:free").strip()
+    model_name = os.environ.get("OPENROUTER_MODEL", "inclusionai/ring-2.6-1t:free").strip()
     if not model_name.startswith("openrouter/"):
         model_name = f"openrouter/{model_name}"
     return model_name

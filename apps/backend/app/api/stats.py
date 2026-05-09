@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select
 from sqlalchemy import func, distinct
-from apps.backend.app.db import get_session, DB_PATH
+from apps.backend.app.db import get_session, DATABASE_URL, DB_PATH
 from apps.backend.app.models.professor import Professor, Publication
 
 
@@ -63,7 +63,7 @@ def explorer_stats(session: Session = Depends(get_session)):
         ]
 
         return ExplorerStatsResponse(
-            database_path=str(DB_PATH),
+            database_path=str(DB_PATH) if DB_PATH else DATABASE_URL.split('@')[-1],
             professor_count=int(professor_count or 0),
             publication_count=int(publication_count or 0),
             university_count=int(university_count or 0),

@@ -1,8 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export function LoginModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message?: string }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
