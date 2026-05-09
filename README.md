@@ -98,7 +98,9 @@ Copy the example file and adjust as needed:
 cp .env.example .env
 ```
 
-Important variables:
+Local development uses SQLite by default when no Postgres variables are set.
+
+Important local variables:
 
 ```txt
 ALLOWED_ORIGINS=http://localhost:3000
@@ -128,43 +130,3 @@ Backend checks:
 ```bash
 apps/backend/venv/bin/python -m pytest apps/backend/tests -q
 ```
-
-## Docker deployment
-
-This repo includes Docker files and Compose config:
-
-```txt
-apps/backend/Dockerfile
-apps/frontend/Dockerfile
-docker-compose.yml
-deploy/Caddyfile
-```
-
-Quick start:
-
-```bash
-DOMAIN=localhost ALLOWED_ORIGINS=http://localhost docker compose up -d --build
-```
-
-For production, use a real domain and HTTPS:
-
-```bash
-DOMAIN=profmatch.example.com \
-ALLOWED_ORIGINS=https://profmatch.example.com \
-docker compose up -d --build
-```
-
-The backend stores SQLite data on a persistent Docker volume named `profmatch_db`. On first boot, the volume is seeded from:
-
-```txt
-db/professor_match_publications.sqlite
-```
-
-Back up the persistent SQLite volume regularly.
-
-## Documentation
-
-- Product requirements: `docs/product/PRD.md`
-- Acceptance criteria: `docs/product/ACCEPTANCE_CRITERIA.md`
-- Architecture spec: `docs/architecture/SPEC.md`
-- Deployment notes: `DEPLOYMENT_PLAN.md`
