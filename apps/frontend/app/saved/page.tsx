@@ -6,6 +6,7 @@ import { getProfessor, getUserState, patchUserState } from '@/lib/api';
 import { ProfessorCard } from '@/components/ProfessorCard';
 import { FilterSortBar, MultiSelectFilter, SearchBox, SingleSelectFilter, SortSelect } from '@/components/Filters';
 import { Icon } from '@/components/Icon';
+import { ProfessorListSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse } from '@/lib/types';
 
@@ -98,7 +99,7 @@ export default function SavedPage() {
         </FilterSortBar>
       </div>
       <div className="cards list">
-        {loading && <div className="card"><p className="muted">Loading saved professors…</p></div>}
+        {loading && <ProfessorListSkeleton count={3} />}
         {loadError && <div className="notice">{loadError}</div>}
         {!loading && visibleRows.length === 0 ? <div className="card"><p className="muted">{ids.length ? 'No saved professors match these filters.' : 'No saved professors yet. Save professors from Matches or Discover.'}</p></div> : visibleRows.map(({ professor: p, publications }) => (
           <ProfessorCard key={p.id} professor={{ id: p.id, name: p.name, title: p.title, university: p.university, department: p.department, photo_url: p.photo_url, tags: p.extra?.tags as string[] || [], research_summary: p.research_summary, recruiting_signal: p.recruiting_signal, source_confidence: p.source_confidence, publication_count: publications.length }} saved={true} onSave={() => remove(p.id)} from="/saved" />

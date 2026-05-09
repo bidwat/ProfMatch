@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { SkeletonLine } from '@/components/Skeleton';
 import type { AdminScanDetail, AdminScanSummary } from '@/lib/types';
 
 export default function AdminScansPage() {
@@ -111,7 +112,7 @@ export default function AdminScansPage() {
         </div>
       )}
 
-      {loading && <div className="card" style={{ marginTop: 22 }}><p className="muted">Loading scan artifacts…</p></div>}
+      {loading && <div className="card skeleton-card" style={{ marginTop: 22 }}><SkeletonLine width="180px" height={18} /><SkeletonLine width="100%" height={12} /><SkeletonLine width="86%" height={12} /></div>}
       {error && <div className="error" style={{ marginTop: 22 }}>{error}</div>}
       {!loading && !error && scans.length === 0 && (
         <div className="card" style={{ marginTop: 22 }}>
@@ -142,7 +143,7 @@ export default function AdminScansPage() {
 
           <div className="card">
             <h3>QA Artifact Detail</h3>
-            {detailLoading && <p className="muted" style={{ marginTop: 12 }}>Loading detail…</p>}
+            {detailLoading && <div className="skeleton-card" style={{ marginTop: 12 }}><SkeletonLine width="70%" height={16} /><SkeletonLine width="100%" height={12} /><SkeletonLine width="92%" height={12} /><SkeletonLine width="82%" height={12} /></div>}
             {!detailLoading && detail ? <ScanDetail scan={detail} /> : !detailLoading && <p className="muted">Select a scan run.</p>}
           </div>
         </div>

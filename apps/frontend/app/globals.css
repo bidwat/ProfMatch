@@ -105,3 +105,5 @@
 @media(max-width:640px){
   .landing-hero-expanded{padding:46px 22px 36px}.landing-stats-cards .landing-stat{flex:1 1 100%}.landing-shot-grid{grid-template-columns:1fr}.landing-shot-card,.landing-shot-card:first-child{grid-template-rows:260px auto}.landing-workflow-grid{grid-template-columns:1fr}.landing-feature-panel{padding:20px}.landing-final-cta{padding:24px;margin-bottom:44px}.landing-section-heading h2,.landing-feature-panel h2,.landing-final-cta h2{font-size:28px}
 }
+
+.skeleton-line,.skeleton-avatar{display:block;border-radius:var(--r-sm);background:linear-gradient(90deg,var(--ink-04),var(--ink-08),var(--ink-04));background-size:220% 100%;animation:skeleton-shimmer 1.15s ease-in-out infinite}.skeleton-avatar{width:48px;height:48px;border-radius:var(--r-md);flex-shrink:0}.skeleton-avatar.large{width:112px;height:112px;border-radius:var(--r-lg)}.skeleton-card{display:grid;gap:12px}.skeleton-page-heading{display:grid;gap:12px;margin-bottom:24px}@keyframes skeleton-shimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}

@@ -10,7 +10,6 @@ import type { LocalUser } from '@/lib/types';
 export default function SigninPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [user, setUser] = useState<LocalUser | null>(null);
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -21,9 +20,8 @@ export default function SigninPage() {
       .then(response => {
         const restored = { name: response.user.display_name, email: response.user.email, createdAt: response.user.created_at };
         localStore.setUser(restored);
-        setUser(restored);
       })
-      .catch(() => setUser(null));
+      .catch(() => undefined);
   }, []);
 
   async function submit(e: React.FormEvent) {
@@ -61,7 +59,6 @@ export default function SigninPage() {
         <div className="brand" style={{ padding: 0, marginTop: 14 }}><span className="brand-mark">PM</span><span>ProfMatch</span></div>
         <h2>Welcome back</h2>
         <p className="muted" style={{ marginBottom: 20 }}>Sign in to continue building your professor shortlist.</p>
-        {user && <div className="notice">Active session/local profile for <b>{user.name}</b> ({user.email}).</div>}
         <form className="form" onSubmit={submit} style={{ marginTop: 16 }}>
           <label className="label">Email<input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@university.edu" /></label>
           <label className="label">Password<input className="input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Password" /></label>
