@@ -8,3 +8,5 @@ psycopg[binary]>=3.1,<4
 requests>=2.31,<3
 beautifulsoup4>=4.12,<5
 playwright>=1.40,<2
+crawl4ai>=0.7,<0.8
+litellm>=1.80,<2
