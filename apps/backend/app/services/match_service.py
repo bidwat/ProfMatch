@@ -65,7 +65,7 @@ class MatchService:
 
         if student.rerank:
             self._load_openrouter_env()
-            rerank_model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash:free").strip()
+            rerank_model = os.environ.get("OPENROUTER_MODEL", "inclusionai/ring-2.6-1t:free").strip()
             if not rerank_model.endswith(":free"):
                 notes.append("LLM rerank skipped because OPENROUTER_MODEL must end with ':free' for this local MVP.")
             else:
