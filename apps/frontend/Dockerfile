@@ -17,4 +17,4 @@ COPY --from=builder /app/apps/frontend/package*.json ./
 COPY --from=builder /app/apps/frontend/node_modules ./node_modules
 COPY --from=builder /app/apps/frontend/.next ./.next
 EXPOSE 3000
-CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+CMD ["sh", "-c", "npm run start -- --hostname 0.0.0.0 --port ${PORT:-3000}"]
