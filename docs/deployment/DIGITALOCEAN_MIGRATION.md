@@ -67,17 +67,33 @@ BACKEND_URL=http://backend:8000 \
 docker compose -f docker-compose.digitalocean.yml up --build
 ```
 
+
+## Avoiding DigitalOcean serverless autodetect
+
+If the Create App UI detects this repository as **Functions / Serverless**, do not finalize that resource. Use the checked-in App Spec instead, or delete the detected Function resource and manually add Dockerfile-backed Web Services. The required resources are:
+
+```txt
+backend:  service, source_dir=/, dockerfile_path=apps/backend/Dockerfile, http_port=8000, routes=/api and /health
+frontend: service, source_dir=/, dockerfile_path=apps/frontend/Dockerfile, http_port=3000, route=/
+```
+
+The App Spec path is `.do/app.yaml`; it is the preferred source of truth for DigitalOcean because it bypasses framework/serverless autodetection.
+
 ## DigitalOcean App Platform setup
 
 1. Push the `main` branch to GitHub.
 2. In DigitalOcean, create a new App Platform app from `bidwat/ProfMatch`, branch `main`.
 3. Add backend service:
+   - Source directory: `/`
    - Dockerfile path: `apps/backend/Dockerfile`
    - HTTP port: `8000`
+   - Routes: `/api` and `/health`
    - Health check path: `/health`
 4. Add frontend service:
+   - Source directory: `/`
    - Dockerfile path: `apps/frontend/Dockerfile`
    - HTTP port: `3000`
+   - Route: `/`
 5. Set backend environment variables:
    - `DATABASE_URL` = Supabase pooler URL or DigitalOcean Postgres URL. Mark secret.
    - `ALLOWED_ORIGINS` = final frontend URL.
@@ -87,10 +103,10 @@ docker compose -f docker-compose.digitalocean.yml up --build
    - `OPENROUTER_MODEL=inclusionai/ring-2.6-1t:free`
    - `OPENROUTER_BASE_URL=https://openrouter.ai/api/v1`
 6. Set frontend environment variables:
-   - `BACKEND_URL` = final backend URL.
+   - `BACKEND_URL` = final app URL when using the `/api` backend route on the same App Platform app, or final backend service URL if you expose backend separately.
 7. Deploy backend first and verify `/health`.
 8. Deploy frontend and verify API calls through the frontend.
-9. After final hostnames are known, update `ALLOWED_ORIGINS` and `BACKEND_URL`, then redeploy.
+9. After final hostnames are known, update `ALLOWED_ORIGINS` and `BACKEND_URL`, then redeploy. With the provided `.do/app.yaml`, both can usually be the same app hostname because backend owns `/api` and frontend owns `/`.
 
 ## Using `.do/app.yaml`
 
@@ -98,7 +114,7 @@ Before using `doctl apps create --spec .do/app.yaml`, replace:
 
 - `REPLACE_WITH_DO_POSTGRES_OR_SUPABASE_POOLER_URL`
 - `REPLACE_WITH_FRONTEND_HOSTNAME`
-- `REPLACE_WITH_BACKEND_HOSTNAME`
+- `REPLACE_WITH_APP_HOSTNAME`
 
 Then run:
 

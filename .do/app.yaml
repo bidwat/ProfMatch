@@ -11,6 +11,9 @@ services:
     http_port: 8000
     instance_count: 1
     instance_size_slug: basic-xxs
+    routes:
+      - path: /api
+      - path: /health
     health_check:
       http_path: /health
     envs:
@@ -27,10 +30,6 @@ services:
       - key: LOG_LEVEL
         scope: RUN_TIME
         value: INFO
-      - key: OPENROUTER_API_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: ""
       - key: OPENROUTER_MODEL
         scope: RUN_TIME
         value: inclusionai/ring-2.6-1t:free
@@ -52,7 +51,7 @@ services:
     envs:
       - key: BACKEND_URL
         scope: RUN_AND_BUILD_TIME
-        value: https://REPLACE_WITH_BACKEND_HOSTNAME
+        value: https://REPLACE_WITH_APP_HOSTNAME
 # Optional: create a DigitalOcean managed Postgres component instead of reusing Supabase.
 # databases:
 #   - name: professor-match-db
