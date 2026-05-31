@@ -32,13 +32,10 @@ logs/
 .vscode/
 .idea/
 
-AGENTS.md
-CLAUDE.md
 .claude/
 
-DEPLOYMENT_PLAN.md
-FREE_DEPLOYMENT_PLAN.md
-POSTGRES_MIGRATION.md
-PROJECT_HANDOFF.md
+# historical root-level handoff/deployment notes; canonical deployment docs live under docs/deployment/
+/DEPLOYMENT_PLAN.md
+/PROJECT_HANDOFF.md
 
 data/qa/onboarding
