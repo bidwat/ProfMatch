@@ -2,7 +2,7 @@
 
 Use this file only for Claude Code-specific behavior. Shared rules live in `AGENTS.md`.
 
-Repository identity: this is the clean authoritative Professor Match deployment repo at `/home/drl/pi-agent/profmatch-clean-git`, branch `postgres`, remote `git@github.com:bidwat/ProfMatch.git`. The older `/home/drl/pi-agent/pi-prof-idea` directory is historical/WIP reference and should not be pushed for production unless explicitly reconciled. See `docs/PROJECT_STATUS_ARCHITECTURE_HANDOFF.md` for the full operational handoff.
+Repository identity: this is the clean authoritative Professor Match deployment repo at `/home/drl/pi-agent/profmatch-clean-git`, branch `main`, remote `git@github.com:bidwat/ProfMatch.git`. The older `/home/drl/pi-agent/pi-prof-idea` directory is historical/WIP reference and should not be pushed for production unless explicitly reconciled. See `docs/PROJECT_STATUS_ARCHITECTURE_HANDOFF.md` for the full operational handoff.
 
 ## Claude Code Agents
 

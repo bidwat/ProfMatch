@@ -7,7 +7,7 @@ This repo builds **Professor Match**, a professor discovery and graduate-advisor
 This repository is the **clean authoritative deployment repository** for Professor Match, not the older working directory at `/home/drl/pi-agent/pi-prof-idea`.
 
 - Authoritative path: `/home/drl/pi-agent/profmatch-clean-git`
-- Active deployment branch: `postgres`
+- Active deployment branch: `main`
 - Git remote: `git@github.com:bidwat/ProfMatch.git`
 - Legacy/reference repo: `/home/drl/pi-agent/pi-prof-idea` contains older WIP artifacts and should not be pushed unless explicitly reconciling history.
 

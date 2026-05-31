@@ -23,7 +23,7 @@ The authoritative Git working directory for deployment and pushing is:
 The current active branch in that directory is:
 
 ```txt
-postgres
+main
 ```
 
 The remote for that directory is:
@@ -38,7 +38,7 @@ The older/current shell directory where some commands were run is:
 /home/drl/pi-agent/pi-prof-idea
 ```
 
-That directory is **not** the clean deployment repository. It contains many modified and untracked files from earlier design/audit/work-in-progress activity. Those extra files explain the “new items here” confusion. The clean repo is `../profmatch-clean-git`, not the original `pi-prof-idea` folder. Pushes for the app should be from `profmatch-clean-git` on the `postgres` branch unless you intentionally decide to change the deployment branch.
+That directory is **not** the clean deployment repository. It contains many modified and untracked files from earlier design/audit/work-in-progress activity. Those extra files explain the “new items here” confusion. The clean repo is `../profmatch-clean-git`, not the original `pi-prof-idea` folder. Pushes for the app should be from `profmatch-clean-git` on the `main` branch unless you intentionally decide to change the deployment branch.
 
 As of this document, `profmatch-clean-git` has a clean working tree after the recent skeleton-loader and UI updates. A new documentation file, this one, is now the only expected new work item unless further edits occur.
 
@@ -53,7 +53,7 @@ Push from:
 ```bash
 cd /home/drl/pi-agent/profmatch-clean-git
 git status
-git push origin postgres
+git push origin main
 ```
 
 Do **not** push from:
@@ -80,7 +80,7 @@ The folder we switched to for the actual app is:
 /home/drl/pi-agent/profmatch-clean-git
 ```
 
-That repo is clean, has the actual Git remote configured, and is on branch `postgres`. The recent work has been applied and committed there, including:
+That repo is clean, has the actual Git remote configured, and is on branch `main`. The recent work has been applied and committed there, including:
 
 - Render/Vercel deployment support.
 - Supabase/Postgres support.
@@ -186,7 +186,7 @@ Use:
 Current branch:
 
 ```txt
-postgres
+main
 ```
 
 Remote:
@@ -216,12 +216,12 @@ For any production work:
 ```bash
 cd /home/drl/pi-agent/profmatch-clean-git
 git status -sb
-git pull --ff-only origin postgres
+git pull --ff-only origin main
 # make changes
 git status -sb
 git add <files>
 git commit -m "clear message"
-git push origin postgres
+git push origin main
 ```
 
 Before pushing, ensure:
@@ -758,7 +758,7 @@ https://profmatch-backend.onrender.com
 Active Git branch:
 
 ```txt
-postgres
+main
 ```
 
 ### 11.2 Why Render Free is not ideal
@@ -1058,7 +1058,7 @@ No paid APIs is an MVP constraint. For production, decide whether to:
 - Verify CORS and Vercel rewrite behavior.
 - Add health check and uptime monitor.
 - Confirm Supabase connection pooling.
-- Confirm latest `postgres` branch is deployed.
+- Confirm latest `main` branch is deployed.
 
 ### Phase 2 — Harden auth and user persistence
 
@@ -1155,7 +1155,7 @@ cd /home/drl/pi-agent/profmatch-clean-git
 git status -sb
 git add <changed-files>
 git commit -m "message"
-git push origin postgres
+git push origin main
 ```
 
 ### 17.2 Vercel
@@ -1200,4 +1200,4 @@ Professor Match is a strong MVP. The core user journey exists: landing page, sig
 
 The biggest issue is not whether the code can run; it can. The biggest issue is production reliability. Render Free is not good enough for a public production application with sign-ups. The app also needs production security hardening around cookies, password lifecycle, image storage, durable admin jobs, migrations, and monitoring.
 
-The clean deployment repo is `profmatch-clean-git`, branch `postgres`. The old `pi-prof-idea` directory should be treated as historical work/reference and not pushed unless intentionally reconciled. The next meaningful production step is to choose an always-on backend hosting strategy and harden authentication/session/image persistence before inviting real users.
+The clean deployment repo is `profmatch-clean-git`, branch `main`. The old `pi-prof-idea` directory should be treated as historical work/reference and not pushed unless intentionally reconciled. The next meaningful production step is to choose an always-on backend hosting strategy and harden authentication/session/image persistence before inviting real users.

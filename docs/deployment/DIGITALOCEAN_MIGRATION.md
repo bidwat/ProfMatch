@@ -5,7 +5,7 @@ Goal: move Professor Match away from the current Vercel + Render Free shape towa
 ## Current baseline from handoff
 
 - Authoritative repo: `/home/drl/pi-agent/profmatch-clean-git`
-- Branch: `postgres`
+- Branch: `main`
 - Remote: `git@github.com:bidwat/ProfMatch.git`
 - Current frontend: Vercel (`https://prof-match-chi.vercel.app`)
 - Current backend: Render Free (`https://profmatch-backend.onrender.com`)
@@ -69,8 +69,8 @@ docker compose -f docker-compose.digitalocean.yml up --build
 
 ## DigitalOcean App Platform setup
 
-1. Push the `postgres` branch to GitHub.
-2. In DigitalOcean, create a new App Platform app from `bidwat/ProfMatch`, branch `postgres`.
+1. Push the `main` branch to GitHub.
+2. In DigitalOcean, create a new App Platform app from `bidwat/ProfMatch`, branch `main`.
 3. Add backend service:
    - Dockerfile path: `apps/backend/Dockerfile`
    - HTTP port: `8000`
