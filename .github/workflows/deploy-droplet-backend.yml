@@ -25,6 +25,8 @@ jobs:
             cd /opt/profmatch
             git fetch origin main
             git reset --hard origin/main
+            docker compose -f docker-compose.backend-only.yml down --remove-orphans || true
+            docker rm -f profmatch-backend-1 || true
             docker compose -f docker-compose.backend-full.yml up -d --build --remove-orphans
             docker image prune -f
             docker compose -f docker-compose.backend-full.yml ps
