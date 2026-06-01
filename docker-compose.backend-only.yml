@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile.runtime
+    env_file:
+      - .env
+    environment:
+      PORT: 8000
+    ports:
+      - "80:8000"
+    volumes:
+      - profmatch_backend_db:/app/db
+      - profmatch_backend_jobs:/app/data/qa/onboarding
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  profmatch_backend_db:
+  profmatch_backend_jobs:

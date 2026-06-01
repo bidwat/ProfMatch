@@ -1,0 +1,23 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PIP_NO_CACHE_DIR=1 \
+    PROFESSOR_MATCH_DB_PATH=/app/db/professor_match_publications.sqlite
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY apps/backend/requirements.runtime.txt /app/apps/backend/requirements.runtime.txt
+RUN pip install --upgrade pip \
+    && pip install -r /app/apps/backend/requirements.runtime.txt
+
+COPY apps /app/apps
+COPY packages /app/packages
+COPY scripts /app/scripts
+COPY db/professor_match_publications.sqlite /app/seed-db/professor_match_publications.sqlite
+
+EXPOSE 8000
+CMD ["sh", "-c", "mkdir -p /app/db && if [ ! -f /app/db/professor_match_publications.sqlite ]; then cp /app/seed-db/professor_match_publications.sqlite /app/db/professor_match_publications.sqlite; fi && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
