@@ -9,6 +9,9 @@ from uuid import uuid4
 from sqlmodel import Session
 
 from apps.backend.app.db import engine
+from apps.backend.app.models import auth as auth_models  # noqa: F401 - register FK targets for worker sessions
+from apps.backend.app.models import professor as professor_models  # noqa: F401 - register import targets for worker sessions
+from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - register durable scan tables
 from apps.backend.app.services.scan_job_service import ScanJobService
 from apps.backend.app.services.scan_task_runner import run_department_scan_task
 
@@ -39,7 +42,10 @@ class ScanWorker:
             if self.active:
                 done, _ = await asyncio.wait(self.active, timeout=self.poll_interval, return_when=asyncio.FIRST_COMPLETED)
                 for task in done:
-                    task.result()
+                    try:
+                        task.result()
+                    except Exception as exc:
+                        print(f"scan worker task crashed: {exc}", flush=True)
             else:
                 await asyncio.sleep(self.poll_interval)
         print("scan worker stopping; waiting for active tasks", flush=True)

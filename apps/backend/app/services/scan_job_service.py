@@ -93,7 +93,10 @@ class ScanJobService:
                       SELECT scan_tasks.id
                       FROM scan_tasks
                       JOIN scan_jobs ON scan_jobs.id = scan_tasks.scan_job_id
-                      WHERE scan_tasks.status IN ('queued', 'retrying')
+                      WHERE (
+                          scan_tasks.status IN ('queued', 'retrying')
+                          OR (scan_tasks.status = 'running' AND scan_tasks.locked_until < NOW())
+                        )
                         AND scan_jobs.status NOT IN ('canceled', 'completed', 'completed_with_errors', 'failed')
                         AND (scan_tasks.locked_until IS NULL OR scan_tasks.locked_until < NOW())
                       ORDER BY scan_tasks.priority DESC, scan_tasks.created_at ASC
@@ -119,7 +122,7 @@ class ScanJobService:
             task = self.session.exec(
                 select(ScanTask)
                 .join(ScanJob, ScanJob.id == ScanTask.scan_job_id)
-                .where(ScanTask.status.in_(["queued", "retrying"]))
+                .where((ScanTask.status.in_(["queued", "retrying"])) | ((ScanTask.status == "running") & (ScanTask.locked_until < now)))
                 .where(ScanJob.status.notin_(["canceled", "completed", "completed_with_errors", "failed"]))
                 .order_by(ScanTask.priority.desc(), ScanTask.created_at)
             ).first()
