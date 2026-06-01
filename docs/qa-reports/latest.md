@@ -253,3 +253,22 @@ Results:
 - Verify durable task logs/results remain visible after backend restart.
 - Approve/reject/import candidates from `/admin/scans` and verify idempotent duplicate handling.
 - Deploy a separate production worker service and repeat restart QA.
+
+## 2026-06-01 — Milestone 3 production deployment evidence
+
+Status: PARTIAL-to-production foundation deployed.
+
+- Created production Supabase/Postgres tables via SQLModel metadata registration: `scan_jobs`, `scan_tasks`, `scan_results`, `scan_logs`.
+- Merged durable scan worker foundation to `main`.
+- Deployed Droplet backend and `scan-worker` service via GitHub Actions.
+- GitHub Actions run `26772740903`: PASS.
+- Deploy log showed both containers running:
+  - `profmatch-backend-1`
+  - `profmatch-scan-worker-1`
+- Production DB health check: PASS (`/api/health/db`, Postgres, production=true).
+
+Remaining live acceptance checks before marking Milestone 3 fully complete:
+
+- Run a real 5+ department admin scan from production UI.
+- Kill/restart worker during a running task and verify lease-based reclaim.
+- Approve/reject/import real candidates and verify duplicate-safe import.
