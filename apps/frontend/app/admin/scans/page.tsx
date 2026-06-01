@@ -227,8 +227,8 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
       <div className="row" style={{ gap: 8 }}>
         <button className="button secondary" onClick={load} disabled={loading}>Refresh</button>
         {active && <button className="button secondary" onClick={() => action(() => cancelScanJob(jobId))}>Cancel</button>}
-        {results.length > 0 && <button className="button secondary" onClick={() => action(() => fetchScanJobPublications(jobId, { max_publications: 10 }))}>Fetch 10 publications</button>}
-        {results.some(r => r.status === 'approved') && <button className="button primary" onClick={() => action(() => importApprovedScanResults(jobId))}>Import approved</button>}
+        <button className="button secondary" onClick={() => action(() => fetchScanJobPublications(jobId, { max_publications: 10 }))} disabled={results.length === 0}>Fetch 10 publications with OpenAlex</button>
+        {results.some(r => r.status === 'approved') && <button className="button primary" onClick={() => action(() => importApprovedScanResults(jobId))}>Import approved to Supabase</button>}
       </div>
     </div>
     {job && <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${job.progress_percent}%` }} /></div>}
@@ -346,13 +346,13 @@ function ScanDetail({ scan }: { scan: AdminScanDetail }) {
       </div>
     </DetailSection>
 
-    <p className="notice" style={{ marginTop: 16 }}>This dashboard is read-only for artifact review. Imports must remain a separate, explicit QA-gated command.</p>
+    <p className="notice" style={{ marginTop: 16 }}>Legacy artifact review only. New durable jobs, OpenAlex publication fetching, candidate approval, and Supabase import are in the durable scan job panel above.</p>
 
     <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         {scan.db_import_allowed ? (
           <button className="button primary" onClick={() => setConfirmImport(true)} disabled={importing}>
-            {importing ? 'Importing...' : 'Import to SQLite Database'}
+            {importing ? 'Importing...' : 'Import legacy artifact to Supabase'}
           </button>
         ) : (
           <p className="muted small-text">Import disabled because QA validation did not pass.</p>
@@ -371,8 +371,8 @@ function ScanDetail({ scan }: { scan: AdminScanDetail }) {
       <ConfirmDialog
         open={confirmImport}
         variant="warning"
-        title="Import scan to SQLite?"
-        message={`Import ${scan.university} into the local SQLite database. This should only be done after QA review.`}
+        title="Import legacy scan to Supabase?"
+        message={`Import ${scan.university} into the production database. This should only be done after QA review.`}
         confirmLabel="Import"
         onCancel={() => setConfirmImport(false)}
         onConfirm={() => { setConfirmImport(false); handleImport(); }}

@@ -113,16 +113,18 @@ export default function AgenticOnboardingPage() {
       <div className="page">
         <div className="row between" style={{ marginBottom: 24 }}>
           <div>
-            <p className="muted small-text">Local admin · Agentic Pipeline</p>
-            <h2>Agentic Wizard: {job.university}</h2>
+            <p className="muted small-text">Legacy local artifact · Deprecated</p>
+            <h2>Legacy Agentic Job: {job.university}</h2>
             <p className="muted">{job.url}</p>
+            <p className="notice" style={{ marginTop: 12 }}>This legacy file-backed job view is read-only. Durable scan data, OpenAlex publication fetch, review, and Supabase import now live in the Scan Dashboard.</p>
           </div>
           <div className="row" style={{ gap: 8 }}>
             {isRunning && (
               <button className="button secondary" onClick={handleStop}>Stop Job</button>
             )}
             <button className="button secondary" onClick={() => setDeleteTarget({ id: jobId, redirect: true })}>Delete</button>
-            <a className="button secondary" href="/admin/onboarding">Start New</a>
+            <a className="button primary" href="/admin/scans">Open Scan Dashboard</a>
+            <a className="button secondary" href="/admin/onboarding">Start New Durable Job</a>
           </div>
         </div>
 
@@ -165,17 +167,9 @@ export default function AgenticOnboardingPage() {
             <div className="row between" style={{ marginBottom: 16 }}>
               <h3>Extracted Professors ({job.professors.length})</h3>
               <div className="row" style={{ gap: 8 }}>
-                <button className="button secondary" disabled={isRunning} onClick={() => handleAction(() => enrichAgenticHomepage(jobId))}>
-                  1. Enrich Homepages
-                </button>
-                <button className="button secondary" disabled={isRunning} onClick={() => handleAction(() => fetchAgenticPublications(jobId))}>
-                  2. Fetch 10 Publications
-                </button>
-                <button className="button secondary" disabled={isRunning} onClick={() => handleAction(() => generateAgenticSummary(jobId))}>
-                  3. Gen AI Summary
-                </button>
-                <button className="button primary" disabled={isRunning} onClick={() => handleAction(() => publishAgenticJob(jobId))}>
-                  4. Publish to SQLite
+                <a className="button primary" href="/admin/scans">Review durable copy</a>
+                <button className="button secondary" disabled title="Deprecated: use the durable Scan Dashboard instead.">
+                  Legacy enrichment disabled
                 </button>
               </div>
             </div>
