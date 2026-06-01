@@ -5,6 +5,15 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
+class MatchMetadata(BaseModel):
+    threshold_percent: float = 40.0
+    minimum_results: int = 10
+    total_candidates: int = 0
+    above_threshold_count: int = 0
+    returned_count: int = 0
+    fallback_top_results_used: bool = False
+
+
 class StudentProfile(BaseModel):
     name: str = ""
     background: Optional[str] = None
@@ -13,8 +22,10 @@ class StudentProfile(BaseModel):
     preferred_departments: Optional[List[str]] = None
     preferred_locations: Optional[List[str]] = None
     preferred_universities: Optional[List[str]] = None
-    limit: int = Field(default=5, ge=1, le=25)
-    shortlist_limit: int = Field(default=50, ge=5, le=100)
+    limit: int = Field(default=10, ge=1, le=250)
+    shortlist_limit: int = Field(default=100, ge=5, le=250)
+    threshold_percent: float = Field(default=40.0, ge=0, le=100)
+    minimum_results: int = Field(default=10, ge=1, le=50)
     rerank: bool = False
     include_publication_evidence: bool = True
     max_abstracts_per_professor: int = Field(default=10, ge=1, le=10)
@@ -87,3 +98,4 @@ class MatchResponse(BaseModel):
     rerank_applied: bool = False
     rerank_model: Optional[str] = None
     notes: List[str] = Field(default_factory=list)
+    metadata: Optional[MatchMetadata] = None

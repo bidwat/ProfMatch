@@ -1,6 +1,6 @@
 'use client';
 
-import type { LocalUser, MatchResponse, StudentProfile } from './types';
+import type { LocalUser, MatchResponse, MatchThresholdSettings, StudentProfile } from './types';
 
 const keys = {
   user: 'profmatch:user',
@@ -8,6 +8,7 @@ const keys = {
   matches: 'profmatch:lastMatches',
   saved: 'profmatch:savedProfessorIds',
   tracker: 'profmatch:tracker',
+  matchSettings: 'profmatch:matchThresholdSettings',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -36,6 +37,8 @@ export const localStore = {
   setProfile: (profile: StudentProfile) => write(keys.profile, profile),
   getMatches: () => read<MatchResponse | null>(keys.matches, null),
   setMatches: (matches: MatchResponse) => write(keys.matches, matches),
+  getMatchSettings: () => read<MatchThresholdSettings>(keys.matchSettings, { threshold_percent: 40, minimum_results: 10 }),
+  setMatchSettings: (settings: MatchThresholdSettings) => write(keys.matchSettings, settings),
   getSaved: () => read<number[]>(keys.saved, []),
   setSaved: (ids: number[]) => write(keys.saved, ids),
   getTracker: () => read<any[]>(keys.tracker, []),

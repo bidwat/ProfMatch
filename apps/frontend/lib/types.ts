@@ -122,6 +122,8 @@ export interface StudentProfile {
   preferred_universities?: string[];
   limit: number;
   shortlist_limit: number;
+  threshold_percent?: number;
+  minimum_results?: number;
   rerank: boolean;
   include_publication_evidence?: boolean;
   max_abstracts_per_professor?: number;
@@ -177,6 +179,20 @@ export interface MatchScore {
   rerank_applied: boolean;
 }
 
+export interface MatchThresholdSettings {
+  threshold_percent: number;
+  minimum_results: number;
+}
+
+export interface MatchMetadata {
+  threshold_percent: number;
+  minimum_results: number;
+  total_candidates: number;
+  above_threshold_count: number;
+  returned_count: number;
+  fallback_top_results_used: boolean;
+}
+
 export interface MatchResponse {
   student: StudentProfile;
   matches: MatchScore[];
@@ -184,6 +200,7 @@ export interface MatchResponse {
   rerank_applied: boolean;
   rerank_model?: string | null;
   notes: string[];
+  metadata?: MatchMetadata | null;
 }
 
 export interface LocalUser {
