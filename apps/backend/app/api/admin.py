@@ -163,7 +163,13 @@ class RefreshIndexedPublicationsRequest(BaseModel):
     department: str
     max_publications: int = Field(default=10, ge=1, le=25)
     max_professors: int = Field(default=250, ge=1, le=500)
-    regenerate_summaries: bool = True
+    regenerate_summaries: bool = False
+
+
+class EnrichIndexedProfilesRequest(BaseModel):
+    university: str
+    department: str
+    max_professors: int = Field(default=250, ge=1, le=500)
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -509,15 +515,38 @@ def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_use
     return {"status": "started", "job_id": str(job.id), "message": "Durable OpenAlex-backed refresh queued. Existing indexed data is unchanged until candidates are approved/imported."}
 
 
+def _run_indexed_publication_refresh(req: RefreshIndexedPublicationsRequest) -> None:
+    from apps.backend.app.db import engine
+    with Session(engine) as session:
+        OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
+            university=req.university,
+            department=req.department,
+            max_publications=req.max_publications,
+            max_professors=req.max_professors,
+            regenerate_summaries=False,
+        )
+
+
+def _run_indexed_profile_enrichment(req: EnrichIndexedProfilesRequest) -> None:
+    from apps.backend.app.db import engine
+    with Session(engine) as session:
+        OpenAlexPublicationRevisionService(session).enrich_indexed_department_profiles(
+            university=req.university,
+            department=req.department,
+            max_professors=req.max_professors,
+        )
+
+
 @router.post("/indexed-departments/fetch-publications")
-def refresh_indexed_department_publications(req: RefreshIndexedPublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
-        university=req.university,
-        department=req.department,
-        max_publications=req.max_publications,
-        max_professors=req.max_professors,
-        regenerate_summaries=req.regenerate_summaries,
-    )
+def refresh_indexed_department_publications(req: RefreshIndexedPublicationsRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
+    background_tasks.add_task(_run_indexed_publication_refresh, req)
+    return {"status": "started", "message": "OpenAlex publication refresh started in the background. This replaces publications only; run Enrich profiles after it finishes."}
+
+
+@router.post("/indexed-departments/enrich-profiles")
+def enrich_indexed_department_profiles(req: EnrichIndexedProfilesRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
+    background_tasks.add_task(_run_indexed_profile_enrichment, req)
+    return {"status": "started", "message": "Profile enrichment started in the background using profile text plus existing/OpenAlex publications."}
 
 
 @router.delete("/indexed-departments")

@@ -113,7 +113,7 @@ class OpenAlexPublicationRevisionService:
         department: str,
         max_publications: int = 10,
         max_professors: int = 250,
-        regenerate_summaries: bool = True,
+        regenerate_summaries: bool = False,
     ) -> dict[str, Any]:
         professors = list(
             self.session.exec(
@@ -174,7 +174,54 @@ class OpenAlexPublicationRevisionService:
             "errors": errors,
             "publications_inserted": publications_inserted,
             "max_publications": max_publications,
+            "summaries_regenerated": regenerate_summaries,
         }
+
+    def enrich_indexed_department_profiles(
+        self,
+        *,
+        university: str,
+        department: str,
+        max_professors: int = 250,
+    ) -> dict[str, Any]:
+        professors = list(
+            self.session.exec(
+                select(Professor)
+                .where(Professor.university == university, Professor.department == department)
+                .order_by(Professor.name)
+                .limit(max_professors)
+            ).all()
+        )
+        enriched = 0
+        skipped = 0
+        errors = 0
+        for professor in professors:
+            try:
+                publications = [
+                    {
+                        "title": publication.title,
+                        "year": publication.year,
+                        "venue": publication.venue,
+                        "abstract": publication.abstract,
+                    }
+                    for publication in self.session.exec(select(Publication).where(Publication.professor_id == professor.id)).all()
+                ]
+                if not (professor.research_text or professor.research_summary or publications):
+                    skipped += 1
+                    continue
+                summary = self._summary_for_professor(professor, publications)
+                if not summary:
+                    skipped += 1
+                    continue
+                professor.research_summary = summary
+                professor.updated_at = utcnow()
+                self.session.add(professor)
+                self.session.commit()
+                enriched += 1
+            except Exception:
+                self.session.rollback()
+                errors += 1
+        return {"professors_seen": len(professors), "professors_enriched": enriched, "professors_skipped": skipped, "errors": errors}
 
     def _summary_for_professor(self, professor: Professor, publications: list[dict[str, Any]]) -> str | None:
         if not publications:

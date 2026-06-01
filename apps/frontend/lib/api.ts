@@ -265,15 +265,22 @@ export function refreshIndexedDepartment(payload: { university: string; departme
   });
 }
 
-export function refreshIndexedDepartmentPublications(payload: { university: string; department: string; max_publications?: number; max_professors?: number; regenerate_summaries?: boolean }) {
-  return request<{ professors_seen: number; professors_refreshed: number; professors_skipped: number; errors: number; publications_inserted: number; max_publications: number }>('/api/admin/indexed-departments/fetch-publications', {
+export function refreshIndexedDepartmentPublications(payload: { university: string; department: string; max_publications?: number; max_professors?: number }) {
+  return request<{ status: string; message: string }>('/api/admin/indexed-departments/fetch-publications', {
     method: 'POST',
     body: JSON.stringify({
       max_publications: 10,
       max_professors: 250,
-      regenerate_summaries: true,
       ...payload,
+      regenerate_summaries: false,
     }),
+  });
+}
+
+export function enrichIndexedDepartmentProfiles(payload: { university: string; department: string; max_professors?: number }) {
+  return request<{ status: string; message: string }>('/api/admin/indexed-departments/enrich-profiles', {
+    method: 'POST',
+    body: JSON.stringify({ max_professors: 250, ...payload }),
   });
 }
 

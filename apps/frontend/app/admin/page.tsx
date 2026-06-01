@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { deleteIndexedDepartment, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications } from '@/lib/api';
+import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
 
@@ -19,6 +19,7 @@ export default function AdminDashboardPage() {
   const [refreshUrl, setRefreshUrl] = useState('');
   const [deleteGroup, setDeleteGroup] = useState<IndexedDepartment | null>(null);
   const [publicationRefreshGroup, setPublicationRefreshGroup] = useState<IndexedDepartment | null>(null);
+  const [enrichGroup, setEnrichGroup] = useState<IndexedDepartment | null>(null);
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
@@ -77,13 +78,31 @@ export default function AdminDashboardPage() {
         university: publicationRefreshGroup.university,
         department: publicationRefreshGroup.department,
         max_publications: 10,
-        regenerate_summaries: true,
       });
-      setMessage(`OpenAlex refresh complete: ${result.professors_refreshed}/${result.professors_seen} professors refreshed, ${result.publications_inserted} publications inserted, ${result.errors} errors.`);
+      setMessage(`${result.message} Refresh this page after a few minutes, then run Enrich profiles.`);
       setPublicationRefreshGroup(null);
       load();
     } catch (e: any) {
       setMessage(e.message || 'Could not fetch OpenAlex publications.');
+    } finally {
+      setRefreshing(null);
+    }
+  }
+
+  async function confirmEnrichProfiles() {
+    if (!enrichGroup) return;
+    const key = `${enrichGroup.university}-${enrichGroup.department}`;
+    setRefreshing(key);
+    setMessage('');
+    try {
+      const result = await enrichIndexedDepartmentProfiles({
+        university: enrichGroup.university,
+        department: enrichGroup.department,
+      });
+      setMessage(result.message);
+      setEnrichGroup(null);
+    } catch (e: any) {
+      setMessage(e.message || 'Could not start profile enrichment.');
     } finally {
       setRefreshing(null);
     }
@@ -146,7 +165,8 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
                   <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
                   <td style={{ padding: 10 }} align="right">
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Working…' : 'Fetch 10 pubs'}</button>{' '}
+                    <button className="button secondary" disabled={refreshing === key} onClick={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</button>{' '}
+                    <button className="button secondary" disabled={refreshing === key} onClick={() => setEnrichGroup(group)}>Enrich profiles</button>{' '}
                     <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</button>{' '}
                     <button className="button secondary danger-button" onClick={() => setDeleteGroup(group)}>Delete</button>
                   </td>
@@ -216,10 +236,20 @@ export default function AdminDashboardPage() {
         open={!!publicationRefreshGroup}
         variant="warning"
         title="Fetch 10 OpenAlex publications?"
-        message={`Replace existing publication lists for ${publicationRefreshGroup?.university || ''} · ${publicationRefreshGroup?.department || ''} with up to 10 OpenAlex publications per professor, then regenerate summaries from profile text plus publication evidence.`}
+        message={`Replace existing publication lists for ${publicationRefreshGroup?.university || ''} · ${publicationRefreshGroup?.department || ''} with up to 10 OpenAlex publications per professor. This runs in the background and does not enrich summaries; use Enrich profiles as the next step.`}
         confirmLabel="Fetch 10 publications"
         onCancel={() => setPublicationRefreshGroup(null)}
         onConfirm={confirmPublicationRefresh}
+        confirming={!!refreshing}
+      />
+      <ConfirmDialog
+        open={!!enrichGroup}
+        variant="warning"
+        title="Enrich profiles?"
+        message={`Regenerate research summaries for ${enrichGroup?.university || ''} · ${enrichGroup?.department || ''} using profile text plus the current publication evidence. Run this after Fetch 10 pubs completes.`}
+        confirmLabel="Enrich profiles"
+        onCancel={() => setEnrichGroup(null)}
+        onConfirm={confirmEnrichProfiles}
         confirming={!!refreshing}
       />
       <ConfirmDialog
