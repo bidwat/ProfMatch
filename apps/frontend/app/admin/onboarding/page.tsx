@@ -22,9 +22,7 @@ export default function AgenticOnboardingPage() {
   const router = useRouter();
   const jobId = searchParams.get('job');
   
-  const [url, setUrl] = useState('');
-  const [university, setUniversity] = useState('');
-  const [department, setDepartment] = useState('Computer Science');
+  const [items, setItems] = useState([{ url: '', university: '', department: 'Computer Science' }]);
   const [automatic, setAutomatic] = useState(false);
   const [triggering, setTriggering] = useState(false);
   const [message, setMessage] = useState('');
@@ -47,12 +45,17 @@ export default function AgenticOnboardingPage() {
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url || !university) return;
+    const validItems = items.filter(item => item.url.trim() && item.university.trim());
+    if (validItems.length === 0) return;
     setTriggering(true);
     setMessage('');
     try {
       const res = await createScanJob({
-        items: [{ university, department, faculty_url: url }],
+        items: validItems.map(item => ({
+          university: item.university.trim(),
+          department: item.department.trim() || 'Computer Science',
+          faculty_url: item.url.trim(),
+        })),
         settings: { fetch_publications: true, llm_extraction: automatic, max_attempts: 3 },
       });
       router.push(`/admin/scans?job=${res.job_id}`);
@@ -252,27 +255,33 @@ export default function AgenticOnboardingPage() {
         <div>
           <p className="muted small-text">Local admin · Interactive UI</p>
           <h2>Agentic Roster Onboarding</h2>
-          <p className="muted">Enter a faculty directory. The AI will extract the data step-by-step.</p>
+          <p className="muted">Enter one or more faculty directories. The durable worker will process each department as a separate task.</p>
         </div>
         <a className="button secondary" href="/admin/scans">Back to Scans</a>
       </div>
 
       <div className="grid two" style={{ alignItems: 'start' }}>
         <div className="card">
-          <h3>Start New Agentic Scan</h3>
+          <h3>Create Durable Scan Job</h3>
           <form onSubmit={handleStart} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: 16 }}>
-            <div>
-              <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>Faculty Directory URL</label>
-              <input className="input" type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://cs.university.edu/faculty" required />
-            </div>
-            <div>
-              <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>University Name</label>
-              <input className="input" type="text" value={university} onChange={e => setUniversity(e.target.value)} placeholder="e.g. Stanford University" required />
-            </div>
-            <div>
-              <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>Department Name</label>
-              <input className="input" type="text" value={department} onChange={e => setDepartment(e.target.value)} required />
-            </div>
+            {items.map((item, index) => (
+              <div className="card soft" key={index} style={{ display: 'grid', gap: 10 }}>
+                <div className="row between"><strong>Department {index + 1}</strong>{items.length > 1 && <button className="ghost small" type="button" onClick={() => setItems(rows => rows.filter((_, i) => i !== index))}>Remove</button>}</div>
+                <div>
+                  <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>Faculty Directory URL</label>
+                  <input className="input" type="url" value={item.url} onChange={e => setItems(rows => rows.map((row, i) => i === index ? { ...row, url: e.target.value } : row))} placeholder="https://cs.university.edu/faculty" required={index === 0} />
+                </div>
+                <div>
+                  <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>University Name</label>
+                  <input className="input" type="text" value={item.university} onChange={e => setItems(rows => rows.map((row, i) => i === index ? { ...row, university: e.target.value } : row))} placeholder="e.g. Stanford University" required={index === 0} />
+                </div>
+                <div>
+                  <label className="small-text muted" style={{ display: 'block', marginBottom: 4 }}>Department Name</label>
+                  <input className="input" type="text" value={item.department} onChange={e => setItems(rows => rows.map((row, i) => i === index ? { ...row, department: e.target.value } : row))} />
+                </div>
+              </div>
+            ))}
+            <button className="button secondary" type="button" onClick={() => setItems(rows => [...rows, { url: '', university: '', department: 'Computer Science' }])} style={{ alignSelf: 'flex-start' }}>Add another department</button>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="muted small-text">
               <input type="checkbox" checked={automatic} onChange={e => setAutomatic(e.target.checked)} />
               Automatic Mode (extracts, enriches, and summarizes without waiting)
