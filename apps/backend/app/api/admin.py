@@ -17,6 +17,7 @@ from apps.backend.app.services.admin_scan_service import AdminScanService
 from apps.backend.app.services.import_service import ImportService
 from apps.backend.app.services.professor_service import ProfessorService
 from apps.backend.app.services.recommendation_service import RecommendationService
+from apps.backend.app.services.openalex_publication_service import OpenAlexPublicationRevisionService
 from apps.backend.app.services.scan_job_service import ScanJobService
 
 
@@ -152,6 +153,11 @@ class CreateScanJobRequest(BaseModel):
     settings: dict[str, Any] = Field(default_factory=dict)
 
 
+class RevisePublicationsRequest(BaseModel):
+    max_publications: int = Field(default=10, ge=1, le=25)
+    use_llm_verification: bool = False
+
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -231,6 +237,24 @@ def import_scan_result(result_id: int, _: User = Depends(require_admin), session
     if not result:
         raise HTTPException(status_code=404, detail="Scan result not found")
     return {"result": result}
+
+
+@router.post("/scan-jobs/{job_id}/fetch-publications")
+def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    job = ScanJobService(session).get_scan_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Scan job not found")
+    summary = OpenAlexPublicationRevisionService(session).fetch_job_publications(
+        job_id,
+        max_publications=req.max_publications,
+        use_llm_verification=req.use_llm_verification,
+    )
+    return {"summary": summary}
+
+
+@router.post("/scan-jobs/{job_id}/revise-publications")
+def revise_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return fetch_scan_job_publications(job_id, req, _, session)
 
 
 @router.post("/scan-jobs/{job_id}/import-approved")

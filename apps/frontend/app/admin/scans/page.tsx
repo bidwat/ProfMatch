@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus, listScanJobs, getScanJob, listScanJobTasks, listScanJobResults, listScanJobLogs, cancelScanJob, approveScanResult, rejectScanResult, importApprovedScanResults } from '@/lib/api';
+import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus, listScanJobs, getScanJob, listScanJobTasks, listScanJobResults, listScanJobLogs, cancelScanJob, approveScanResult, rejectScanResult, fetchScanJobPublications, importApprovedScanResults } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { SkeletonLine } from '@/components/Skeleton';
 import type { AdminScanDetail, AdminScanSummary, ScanJob, ScanLog, ScanResult, ScanTask } from '@/lib/types';
@@ -227,6 +227,7 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
       <div className="row" style={{ gap: 8 }}>
         <button className="button secondary" onClick={load} disabled={loading}>Refresh</button>
         {active && <button className="button secondary" onClick={() => action(() => cancelScanJob(jobId))}>Cancel</button>}
+        {results.length > 0 && <button className="button secondary" onClick={() => action(() => fetchScanJobPublications(jobId, { max_publications: 10 }))}>Fetch 10 publications</button>}
         {results.some(r => r.status === 'approved') && <button className="button primary" onClick={() => action(() => importApprovedScanResults(jobId))}>Import approved</button>}
       </div>
     </div>
@@ -239,7 +240,8 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
     <DetailSection title="Candidate results">
       {results.length === 0 ? <p className="muted small-text">No candidates saved yet.</p> : <div className="record-list">{results.slice(0, 25).map(result => <div key={result.id} className="record-block">
         <div className="row between"><strong>{result.professor_name}</strong><Badge value={result.status} /></div>
-        <p className="muted small-text">{result.title || 'Title unknown'} · {result.university} · import: {result.import_status}</p>
+        <p className="muted small-text">{result.title || 'Title unknown'} · {result.university} · {result.publications_payload?.length || 0}/10 publications · import: {result.import_status}</p>
+        <p className="muted small-text">Fetching publications replaces the staged publication list with OpenAlex results.</p>
         {result.qa_issues?.length > 0 && <p className="muted small-text">QA: {result.qa_issues.map(issue => issue.code || issue.message).join(', ')}</p>}
         <div className="row" style={{ gap: 8, marginTop: 8 }}>
           <button className="button secondary" onClick={() => action(() => approveScanResult(result.id))}>Approve</button>

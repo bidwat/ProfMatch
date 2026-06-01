@@ -169,6 +169,17 @@ export function importScanResult(id: number | string) {
   return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/import`, { method: 'POST' });
 }
 
+export function fetchScanJobPublications(id: number | string, payload: { max_publications?: number; use_llm_verification?: boolean } = {}) {
+  return request<{ summary: Record<string, any> }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/fetch-publications`, {
+    method: 'POST',
+    body: JSON.stringify({ max_publications: payload.max_publications ?? 10, use_llm_verification: payload.use_llm_verification ?? false }),
+  });
+}
+
+export function reviseScanJobPublications(id: number | string, payload: { max_publications?: number; use_llm_verification?: boolean } = {}) {
+  return fetchScanJobPublications(id, payload);
+}
+
 export function importApprovedScanResults(id: number | string) {
   return request<{ imported_count: number; results: ScanResult[] }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/import-approved`, { method: 'POST' });
 }
