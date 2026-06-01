@@ -17,6 +17,11 @@ from sqlmodel import select
 from ..models.match import MatchEvidence, MatchScore, PublicationEvidence, StudentProfile
 from ..models.professor import Professor, Publication
 
+DEFAULT_MATCH_THRESHOLD_PERCENT = 40.0
+DEFAULT_MINIMUM_MATCH_RESULTS = 10
+MAX_MINIMUM_MATCH_RESULTS = 50
+
+
 STOP_WORDS = {
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "from",
     "into", "using", "use", "uses", "about", "across", "via", "my", "i", "am", "is", "are", "be", "as",
@@ -37,6 +42,39 @@ class Candidate:
     fts_score: float
     tags: list[str]
     publications: list[Publication]
+
+
+def _score_to_percent(score: float) -> float:
+    return score * 100.0 if score <= 1.0 else score
+
+
+def select_matches_by_threshold(
+    ranked_matches: list[MatchScore],
+    threshold_percent: float = DEFAULT_MATCH_THRESHOLD_PERCENT,
+    minimum_results: int = DEFAULT_MINIMUM_MATCH_RESULTS,
+) -> tuple[list[MatchScore], dict[str, Any]]:
+    threshold_percent = max(0.0, min(100.0, float(threshold_percent)))
+    minimum_results = max(1, min(MAX_MINIMUM_MATCH_RESULTS, int(minimum_results)))
+
+    above_threshold = [
+        match
+        for match in ranked_matches
+        if _score_to_percent(match.llm_rerank_score if match.llm_rerank_score is not None else match.total_score) >= threshold_percent
+    ]
+
+    selected_ids = {match.professor_id for match in above_threshold}
+    selected_ids.update(match.professor_id for match in ranked_matches[:minimum_results])
+    selected = [match for match in ranked_matches if match.professor_id in selected_ids]
+
+    metadata = {
+        "threshold_percent": threshold_percent,
+        "minimum_results": minimum_results,
+        "total_candidates": len(ranked_matches),
+        "above_threshold_count": len(above_threshold),
+        "returned_count": len(selected),
+        "fallback_top_results_used": len(above_threshold) < minimum_results,
+    }
+    return selected, metadata
 
 
 class MatchService:
@@ -96,13 +134,18 @@ class MatchService:
                 else:
                     notes.append("LLM rerank skipped or unavailable; returned deterministic FTS + metadata ranking.")
 
-        limit = min(student.limit, 25)
+        selected_matches, metadata = select_matches_by_threshold(
+            scores,
+            threshold_percent=student.threshold_percent,
+            minimum_results=student.minimum_results,
+        )
         return {
-            "matches": scores[:limit],
+            "matches": selected_matches,
             "shortlist_size": len(candidates),
             "rerank_applied": rerank_applied,
             "rerank_model": rerank_model if rerank_applied else None,
             "notes": notes,
+            "metadata": metadata,
         }
 
     def _fts_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:

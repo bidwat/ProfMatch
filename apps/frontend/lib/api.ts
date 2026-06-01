@@ -71,10 +71,17 @@ export function getProfessor(id: string | number) {
   return request<GetProfessorResponse>(`/api/professors/${id}`);
 }
 
-export function findMatches(student: StudentProfile) {
+export function findMatches(
+  student: StudentProfile,
+  options?: { threshold_percent?: number; minimum_results?: number }
+) {
   return request<MatchResponse>('/api/match', {
     method: 'POST',
-    body: JSON.stringify(student),
+    body: JSON.stringify({
+      ...student,
+      threshold_percent: options?.threshold_percent ?? 40,
+      minimum_results: options?.minimum_results ?? 10,
+    }),
   });
 }
 

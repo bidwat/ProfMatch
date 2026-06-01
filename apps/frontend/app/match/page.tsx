@@ -5,9 +5,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { ProfessorCard } from '@/components/ProfessorCard';
 import { LoginModal } from '@/components/LoginModal';
 import { FilterSortBar, MultiSelectFilter, SearchBox, SortSelect } from '@/components/Filters';
-import { getUserState, patchUserState } from '@/lib/api';
+import { findMatches, getUserState, patchUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
-import type { MatchResponse } from '@/lib/types';
+import type { MatchResponse, MatchScore } from '@/lib/types';
+
+function scoreToPercent(match: MatchScore) {
+  const score = match.llm_rerank_score ?? match.total_score;
+  return score <= 1 ? score * 100 : score;
+}
 
 export default function MatchPage() {
   const [matches, setMatches] = useState<MatchResponse | null>(null);
@@ -18,9 +23,16 @@ export default function MatchPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sort, setSort] = useState('match-desc');
   const [visibleCount, setVisibleCount] = useState(20);
+  const [thresholdPercent, setThresholdPercent] = useState(40);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState('');
+  const minimumResults = 10;
 
   useEffect(() => {
-    setMatches(localStore.getMatches());
+    const cachedMatches = localStore.getMatches();
+    const cachedSettings = localStore.getMatchSettings();
+    setMatches(cachedMatches);
+    setThresholdPercent(cachedSettings.threshold_percent);
     setSaved(localStore.getSaved());
     const user = localStore.getUser();
     setIsLoggedIn(!!user);
@@ -30,6 +42,13 @@ export default function MatchPage() {
       if (state.last_match_response) {
         localStore.setMatches(state.last_match_response);
         setMatches(state.last_match_response);
+        if (state.last_match_response.metadata?.threshold_percent !== undefined) {
+          localStore.setMatchSettings({
+            threshold_percent: state.last_match_response.metadata.threshold_percent,
+            minimum_results: state.last_match_response.metadata.minimum_results,
+          });
+          setThresholdPercent(state.last_match_response.metadata.threshold_percent);
+        }
       }
       if (state.saved_professor_ids) {
         localStore.setSaved(state.saved_professor_ids);
@@ -72,6 +91,61 @@ export default function MatchPage() {
     return rows;
   }, [matches, query, selectedTags, sort]);
 
+  const thresholdStatus = useMemo(() => {
+    const metadata = matches?.metadata;
+    if (!metadata) {
+      return {
+        mode: 'ranked' as const,
+        label: 'Ranked results',
+        explanation: `Showing ${matches?.matches.length || 0} ranked professors. Apply a threshold after the backend branch is deployed to see exact threshold counts.`,
+      };
+    }
+    const threshold = Math.round(metadata.threshold_percent);
+    const currentSliderDiffers = thresholdPercent !== metadata.threshold_percent;
+    if (currentSliderDiffers) {
+      return {
+        mode: 'pending' as const,
+        label: 'Threshold not applied yet',
+        explanation: `Currently showing results for ${threshold}%. Click Update results to apply ${thresholdPercent}%.`,
+      };
+    }
+    if (metadata.fallback_top_results_used) {
+      return {
+        mode: 'fallback' as const,
+        label: `Top ${metadata.minimum_results} fallback`,
+        explanation: `Only ${metadata.above_threshold_count} professors met your ${threshold}% threshold, so we’re showing your top ${metadata.minimum_results} matches.`,
+      };
+    }
+    return {
+      mode: 'threshold' as const,
+      label: `Above ${threshold}% threshold`,
+      explanation: `Showing ${metadata.returned_count} professors at or above your ${threshold}% threshold.`,
+    };
+  }, [matches, thresholdPercent]);
+
+  const refreshMatches = async () => {
+    const student = matches?.student || localStore.getProfile();
+    if (!student) return;
+    setRefreshing(true);
+    setRefreshError('');
+    try {
+      const settings = {
+        threshold_percent: thresholdPercent,
+        minimum_results: minimumResults,
+      };
+      localStore.setMatchSettings(settings);
+      const result = await findMatches(student, settings);
+      setMatches(result);
+      localStore.setMatches(result);
+      patchUserState({ last_match_response: result }).catch(() => undefined);
+      setVisibleCount(20);
+    } catch (e: any) {
+      setRefreshError(e.message || 'Could not refresh matches.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const toggleSave = (id: number) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
@@ -101,6 +175,34 @@ export default function MatchPage() {
             <h2 style={{ margin: 0 }}>Matches</h2>
             <p className="muted">{filteredMatches.length} of {matches.matches.length} matched professors</p>
           </div>
+          <button className="button primary" type="button" onClick={refreshMatches} disabled={refreshing}>
+            {refreshing ? 'Refreshing…' : 'Update results'}
+          </button>
+        </div>
+        <div className="card soft match-threshold-card">
+          <div className="row between">
+            <label className="label" htmlFor="match-threshold" style={{ margin: 0 }}>
+              Match threshold: {thresholdPercent}%
+            </label>
+            <span className={`match-threshold-mode match-threshold-mode-${thresholdStatus.mode}`}>{thresholdStatus.label}</span>
+          </div>
+          <input
+            id="match-threshold"
+            className="match-threshold-slider"
+            type="range"
+            min={10}
+            max={90}
+            step={5}
+            value={thresholdPercent}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              setThresholdPercent(next);
+              localStore.setMatchSettings({ threshold_percent: next, minimum_results: minimumResults });
+            }}
+          />
+          <p className="muted small-text">
+            Show professors at or above this score. If fewer than {minimumResults} professors meet it, we’ll still show your top {minimumResults}.
+          </p>
         </div>
         <FilterSortBar
           activeFilters={selectedTags.map(value => ({ group: 'tags', value, onRemove: () => setSelectedTags(selectedTags.filter(v => v !== value)) }))}
@@ -112,6 +214,8 @@ export default function MatchPage() {
         </FilterSortBar>
       </div>
 
+      <div className="notice" style={{ margin: 24 }}>{thresholdStatus.explanation}</div>
+      {refreshError && <div className="error" style={{ margin: 24 }}>{refreshError}</div>}
       {matches.notes.length > 0 && <div className="notice" style={{ margin: 24 }}>{matches.notes.join(' ')}</div>}
 
       <div className="cards list">
