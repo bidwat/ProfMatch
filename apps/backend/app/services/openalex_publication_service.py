@@ -6,6 +6,7 @@ from typing import Any
 import requests
 from sqlmodel import Session, select
 
+from apps.backend.app.models.professor import Professor, Publication
 from apps.backend.app.models.scan_job import ScanResult, utcnow
 from apps.backend.app.services.scan_job_service import ScanJobService
 from packages.scraper.core.enrichers.openalex import OpenAlexEnricher
@@ -104,3 +105,101 @@ class OpenAlexPublicationRevisionService:
 
     def revise_result_publications(self, result: ScanResult, *, max_publications: int = 10) -> dict[str, Any]:
         return self.fetch_result_publications(result, max_publications=max_publications)
+
+    def refresh_indexed_department_publications(
+        self,
+        *,
+        university: str,
+        department: str,
+        max_publications: int = 10,
+        max_professors: int = 250,
+        regenerate_summaries: bool = True,
+    ) -> dict[str, Any]:
+        professors = list(
+            self.session.exec(
+                select(Professor)
+                .where(Professor.university == university, Professor.department == department)
+                .order_by(Professor.name)
+                .limit(max_professors)
+            ).all()
+        )
+        refreshed = 0
+        skipped = 0
+        errors = 0
+        publications_inserted = 0
+        for professor in professors:
+            try:
+                enrichment = self.enricher.enrich_by_author_name_and_institution(
+                    professor.name,
+                    institution_name=professor.university,
+                    max_publications=max_publications,
+                )
+                if not enrichment.matched or not enrichment.records:
+                    skipped += 1
+                    continue
+                existing = self.session.exec(select(Publication).where(Publication.professor_id == professor.id)).all()
+                for publication in existing:
+                    self.session.delete(publication)
+                for record in enrichment.records[:max_publications]:
+                    title = str(record.get("title") or "").strip()
+                    if not title:
+                        continue
+                    self.session.add(Publication(
+                        professor_id=professor.id,
+                        title=title,
+                        year=int(record.get("year") or 0),
+                        venue=record.get("venue") or "Unknown",
+                        abstract=record.get("abstract"),
+                        url=record.get("url"),
+                        source="openalex",
+                        source_author_id=record.get("source_author_id") or enrichment.source_author_id,
+                        match_confidence=float(record.get("match_confidence") or enrichment.confidence or 0.5),
+                    ))
+                    publications_inserted += 1
+                professor.openalex_id = enrichment.source_author_id
+                professor.source_confidence = max(float(professor.source_confidence or 0), float(enrichment.confidence or 0))
+                professor.updated_at = utcnow()
+                if regenerate_summaries:
+                    professor.research_summary = self._summary_for_professor(professor, enrichment.records[:max_publications]) or professor.research_summary
+                self.session.add(professor)
+                refreshed += 1
+                self.session.commit()
+            except Exception:
+                self.session.rollback()
+                errors += 1
+        return {
+            "professors_seen": len(professors),
+            "professors_refreshed": refreshed,
+            "professors_skipped": skipped,
+            "errors": errors,
+            "publications_inserted": publications_inserted,
+            "max_publications": max_publications,
+        }
+
+    def _summary_for_professor(self, professor: Professor, publications: list[dict[str, Any]]) -> str | None:
+        if not publications:
+            return None
+        from apps.backend.app.services.agentic_onboarding_service import _call_llm
+        publication_context = "\n".join(
+            f"- {p.get('title')} ({p.get('year')}), {p.get('venue')}: {(p.get('abstract') or '')[:700]}"
+            for p in publications[:10]
+        )
+        prompt = f"""
+        Write a concise professor research summary using only the profile text and publication evidence below.
+        Do not invent recruiting status.
+
+        Professor: {professor.name}
+        University: {professor.university}
+        Department: {professor.department}
+        Existing profile/research text:
+        {(professor.research_text or professor.research_summary or '')[:4000]}
+
+        OpenAlex publications:
+        {publication_context[:8000]}
+
+        Return 3-5 sentences.
+        """
+        try:
+            return str(_call_llm(prompt, is_json=False)).strip()
+        except Exception:
+            return None

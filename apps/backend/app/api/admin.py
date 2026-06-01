@@ -158,6 +158,14 @@ class RevisePublicationsRequest(BaseModel):
     use_llm_verification: bool = False
 
 
+class RefreshIndexedPublicationsRequest(BaseModel):
+    university: str
+    department: str
+    max_publications: int = Field(default=10, ge=1, le=25)
+    max_professors: int = Field(default=250, ge=1, le=500)
+    regenerate_summaries: bool = True
+
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -491,20 +499,25 @@ def list_recommendations(_: User = Depends(require_admin)):
 
 
 @router.post("/indexed-departments/refresh")
-def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    job_id = service.create_job(req.faculty_page_url, req.university, req.department)
+def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_user: User = Depends(require_admin), session: Session = Depends(get_session)):
+    job = ScanJobService(session).create_scan_job(
+        items=[{"university": req.university, "department": req.department, "faculty_url": req.faculty_page_url}],
+        settings={"fetch_publications": True, "openalex_publications": True, "max_publications": 10, "regenerate_summaries": True},
+        created_by_user_id=current_user.id,
+        job_type="refresh_existing_department",
+    )
+    return {"status": "started", "job_id": str(job.id), "message": "Durable OpenAlex-backed refresh queued. Existing indexed data is unchanged until candidates are approved/imported."}
 
-    async def run_bg():
-        if req.automatic:
-            await service.run_automatic_pipeline(job_id)
-        else:
-            await service.run_extract_roster(job_id)
 
-    import asyncio
-    background_tasks.add_task(lambda: asyncio.run(run_bg()))
-    return {"status": "started", "job_id": job_id, "message": "Refresh staged in agentic workflow. Existing indexed data is unchanged until publish is confirmed."}
+@router.post("/indexed-departments/fetch-publications")
+def refresh_indexed_department_publications(req: RefreshIndexedPublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
+        university=req.university,
+        department=req.department,
+        max_publications=req.max_publications,
+        max_professors=req.max_professors,
+        regenerate_summaries=req.regenerate_summaries,
+    )
 
 
 @router.delete("/indexed-departments")

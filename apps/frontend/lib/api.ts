@@ -265,6 +265,18 @@ export function refreshIndexedDepartment(payload: { university: string; departme
   });
 }
 
+export function refreshIndexedDepartmentPublications(payload: { university: string; department: string; max_publications?: number; max_professors?: number; regenerate_summaries?: boolean }) {
+  return request<{ professors_seen: number; professors_refreshed: number; professors_skipped: number; errors: number; publications_inserted: number; max_publications: number }>('/api/admin/indexed-departments/fetch-publications', {
+    method: 'POST',
+    body: JSON.stringify({
+      max_publications: 10,
+      max_professors: 250,
+      regenerate_summaries: true,
+      ...payload,
+    }),
+  });
+}
+
 export function deleteIndexedDepartment(payload: { university: string; department: string; confirm: boolean }) {
   return request<{ status: string; professors_deleted: number; publications_deleted: number }>('/api/admin/indexed-departments', {
     method: 'DELETE',

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { deleteIndexedDepartment, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment } from '@/lib/api';
+import { deleteIndexedDepartment, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
 
@@ -18,6 +18,7 @@ export default function AdminDashboardPage() {
   const [refreshGroup, setRefreshGroup] = useState<IndexedDepartment | null>(null);
   const [refreshUrl, setRefreshUrl] = useState('');
   const [deleteGroup, setDeleteGroup] = useState<IndexedDepartment | null>(null);
+  const [publicationRefreshGroup, setPublicationRefreshGroup] = useState<IndexedDepartment | null>(null);
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
@@ -61,6 +62,28 @@ export default function AdminDashboardPage() {
       load();
     } catch (e: any) {
       setMessage(e.message || 'Could not start refresh.');
+    } finally {
+      setRefreshing(null);
+    }
+  }
+
+  async function confirmPublicationRefresh() {
+    if (!publicationRefreshGroup) return;
+    const key = `${publicationRefreshGroup.university}-${publicationRefreshGroup.department}`;
+    setRefreshing(key);
+    setMessage('');
+    try {
+      const result = await refreshIndexedDepartmentPublications({
+        university: publicationRefreshGroup.university,
+        department: publicationRefreshGroup.department,
+        max_publications: 10,
+        regenerate_summaries: true,
+      });
+      setMessage(`OpenAlex refresh complete: ${result.professors_refreshed}/${result.professors_seen} professors refreshed, ${result.publications_inserted} publications inserted, ${result.errors} errors.`);
+      setPublicationRefreshGroup(null);
+      load();
+    } catch (e: any) {
+      setMessage(e.message || 'Could not fetch OpenAlex publications.');
     } finally {
       setRefreshing(null);
     }
@@ -123,7 +146,8 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
                   <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
                   <td style={{ padding: 10 }} align="right">
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>{refreshing === key ? 'Starting…' : 'Update'}</button>{' '}
+                    <button className="button secondary" disabled={refreshing === key} onClick={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Working…' : 'Fetch 10 pubs'}</button>{' '}
+                    <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</button>{' '}
                     <button className="button secondary danger-button" onClick={() => setDeleteGroup(group)}>Delete</button>
                   </td>
                 </tr>
@@ -178,7 +202,7 @@ export default function AdminDashboardPage() {
       <ConfirmDialog
         open={!!refreshGroup}
         title="Stage department refresh"
-        message="Enter the faculty page URL. This starts a staged agentic workflow; existing indexed data is not replaced until publish is confirmed."
+        message="Enter the faculty page URL. This starts a durable OpenAlex-backed scan workflow; existing indexed data is not replaced until candidates are approved/imported."
         confirmLabel="Start refresh"
         value={refreshUrl}
         valueLabel="Faculty page URL"
@@ -186,6 +210,16 @@ export default function AdminDashboardPage() {
         onValueChange={setRefreshUrl}
         onCancel={() => setRefreshGroup(null)}
         onConfirm={confirmRefresh}
+        confirming={!!refreshing}
+      />
+      <ConfirmDialog
+        open={!!publicationRefreshGroup}
+        variant="warning"
+        title="Fetch 10 OpenAlex publications?"
+        message={`Replace existing publication lists for ${publicationRefreshGroup?.university || ''} · ${publicationRefreshGroup?.department || ''} with up to 10 OpenAlex publications per professor, then regenerate summaries from profile text plus publication evidence.`}
+        confirmLabel="Fetch 10 publications"
+        onCancel={() => setPublicationRefreshGroup(null)}
+        onConfirm={confirmPublicationRefresh}
         confirming={!!refreshing}
       />
       <ConfirmDialog
