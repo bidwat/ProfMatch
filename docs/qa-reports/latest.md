@@ -224,3 +224,32 @@ Notes:
 - Runtime secrets are stored in `/opt/profmatch/.env` on the Droplet, not in Git.
 - GitHub Actions secrets are CI/deploy credentials only; they are not application runtime environment variables.
 - User plans to rotate previously exposed OpenRouter/Supabase keys.
+
+## 2026-06-01 — Milestone 3 durable scan jobs partial implementation QA
+
+Status: PARTIAL. Implemented durable Postgres-backed scan job/task/result/log models, service, worker entrypoint, admin APIs, and admin UI surfaces. Full live crawler restart/parallel production QA remains pending until the worker service is deployed and real admin scan jobs are exercised.
+
+### Verified locally
+
+```bash
+apps/backend/venv/bin/python -m py_compile apps/backend/app/models/scan_job.py apps/backend/app/services/scan_job_service.py apps/backend/app/services/scan_task_runner.py apps/backend/app/workers/scan_worker.py apps/backend/app/api/admin.py
+apps/backend/venv/bin/python -m pytest apps/backend/tests -q
+npm --prefix apps/frontend run lint
+npm --prefix apps/frontend run build
+```
+
+Results:
+
+- Backend py_compile: PASS
+- Backend pytest: PASS, 41/41
+- Frontend lint: PASS
+- Frontend build: PASS
+
+### Remaining QA before Milestone 3 can be called complete
+
+- Run backend + `make worker` together against the target Postgres database.
+- Create a 5+ department scan job and verify at least 2 tasks run in parallel.
+- Kill/restart the worker and verify locked tasks are reclaimed after lease expiry.
+- Verify durable task logs/results remain visible after backend restart.
+- Approve/reject/import candidates from `/admin/scans` and verify idempotent duplicate handling.
+- Deploy a separate production worker service and repeat restart QA.

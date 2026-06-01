@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus, listScanJobs, getScanJob, listScanJobTasks, listScanJobResults, listScanJobLogs, cancelScanJob, approveScanResult, rejectScanResult, importApprovedScanResults } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { SkeletonLine } from '@/components/Skeleton';
-import type { AdminScanDetail, AdminScanSummary } from '@/lib/types';
+import type { AdminScanDetail, AdminScanSummary, ScanJob, ScanLog, ScanResult, ScanTask } from '@/lib/types';
 
 export default function AdminScansPage() {
+  const searchParams = useSearchParams();
   const [scans, setScans] = useState<AdminScanSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,17 +17,25 @@ export default function AdminScansPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [adapters, setAdapters] = useState<string[]>([]);
   const [jobStatus, setJobStatus] = useState<{ status: string; message: string }>({ status: 'idle', message: 'No active jobs' });
+  const [durableJobs, setDurableJobs] = useState<ScanJob[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
   const fetchScans = useCallback(() => {
     setLoading(true);
-    listAdminScans()
-      .then(response => {
-        setScans(response.scans);
-        setSelectedId(current => current || response.scans[0]?.id || null);
+    Promise.all([
+      listAdminScans().catch(() => ({ scans: [] })),
+      listScanJobs({ limit: 50 }).catch(() => ({ jobs: [] })),
+    ])
+      .then(([artifactResponse, jobResponse]) => {
+        setScans(artifactResponse.scans);
+        setDurableJobs(jobResponse.jobs);
+        setSelectedId(current => current || artifactResponse.scans[0]?.id || null);
+        const requestedJobId = Number(searchParams.get('job')) || null;
+        setSelectedJobId(current => requestedJobId || current || jobResponse.jobs[0]?.id || null);
       })
-      .catch((e: any) => setError(e.message || 'Could not load scan artifacts. Admin access may be required.'))
+      .catch((e: any) => setError(e.message || 'Could not load scan jobs. Admin access may be required.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     listAdapters()
@@ -67,16 +77,37 @@ export default function AdminScansPage() {
         <div>
           <p className="muted small-text">Local admin · QA-gated ingestion</p>
           <h2>University Scan Dashboard</h2>
-          <p className="muted">Review real scan artifacts before any SQLite import. This page reads files under <code>data/qa/scraper_runs</code>.</p>
+          <p className="muted">Review durable Postgres scan jobs, task state, logs, and importable candidates. Legacy QA artifacts remain visible below.</p>
         </div>
         <a className="button secondary" href="/professors">Browse indexed professors</a>
       </div>
 
       <div className="grid">
-        <div className="card stat"><strong>{scans.length}</strong><span>scan runs</span></div>
-        <div className="card stat"><strong>{totals.professors}</strong><span>candidate professors</span></div>
-        <div className="card stat"><strong>{totals.ready}</strong><span>ready for import</span></div>
-        <div className="card stat"><strong>{totals.issues}</strong><span>QA issues</span></div>
+        <div className="card stat"><strong>{durableJobs.length}</strong><span>durable jobs</span></div>
+        <div className="card stat"><strong>{durableJobs.reduce((sum, job) => sum + job.running_tasks, 0)}</strong><span>running tasks</span></div>
+        <div className="card stat"><strong>{durableJobs.reduce((sum, job) => sum + job.failed_tasks, 0)}</strong><span>failed tasks</span></div>
+        <div className="card stat"><strong>{totals.ready}</strong><span>legacy imports ready</span></div>
+      </div>
+
+      <div className="grid two" style={{ marginTop: 22, alignItems: 'start' }}>
+        <div className="card" style={{ overflowX: 'auto' }}>
+          <h3>Durable scan jobs</h3>
+          <p className="muted small-text">Postgres-backed job/task state survives refreshes and worker restarts.</p>
+          {durableJobs.length === 0 ? <p className="muted" style={{ marginTop: 12 }}>No durable scan jobs yet. Start one from Agentic Onboarding.</p> : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
+              <thead><tr className="muted small-text"><th align="left">Job</th><th>Status</th><th>Progress</th><th>Tasks</th></tr></thead>
+              <tbody>{durableJobs.map(job => (
+                <tr key={job.id} onClick={() => setSelectedJobId(job.id)} className={selectedJobId === job.id ? 'table-row selected' : 'table-row'}>
+                  <td style={{ padding: 10 }}><strong>#{job.id}</strong><br /><span className="muted small-text">{formatDate(job.created_at)} · {job.job_type}</span></td>
+                  <td style={{ padding: 10 }}><Badge value={job.status} /></td>
+                  <td style={{ padding: 10 }}><div className="progress"><span style={{ width: `${job.progress_percent}%` }} /></div><span className="muted small-text">{Math.round(job.progress_percent)}%</span></td>
+                  <td style={{ padding: 10 }} className="muted small-text">{job.succeeded_tasks} ok · {job.running_tasks} running · {job.queued_tasks} queued · {job.failed_tasks} failed</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          )}
+        </div>
+        <DurableJobDetail jobId={selectedJobId} onRefresh={fetchScans} />
       </div>
 
       <div className="grid two" style={{ alignItems: 'start' }}>
@@ -150,6 +181,77 @@ export default function AdminScansPage() {
       )}
     </div>
   );
+}
+
+function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefresh: () => void }) {
+  const [job, setJob] = useState<ScanJob | null>(null);
+  const [tasks, setTasks] = useState<ScanTask[]>([]);
+  const [results, setResults] = useState<ScanResult[]>([]);
+  const [logs, setLogs] = useState<ScanLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const active = job && ['queued', 'running'].includes(job.status);
+
+  const load = useCallback(() => {
+    if (!jobId) return;
+    setLoading(true);
+    Promise.all([getScanJob(jobId), listScanJobTasks(jobId), listScanJobResults(jobId), listScanJobLogs(jobId)])
+      .then(([jobRes, taskRes, resultRes, logRes]) => {
+        setJob(jobRes.job);
+        setTasks(taskRes.tasks);
+        setResults(resultRes.results);
+        setLogs(logRes.logs);
+      })
+      .finally(() => setLoading(false));
+  }, [jobId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    if (!active) return;
+    const interval = setInterval(load, 7000);
+    return () => clearInterval(interval);
+  }, [active, load]);
+
+  const action = async (fn: () => Promise<any>) => {
+    await fn();
+    load();
+    onRefresh();
+  };
+
+  if (!jobId) return <div className="card"><h3>Durable job detail</h3><p className="muted">Select a durable job.</p></div>;
+  return <div className="card">
+    <div className="row between">
+      <div><h3>Job #{jobId}</h3>{job && <p className="muted small-text">{job.status} · {job.total_tasks} task(s)</p>}</div>
+      <div className="row" style={{ gap: 8 }}>
+        <button className="button secondary" onClick={load} disabled={loading}>Refresh</button>
+        {active && <button className="button secondary" onClick={() => action(() => cancelScanJob(jobId))}>Cancel</button>}
+        {results.some(r => r.status === 'approved') && <button className="button primary" onClick={() => action(() => importApprovedScanResults(jobId))}>Import approved</button>}
+      </div>
+    </div>
+    {job && <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${job.progress_percent}%` }} /></div>}
+
+    <DetailSection title="Tasks">
+      {tasks.length === 0 ? <p className="muted small-text">No tasks yet.</p> : <div className="record-list">{tasks.map(task => <div key={task.id} className="record-block"><strong>{task.university} · {task.department}</strong><br /><Badge value={task.status} /> <span className="muted small-text">attempt {task.attempt_count}/{task.max_attempts}</span>{task.last_error && <p className="error" style={{ marginTop: 8 }}>{task.last_error}</p>}</div>)}</div>}
+    </DetailSection>
+
+    <DetailSection title="Candidate results">
+      {results.length === 0 ? <p className="muted small-text">No candidates saved yet.</p> : <div className="record-list">{results.slice(0, 25).map(result => <div key={result.id} className="record-block">
+        <div className="row between"><strong>{result.professor_name}</strong><Badge value={result.status} /></div>
+        <p className="muted small-text">{result.title || 'Title unknown'} · {result.university} · import: {result.import_status}</p>
+        {result.qa_issues?.length > 0 && <p className="muted small-text">QA: {result.qa_issues.map(issue => issue.code || issue.message).join(', ')}</p>}
+        <div className="row" style={{ gap: 8, marginTop: 8 }}>
+          <button className="button secondary" onClick={() => action(() => approveScanResult(result.id))}>Approve</button>
+          <button className="button secondary" onClick={() => action(() => rejectScanResult(result.id))}>Reject</button>
+        </div>
+      </div>)}</div>}
+    </DetailSection>
+
+    <DetailSection title="Logs">
+      {logs.length === 0 ? <p className="muted small-text">No logs yet.</p> : <div className="record-list">{logs.slice(0, 30).map(log => <div key={log.id} className="record-block"><Badge value={log.level} /> <strong>{log.event_type}</strong><p className="muted small-text">{formatDate(log.created_at)} · {log.message}</p></div>)}</div>}
+    </DetailSection>
+  </div>;
 }
 
 function ScanDetail({ scan }: { scan: AdminScanDetail }) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { onboardUniversity, getAgenticJob, enrichAgenticHomepage, fetchAgenticPublications, generateAgenticSummary, publishAgenticJob, listAgenticJobs, stopAgenticJob, deleteAgenticJob } from '@/lib/api';
+import { createScanJob, getAgenticJob, enrichAgenticHomepage, fetchAgenticPublications, generateAgenticSummary, publishAgenticJob, listAgenticJobs, stopAgenticJob, deleteAgenticJob } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Avatar } from '@/components/ProfessorCard';
 
@@ -51,8 +51,11 @@ export default function AgenticOnboardingPage() {
     setTriggering(true);
     setMessage('');
     try {
-      const res = await onboardUniversity({ url, university, department, automatic });
-      router.push(`/admin/onboarding?job=${res.job_id}`);
+      const res = await createScanJob({
+        items: [{ university, department, faculty_url: url }],
+        settings: { fetch_publications: true, llm_extraction: automatic, max_attempts: 3 },
+      });
+      router.push(`/admin/scans?job=${res.job_id}`);
     } catch (err: any) {
       setMessage(err.message || 'Failed to start.');
     } finally {
