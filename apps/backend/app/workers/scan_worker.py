@@ -34,10 +34,10 @@ class ScanWorker:
         while not self.stop_event.is_set():
             self.active = {task for task in self.active if not task.done()}
             while len(self.active) < self.concurrency and not self.stop_event.is_set():
-                claimed = self.claim_one()
-                if not claimed:
+                claimed_task_id = self.claim_one()
+                if not claimed_task_id:
                     break
-                task = asyncio.create_task(self.run_one(claimed))
+                task = asyncio.create_task(self.run_one(claimed_task_id))
                 self.active.add(task)
             if self.active:
                 done, _ = await asyncio.wait(self.active, timeout=self.poll_interval, return_when=asyncio.FIRST_COMPLETED)
@@ -52,15 +52,18 @@ class ScanWorker:
         if self.active:
             await asyncio.wait(self.active, timeout=10)
 
-    def claim_one(self):
+    def claim_one(self) -> int | None:
         with Session(engine) as session:
-            return ScanJobService(session).claim_next_scan_task(self.worker_id, self.lease_seconds)
+            task = ScanJobService(session).claim_next_scan_task(self.worker_id, self.lease_seconds)
+            return task.id if task else None
 
-    async def run_one(self, scan_task) -> None:
-        heartbeat = asyncio.create_task(self.heartbeat_loop(scan_task.id))
+    async def run_one(self, task_id: int) -> None:
+        heartbeat = asyncio.create_task(self.heartbeat_loop(task_id))
         try:
             with Session(engine) as session:
-                await run_department_scan_task(scan_task, session, self.worker_id)
+                scan_task = ScanJobService(session).get_scan_task(task_id)
+                if scan_task:
+                    await run_department_scan_task(scan_task, session, self.worker_id)
         finally:
             heartbeat.cancel()
             try:
