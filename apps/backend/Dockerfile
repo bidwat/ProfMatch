@@ -14,6 +14,7 @@ RUN python -m playwright install --with-deps chromium \
 
 COPY apps /app/apps
 COPY packages /app/packages
+COPY scripts /app/scripts
 COPY db/professor_match_publications.sqlite /app/seed-db/professor_match_publications.sqlite
 
 EXPOSE 8000
