@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select
 from sqlalchemy import func, distinct
-from apps.backend.app.db import get_session, DATABASE_URL, DB_PATH
+from apps.backend.app.db import get_session, DATABASE_URL, DB_PATH, is_production_mode
 from apps.backend.app.models.professor import Professor, Publication
 
 
@@ -24,6 +24,40 @@ class ExplorerStatsResponse(BaseModel):
 
 
 router = APIRouter()
+
+
+def _db_kind() -> str:
+    if DATABASE_URL.startswith("sqlite"):
+        return "sqlite"
+    if DATABASE_URL.startswith("postgresql+psycopg"):
+        return "postgres"
+    return "other"
+
+
+@router.get("/health")
+def api_health():
+    return {"status": "healthy"}
+
+
+@router.get("/health/db")
+def api_health_db(session: Session = Depends(get_session)):
+    try:
+        professor_count = int(session.exec(select(func.count(Professor.id))).one() or 0)
+        publication_count = int(session.exec(select(func.count(Publication.id))).one() or 0)
+        db_kind = _db_kind()
+        if is_production_mode() and db_kind == "sqlite":
+            raise HTTPException(status_code=500, detail="Production is using SQLite; expected Postgres")
+        return {
+            "status": "healthy",
+            "database": db_kind,
+            "production": is_production_mode(),
+            "professor_count": professor_count,
+            "publication_count": publication_count,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database health check failed: {str(e)}")
 
 
 @router.get("/stats", response_model=ExplorerStatsResponse)

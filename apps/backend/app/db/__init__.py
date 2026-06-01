@@ -30,6 +30,10 @@ def _supabase_database_url() -> str:
     return f"postgresql+psycopg://{quote_plus(user)}:{quote_plus(password)}@{host}:{port}/{database}?sslmode={quote_plus(sslmode)}"
 
 
+def is_production_mode() -> bool:
+    return os.environ.get("APP_ENV", "").strip().lower() in {"prod", "production"}
+
+
 def _database_url() -> str:
     """Return production DATABASE_URL/Supabase URL when set, otherwise SQLite."""
     raw_url = os.environ.get("DATABASE_URL", "").strip()
@@ -39,6 +43,9 @@ def _database_url() -> str:
     supabase_url = _supabase_database_url()
     if supabase_url:
         return supabase_url
+
+    if is_production_mode():
+        raise RuntimeError("APP_ENV=production requires DATABASE_URL or Supabase Postgres variables; refusing SQLite fallback")
 
     db_path = Path(os.environ.get("PROFESSOR_MATCH_DB_PATH", DEFAULT_DB_PATH)).expanduser().resolve()
     return f"sqlite:///{db_path}"
