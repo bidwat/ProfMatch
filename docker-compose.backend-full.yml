@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      PORT: 8000
+    ports:
+      - "80:8000"
+    volumes:
+      - profmatch_backend_db:/app/db
+      - profmatch_backend_jobs:/app/data/qa/onboarding
+      - profmatch_backend_raw:/app/data/raw
+      - profmatch_backend_processed:/app/data/processed
+      - profmatch_backend_scan_results:/app/data/qa/scan_results
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  profmatch_backend_db:
+  profmatch_backend_jobs:
+  profmatch_backend_raw:
+  profmatch_backend_processed:
+  profmatch_backend_scan_results:
