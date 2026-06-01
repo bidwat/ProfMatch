@@ -17,8 +17,8 @@ MIN_PROFESSORS = int(os.environ.get("MIN_PROFESSOR_COUNT", "1000"))
 MIN_PUBLICATIONS = int(os.environ.get("MIN_PUBLICATION_COUNT", "4000"))
 
 REQUIRED_TABLES = {
-    "professors",
-    "publications",
+    "professor",
+    "publication",
     "users",
     "auth_sessions",
     "user_states",
@@ -45,8 +45,8 @@ def main() -> None:
         if missing:
             fail(f"Missing required tables: {', '.join(missing)}")
 
-        professor_count = int(conn.execute(text("select count(*) from professors")).scalar() or 0)
-        publication_count = int(conn.execute(text("select count(*) from publications")).scalar() or 0)
+        professor_count = int(conn.execute(text("select count(*) from professor")).scalar() or 0)
+        publication_count = int(conn.execute(text("select count(*) from publication")).scalar() or 0)
 
     if professor_count < MIN_PROFESSORS:
         fail(f"Professor count {professor_count} below minimum {MIN_PROFESSORS}")
