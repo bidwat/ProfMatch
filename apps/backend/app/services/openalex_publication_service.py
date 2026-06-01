@@ -114,6 +114,7 @@ class OpenAlexPublicationRevisionService:
         max_publications: int = 10,
         max_professors: int = 250,
         regenerate_summaries: bool = False,
+        progress_callback: Any | None = None,
     ) -> dict[str, Any]:
         professors = list(
             self.session.exec(
@@ -127,7 +128,9 @@ class OpenAlexPublicationRevisionService:
         skipped = 0
         errors = 0
         publications_inserted = 0
-        for professor in professors:
+        for index, professor in enumerate(professors, start=1):
+            if progress_callback:
+                progress_callback(index - 1, len(professors), f"Fetching OpenAlex publications for {professor.name}")
             try:
                 enrichment = self.enricher.enrich_by_author_name_and_institution(
                     professor.name,
@@ -167,6 +170,8 @@ class OpenAlexPublicationRevisionService:
             except Exception:
                 self.session.rollback()
                 errors += 1
+        if progress_callback:
+            progress_callback(len(professors), len(professors), "OpenAlex publication refresh complete")
         return {
             "professors_seen": len(professors),
             "professors_refreshed": refreshed,
@@ -183,6 +188,7 @@ class OpenAlexPublicationRevisionService:
         university: str,
         department: str,
         max_professors: int = 250,
+        progress_callback: Any | None = None,
     ) -> dict[str, Any]:
         professors = list(
             self.session.exec(
@@ -195,7 +201,9 @@ class OpenAlexPublicationRevisionService:
         enriched = 0
         skipped = 0
         errors = 0
-        for professor in professors:
+        for index, professor in enumerate(professors, start=1):
+            if progress_callback:
+                progress_callback(index - 1, len(professors), f"Enriching profile for {professor.name}")
             try:
                 publications = [
                     {
@@ -221,6 +229,8 @@ class OpenAlexPublicationRevisionService:
             except Exception:
                 self.session.rollback()
                 errors += 1
+        if progress_callback:
+            progress_callback(len(professors), len(professors), "Profile enrichment complete")
         return {"professors_seen": len(professors), "professors_enriched": enriched, "professors_skipped": skipped, "errors": errors}
 
     def _summary_for_professor(self, professor: Professor, publications: list[dict[str, Any]]) -> str | None:

@@ -266,7 +266,7 @@ export function refreshIndexedDepartment(payload: { university: string; departme
 }
 
 export function refreshIndexedDepartmentPublications(payload: { university: string; department: string; max_publications?: number; max_professors?: number }) {
-  return request<{ status: string; message: string }>('/api/admin/indexed-departments/fetch-publications', {
+  return request<{ status: string; message: string; progress_id: string }>('/api/admin/indexed-departments/fetch-publications', {
     method: 'POST',
     body: JSON.stringify({
       max_publications: 10,
@@ -278,7 +278,7 @@ export function refreshIndexedDepartmentPublications(payload: { university: stri
 }
 
 export function enrichIndexedDepartmentProfiles(payload: { university: string; department: string; max_professors?: number }) {
-  return request<{ status: string; message: string }>('/api/admin/indexed-departments/enrich-profiles', {
+  return request<{ status: string; message: string; progress_id: string }>('/api/admin/indexed-departments/enrich-profiles', {
     method: 'POST',
     body: JSON.stringify({ max_professors: 250, ...payload }),
   });

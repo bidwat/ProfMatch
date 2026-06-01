@@ -3,6 +3,8 @@ from typing import Any
 import asyncio
 import json
 import ipaddress
+import time
+import uuid
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -173,6 +175,16 @@ class EnrichIndexedProfilesRequest(BaseModel):
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+_INDEXED_JOB_PROGRESS: dict[str, dict[str, Any]] = {}
+
+
+def _set_indexed_progress(progress_id: str, **updates: Any) -> None:
+    current = _INDEXED_JOB_PROGRESS.setdefault(progress_id, {"id": progress_id, "status": "pending", "current": 0, "total": 0, "percent": 0, "message": "Queued", "updated_at": time.time()})
+    current.update(updates)
+    total = int(current.get("total") or 0)
+    current_count = int(current.get("current") or 0)
+    current["percent"] = 100 if current.get("status") == "completed" else (round((current_count / total) * 100) if total else 0)
+    current["updated_at"] = time.time()
 
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
@@ -515,38 +527,76 @@ def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_use
     return {"status": "started", "job_id": str(job.id), "message": "Durable OpenAlex-backed refresh queued. Existing indexed data is unchanged until candidates are approved/imported."}
 
 
-def _run_indexed_publication_refresh(req: RefreshIndexedPublicationsRequest) -> None:
+def _run_indexed_publication_refresh(progress_id: str, req: RefreshIndexedPublicationsRequest) -> None:
     from apps.backend.app.db import engine
-    with Session(engine) as session:
-        OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
-            university=req.university,
-            department=req.department,
-            max_publications=req.max_publications,
-            max_professors=req.max_professors,
-            regenerate_summaries=False,
-        )
+    _set_indexed_progress(progress_id, status="running", message="Starting OpenAlex publication refresh")
+    try:
+        def on_progress(current: int, total: int, message: str) -> None:
+            _set_indexed_progress(progress_id, status="running", current=current, total=total, message=message)
+
+        with Session(engine) as session:
+            summary = OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
+                university=req.university,
+                department=req.department,
+                max_publications=req.max_publications,
+                max_professors=req.max_professors,
+                regenerate_summaries=False,
+                progress_callback=on_progress,
+            )
+        _set_indexed_progress(progress_id, status="completed", current=summary.get("professors_seen", 0), total=summary.get("professors_seen", 0), message="OpenAlex publication refresh complete", summary=summary)
+    except Exception as exc:
+        _set_indexed_progress(progress_id, status="error", message=str(exc))
 
 
-def _run_indexed_profile_enrichment(req: EnrichIndexedProfilesRequest) -> None:
+def _run_indexed_profile_enrichment(progress_id: str, req: EnrichIndexedProfilesRequest) -> None:
     from apps.backend.app.db import engine
-    with Session(engine) as session:
-        OpenAlexPublicationRevisionService(session).enrich_indexed_department_profiles(
-            university=req.university,
-            department=req.department,
-            max_professors=req.max_professors,
-        )
+    _set_indexed_progress(progress_id, status="running", message="Starting profile enrichment")
+    try:
+        def on_progress(current: int, total: int, message: str) -> None:
+            _set_indexed_progress(progress_id, status="running", current=current, total=total, message=message)
+
+        with Session(engine) as session:
+            summary = OpenAlexPublicationRevisionService(session).enrich_indexed_department_profiles(
+                university=req.university,
+                department=req.department,
+                max_professors=req.max_professors,
+                progress_callback=on_progress,
+            )
+        _set_indexed_progress(progress_id, status="completed", current=summary.get("professors_seen", 0), total=summary.get("professors_seen", 0), message="Profile enrichment complete", summary=summary)
+    except Exception as exc:
+        _set_indexed_progress(progress_id, status="error", message=str(exc))
+
+
+@router.get("/indexed-departments/jobs/{progress_id}/events")
+async def indexed_department_job_events(progress_id: str, _: User = Depends(require_admin)):
+    async def stream():
+        last_payload = ""
+        while True:
+            progress = _INDEXED_JOB_PROGRESS.get(progress_id, {"id": progress_id, "status": "missing", "current": 0, "total": 0, "percent": 0, "message": "Progress record not found"})
+            payload = json.dumps(progress, default=str)
+            if payload != last_payload:
+                yield f"data: {payload}\n\n"
+                last_payload = payload
+            if progress.get("status") in {"completed", "error", "missing"}:
+                break
+            await asyncio.sleep(1)
+    return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @router.post("/indexed-departments/fetch-publications")
 def refresh_indexed_department_publications(req: RefreshIndexedPublicationsRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    background_tasks.add_task(_run_indexed_publication_refresh, req)
-    return {"status": "started", "message": "OpenAlex publication refresh started in the background. This replaces publications only; run Enrich profiles after it finishes."}
+    progress_id = uuid.uuid4().hex
+    _set_indexed_progress(progress_id, status="pending", message="OpenAlex publication refresh queued")
+    background_tasks.add_task(_run_indexed_publication_refresh, progress_id, req)
+    return {"status": "started", "progress_id": progress_id, "message": "OpenAlex publication refresh started. This replaces publications only; run Enrich profiles after it finishes."}
 
 
 @router.post("/indexed-departments/enrich-profiles")
 def enrich_indexed_department_profiles(req: EnrichIndexedProfilesRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    background_tasks.add_task(_run_indexed_profile_enrichment, req)
-    return {"status": "started", "message": "Profile enrichment started in the background using profile text plus existing/OpenAlex publications."}
+    progress_id = uuid.uuid4().hex
+    _set_indexed_progress(progress_id, status="pending", message="Profile enrichment queued")
+    background_tasks.add_task(_run_indexed_profile_enrichment, progress_id, req)
+    return {"status": "started", "progress_id": progress_id, "message": "Profile enrichment started using profile text plus existing/OpenAlex publications."}
 
 
 @router.delete("/indexed-departments")

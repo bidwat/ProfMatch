@@ -20,6 +20,7 @@ export default function AdminDashboardPage() {
   const [deleteGroup, setDeleteGroup] = useState<IndexedDepartment | null>(null);
   const [publicationRefreshGroup, setPublicationRefreshGroup] = useState<IndexedDepartment | null>(null);
   const [enrichGroup, setEnrichGroup] = useState<IndexedDepartment | null>(null);
+  const [activeProgress, setActiveProgress] = useState<any | null>(null);
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
@@ -40,12 +41,22 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (!authorized) return;
-    const shouldRefresh = jobs.ongoing.length > 0 || jobStatus.status === 'running';
-    if (!shouldRefresh) return;
-    const interval = setInterval(() => { if (!document.hidden) load(); }, 15000);
-    return () => clearInterval(interval);
-  }, [authorized, jobs.ongoing.length, jobStatus.status]);
+    if (!activeProgress?.id || activeProgress.status === 'completed' || activeProgress.status === 'error') return;
+    const events = new EventSource(`/api/admin/indexed-departments/jobs/${encodeURIComponent(activeProgress.id)}/events`, { withCredentials: true });
+    events.onmessage = event => {
+      const data = JSON.parse(event.data);
+      setActiveProgress(data);
+      if (data.status === 'completed' || data.status === 'error') {
+        events.close();
+        load();
+      }
+    };
+    events.onerror = () => {
+      events.close();
+      setActiveProgress((current: any) => current ? { ...current, status: 'error', message: 'Live progress connection closed. The backend job may still be running.' } : current);
+    };
+    return () => events.close();
+  }, [activeProgress?.id, activeProgress?.status]);
 
   const totals = useMemo(() => groups.reduce((acc, g) => ({ professors: acc.professors + g.professor_count, publications: acc.publications + g.publication_count }), { professors: 0, publications: 0 }), [groups]);
 
@@ -79,9 +90,9 @@ export default function AdminDashboardPage() {
         department: publicationRefreshGroup.department,
         max_publications: 10,
       });
-      setMessage(`${result.message} Refresh this page after a few minutes, then run Enrich profiles.`);
+      setMessage(result.message);
+      setActiveProgress({ id: result.progress_id, status: 'pending', current: 0, total: 0, percent: 0, message: result.message });
       setPublicationRefreshGroup(null);
-      load();
     } catch (e: any) {
       setMessage(e.message || 'Could not fetch OpenAlex publications.');
     } finally {
@@ -100,6 +111,7 @@ export default function AdminDashboardPage() {
         department: enrichGroup.department,
       });
       setMessage(result.message);
+      setActiveProgress({ id: result.progress_id, status: 'pending', current: 0, total: 0, percent: 0, message: result.message });
       setEnrichGroup(null);
     } catch (e: any) {
       setMessage(e.message || 'Could not start profile enrichment.');
@@ -150,6 +162,19 @@ export default function AdminDashboardPage() {
 
       {jobStatus.status !== 'idle' && <div className={`card ${jobStatus.status === 'error' ? 'error' : ''}`} style={{ marginTop: 22 }}><strong>{jobStatus.status}:</strong> {jobStatus.message}</div>}
       {message && <div className="notice" style={{ marginTop: 22 }}>{message}</div>}
+      {activeProgress && (
+        <div className={`card ${activeProgress.status === 'error' ? 'error' : ''}`} style={{ marginTop: 22 }}>
+          <div className="row between">
+            <div>
+              <strong>{activeProgress.status === 'completed' ? 'Complete' : activeProgress.status === 'error' ? 'Error' : 'Working'}:</strong> {activeProgress.message}
+              {activeProgress.total > 0 && <p className="muted small-text">{activeProgress.current} of {activeProgress.total} professors · {Math.round(activeProgress.percent || 0)}%</p>}
+            </div>
+            {activeProgress.status === 'completed' && <button className="button secondary" onClick={() => setActiveProgress(null)}>Dismiss</button>}
+          </div>
+          <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${activeProgress.percent || 0}%` }} /></div>
+          {activeProgress.summary && <p className="muted small-text" style={{ marginTop: 10 }}>{JSON.stringify(activeProgress.summary)}</p>}
+        </div>
+      )}
 
       <section className="card" style={{ overflowX: 'auto', marginTop: 22 }}>
         <h3>Indexed Universities and Departments</h3>
