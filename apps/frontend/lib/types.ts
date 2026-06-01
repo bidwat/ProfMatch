@@ -245,6 +245,79 @@ export interface AgenticJobGroups {
   completed: any[];
 }
 
+export interface ScanJob {
+  id: number;
+  status: string;
+  job_type: string;
+  source: string;
+  input_payload: { items?: Array<Record<string, any>> };
+  settings: Record<string, any>;
+  total_tasks: number;
+  queued_tasks: number;
+  running_tasks: number;
+  succeeded_tasks: number;
+  failed_tasks: number;
+  canceled_tasks: number;
+  progress_percent: number;
+  error_message?: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  heartbeat_at?: string | null;
+}
+
+export interface ScanTask {
+  id: number;
+  scan_job_id: number;
+  status: string;
+  task_type: string;
+  university: string;
+  department: string;
+  faculty_url: string;
+  attempt_count: number;
+  max_attempts: number;
+  locked_by?: string | null;
+  locked_until?: string | null;
+  last_error?: string | null;
+  result_summary: Record<string, any>;
+  created_at: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+}
+
+export interface ScanResult {
+  id: number;
+  scan_job_id: number;
+  scan_task_id?: number | null;
+  status: string;
+  professor_name: string;
+  university: string;
+  department: string;
+  title?: string | null;
+  email?: string | null;
+  profile_url?: string | null;
+  homepage_url?: string | null;
+  research_summary?: string | null;
+  source_confidence: number;
+  source_urls: string[];
+  publications_payload: Array<Record<string, any>>;
+  qa_issues: Array<Record<string, any>>;
+  import_status: string;
+  imported_professor_id?: number | null;
+}
+
+export interface ScanLog {
+  id: number;
+  scan_job_id: number;
+  scan_task_id?: number | null;
+  level: string;
+  event_type: string;
+  message: string;
+  payload: Record<string, any>;
+  created_at: string;
+}
+
 export interface AdminScanPaths {
   validation?: string | null;
   scan_manifest?: string | null;

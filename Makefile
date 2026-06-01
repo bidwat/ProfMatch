@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: setup db-init scrape-seed backend backend-setup frontend frontend-setup frontend-test frontend-e2e test qa env-check
+.PHONY: setup db-init scrape-seed backend backend-setup worker frontend frontend-setup frontend-test frontend-e2e test qa env-check
 
 setup:
 	@echo "Python scraper package is ready; install optional extras (beautifulsoup4, pytest) if desired."
@@ -24,6 +24,10 @@ backend: backend-setup
 	@echo "Starting backend on http://127.0.0.1:8000"
 	@echo "Environment is loaded by python-dotenv from .env; not shell-sourced, so passwords with special characters are safe."
 	@PYTHONPATH=. apps/backend/venv/bin/uvicorn apps.backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+
+worker: backend-setup
+	@echo "Starting durable scan worker"
+	@PYTHONPATH=. apps/backend/venv/bin/python -m apps.backend.app.workers.scan_worker
 
 frontend-setup: apps/frontend/package.json apps/frontend/package-lock.json
 	@if [[ ! -d apps/frontend/node_modules ]]; then \

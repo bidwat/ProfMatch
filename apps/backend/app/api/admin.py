@@ -17,6 +17,7 @@ from apps.backend.app.services.admin_scan_service import AdminScanService
 from apps.backend.app.services.import_service import ImportService
 from apps.backend.app.services.professor_service import ProfessorService
 from apps.backend.app.services.recommendation_service import RecommendationService
+from apps.backend.app.services.scan_job_service import ScanJobService
 
 
 class ScanPaths(BaseModel):
@@ -134,6 +135,23 @@ class DeleteIndexedDepartmentRequest(BaseModel):
     department: str
     confirm: bool = False
 
+
+class ScanJobItemRequest(BaseModel):
+    university: str = Field(..., min_length=1, max_length=300)
+    department: str = Field(default="Computer Science", min_length=1, max_length=300)
+    faculty_url: str = Field(..., min_length=8, max_length=2000)
+
+    @field_validator("faculty_url")
+    @classmethod
+    def validate_faculty_url(cls, value: str) -> str:
+        return validate_public_url(value)
+
+
+class CreateScanJobRequest(BaseModel):
+    items: list[ScanJobItemRequest] = Field(..., min_length=1, max_length=20)
+    settings: dict[str, Any] = Field(default_factory=dict)
+
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -141,6 +159,89 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
     return current_user
+
+
+@router.post("/scan-jobs")
+def create_scan_job(req: CreateScanJobRequest, current_user: User = Depends(require_admin), session: Session = Depends(get_session)):
+    service = ScanJobService(session)
+    job = service.create_scan_job(
+        items=[item.model_dump() for item in req.items],
+        settings=req.settings,
+        created_by_user_id=current_user.id,
+    )
+    return {"job_id": job.id, "status": job.status, "total_tasks": job.total_tasks, "job": job}
+
+
+@router.get("/scan-jobs")
+def list_scan_jobs(status: str | None = None, limit: int = 50, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return {"jobs": ScanJobService(session).list_scan_jobs(status=status, limit=limit, offset=offset)}
+
+
+@router.get("/scan-jobs/{job_id}")
+def get_scan_job(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    service = ScanJobService(session)
+    job = service.get_scan_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Scan job not found")
+    return {"job": job}
+
+
+@router.post("/scan-jobs/{job_id}/cancel")
+def cancel_scan_job(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    job = ScanJobService(session).cancel_scan_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Scan job not found")
+    return {"job": job}
+
+
+@router.get("/scan-jobs/{job_id}/tasks")
+def list_scan_job_tasks(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return {"tasks": ScanJobService(session).list_scan_tasks(job_id)}
+
+
+@router.get("/scan-jobs/{job_id}/results")
+def list_scan_job_results(job_id: int, status: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return {"results": ScanJobService(session).list_scan_results(job_id, status=status, limit=limit, offset=offset)}
+
+
+@router.get("/scan-jobs/{job_id}/logs")
+def list_scan_job_logs(job_id: int, level: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    return {"logs": ScanJobService(session).list_scan_logs(job_id, level=level, limit=limit, offset=offset)}
+
+
+@router.post("/scan-results/{result_id}/approve")
+def approve_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    result = ScanJobService(session).approve_scan_result(result_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Scan result not found")
+    return {"result": result}
+
+
+@router.post("/scan-results/{result_id}/reject")
+def reject_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    result = ScanJobService(session).reject_scan_result(result_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Scan result not found")
+    return {"result": result}
+
+
+@router.post("/scan-results/{result_id}/import")
+def import_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    result = ScanJobService(session).import_scan_result(result_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Scan result not found")
+    return {"result": result}
+
+
+@router.post("/scan-jobs/{job_id}/import-approved")
+def import_approved_scan_results(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+    service = ScanJobService(session)
+    imported = []
+    for result in service.list_scan_results(job_id, status="approved", limit=1000):
+        imported_result = service.import_scan_result(result.id)
+        if imported_result:
+            imported.append(imported_result)
+    return {"imported_count": len(imported), "results": imported}
 
 
 @router.get("/adapters")

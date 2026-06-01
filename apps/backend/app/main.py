@@ -23,6 +23,7 @@ from apps.backend.app.api.scrape_runs import router as scrape_runs_router
 from apps.backend.app.api.recommendations import router as recommendations_router
 from apps.backend.app.api.student_profiles import router as student_profiles_router
 from apps.backend.app.models import auth as auth_models  # noqa: F401 - ensure auth tables are registered
+from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - ensure durable scan tables are registered
 
 # --- Structured Logging Setup ---
 class JsonFormatter(logging.Formatter):

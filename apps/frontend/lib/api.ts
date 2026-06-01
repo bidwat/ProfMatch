@@ -1,4 +1,4 @@
-import type { AdminScanDetail, AgenticJobGroups, AuthResponse, ExplorerStatsResponse, GetProfessorResponse, IndexedDepartment, ListAdminScansResponse, ListProfessorsResponse, ListUniversitiesResponse, MatchResponse, ProfessorFacetsResponse, StudentProfile, UserStateResponse } from './types';
+import type { AdminScanDetail, AgenticJobGroups, AuthResponse, ExplorerStatsResponse, GetProfessorResponse, IndexedDepartment, ListAdminScansResponse, ListProfessorsResponse, ListUniversitiesResponse, MatchResponse, ProfessorFacetsResponse, ScanJob, ScanLog, ScanResult, ScanTask, StudentProfile, UserStateResponse } from './types';
 
 export class ApiError extends Error {
   status: number;
@@ -120,6 +120,57 @@ export function patchUserState(payload: Partial<UserStateResponse>) {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
+}
+
+export function createScanJob(payload: { items: Array<{ university: string; department: string; faculty_url: string }>; settings?: Record<string, any> }) {
+  return request<{ job_id: number; status: string; total_tasks: number; job: ScanJob }>('/api/admin/scan-jobs', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listScanJobs(params: { status?: string; limit?: number; offset?: number } = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') qs.set(key, String(value));
+  });
+  return request<{ jobs: ScanJob[] }>(`/api/admin/scan-jobs${qs.toString() ? `?${qs.toString()}` : ''}`);
+}
+
+export function getScanJob(id: number | string) {
+  return request<{ job: ScanJob }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}`);
+}
+
+export function cancelScanJob(id: number | string) {
+  return request<{ job: ScanJob }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/cancel`, { method: 'POST' });
+}
+
+export function listScanJobTasks(id: number | string) {
+  return request<{ tasks: ScanTask[] }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/tasks`);
+}
+
+export function listScanJobResults(id: number | string) {
+  return request<{ results: ScanResult[] }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/results`);
+}
+
+export function listScanJobLogs(id: number | string) {
+  return request<{ logs: ScanLog[] }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/logs`);
+}
+
+export function approveScanResult(id: number | string) {
+  return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/approve`, { method: 'POST' });
+}
+
+export function rejectScanResult(id: number | string) {
+  return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/reject`, { method: 'POST' });
+}
+
+export function importScanResult(id: number | string) {
+  return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/import`, { method: 'POST' });
+}
+
+export function importApprovedScanResults(id: number | string) {
+  return request<{ imported_count: number; results: ScanResult[] }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/import-approved`, { method: 'POST' });
 }
 
 export function listAdminScans() {
