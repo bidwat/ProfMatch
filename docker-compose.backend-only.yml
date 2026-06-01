@@ -7,6 +7,7 @@ services:
       - .env
     environment:
       PORT: 8000
+      APP_ENV: ${APP_ENV:-production}
     ports:
       - "80:8000"
     volumes:

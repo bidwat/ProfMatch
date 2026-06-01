@@ -172,3 +172,63 @@ Only after DigitalOcean smoke tests pass:
 3. Update Vercel `BACKEND_URL` only if Vercel remains the frontend.
 4. Update docs and secrets inventory to remove Render as the default backend target.
 5. Delete or pause Render after the rollback window.
+
+
+## Droplet production backend checks
+
+The current production backend runs on a DigitalOcean Droplet, not App Platform.
+
+Required Droplet env:
+
+```env
+APP_ENV=production
+DATABASE_URL=postgresql+psycopg://USER:URL_ENCODED_PASSWORD@HOST:5432/postgres?sslmode=require
+ALLOWED_ORIGINS=http://137.184.16.45,https://prof-match-chi.vercel.app,http://localhost:3000
+```
+
+`APP_ENV=production` intentionally refuses SQLite fallback. If `DATABASE_URL` or Supabase Postgres component variables are missing, backend startup must fail rather than silently using local SQLite.
+
+Production health checks:
+
+```bash
+# health endpoints: /health, /api/health, /api/health/db, /api/stats
+```
+
+Production DB verification on the Droplet:
+
+```bash
+cd /opt/profmatch
+docker compose -f docker-compose.backend-full.yml exec backend python scripts/check_production_db.py
+```
+
+Expected baseline corpus at time of migration:
+
+```txt
+professors=1039
+publications=4358
+```
+
+GitHub Actions auto-deploy uses repository secrets:
+
+```txt
+DROPLET_HOST=137.184.16.45
+DROPLET_SSH_KEY=<private SSH key authorized on the Droplet>
+```
+
+These are GitHub repository secrets used only by the deploy workflow. They are not application runtime environment variables and are not stored in the Droplet `.env` file.
+
+## Supabase backup/export
+
+Before risky schema/data changes, export Supabase Postgres from a trusted machine with `pg_dump` using the Supabase pooler/direct connection details:
+
+```bash
+pg_dump "$DATABASE_URL" --format=custom --file=profmatch-supabase-$(date +%Y%m%d-%H%M%S).dump
+```
+
+For a plain SQL export:
+
+```bash
+pg_dump "$DATABASE_URL" --file=profmatch-supabase-$(date +%Y%m%d-%H%M%S).sql
+```
+
+Store backups outside the repo. Do not commit dumps because they can contain user data.
