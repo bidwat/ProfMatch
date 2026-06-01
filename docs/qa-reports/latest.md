@@ -205,3 +205,22 @@ apps/frontend/test-results/design-discover.png
 - Jest output includes the existing ReactDOMTestUtils `act` deprecation warning from the testing-library/react stack.
 - Landing value-prop icons are lightweight text glyphs rather than the exact reusable SVG `HFIcon` set from the design reference; replace with shared icon components if pixel-level parity becomes required.
 - `/results`, `/intake`, `/admin/scans`, and `/admin/scrapes` remain as compatibility routes/pages; product navigation now favors `/match` and `/admin`.
+
+
+## 2026-06-01 — Droplet Backend Production Verification
+
+Status: PASS
+
+- Branch/deploy: `main` is the production branch; GitHub Actions deploy workflow targets the DigitalOcean Droplet from `main`.
+- Backend host: DigitalOcean Droplet `137.184.16.45`, Docker Compose full backend image with Playwright/Patchright/Crawl4AI.
+- Health checks: PASS for `/health`, `/api/health`, `/api/health/db`, and `/api/stats`.
+- Database: PASS. `APP_ENV=production` refuses SQLite fallback; `DATABASE_URL` points to Supabase Postgres pooler.
+- Production DB check: PASS via `python scripts/check_production_db.py`.
+- Current Supabase corpus observed: `1036` professors, `4347` publications.
+- Auto-deploy: PASS. Repository secrets `DROPLET_HOST` and `DROPLET_SSH_KEY` are configured for the GitHub Actions deploy workflow.
+- Frontend: Vercel checks reported good by project owner; Vercel `BACKEND_URL` should point to `http://137.184.16.45`.
+
+Notes:
+- Runtime secrets are stored in `/opt/profmatch/.env` on the Droplet, not in Git.
+- GitHub Actions secrets are CI/deploy credentials only; they are not application runtime environment variables.
+- User plans to rotate previously exposed OpenRouter/Supabase keys.

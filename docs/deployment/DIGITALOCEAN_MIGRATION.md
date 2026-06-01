@@ -204,8 +204,8 @@ docker compose -f docker-compose.backend-full.yml exec backend python scripts/ch
 Expected baseline corpus at time of migration:
 
 ```txt
-professors=1039
-publications=4358
+professors=1036
+publications=4347
 ```
 
 GitHub Actions auto-deploy uses repository secrets:
