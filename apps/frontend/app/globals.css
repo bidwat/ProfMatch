@@ -161,6 +161,12 @@ h1,h2,h3,h4,.brand,.button,.top-nav-link,.tab{font-family:var(--font-display)}
 .landing-request-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px 22px;box-shadow:var(--shadow-sm)}
 .landing-request-banner p{margin:4px 0 0;color:var(--ink-65);font-size:13px;line-height:1.6}
 
+/* Compare table */
+.compare-table{border-collapse:collapse;min-width:680px;background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.compare-table th,.compare-table td{border-bottom:1px solid var(--divider);padding:12px 14px;text-align:left;vertical-align:top;font-size:13px}
+.compare-table thead th{background:var(--paper-sidebar);font-size:14px}
+.compare-table tbody th{white-space:nowrap;color:var(--ink-65);font-weight:600;background:var(--paper-sidebar)}
+
 /* Application board */
 .board-columns{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding:20px 24px 40px}
 .board-column{flex:0 0 300px;display:grid;gap:10px;background:var(--paper-sidebar);border:1px solid var(--divider);border-radius:var(--r-xl);padding:12px}
