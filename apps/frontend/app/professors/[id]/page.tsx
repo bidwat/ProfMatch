@@ -4,26 +4,13 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProfessor, patchUserState } from '@/lib/api';
-import { TagList, Signal, cleanTitle, Avatar } from '@/components/ProfessorCard';
+import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
 import { LoginModal } from '@/components/LoginModal';
 import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
-
-function confidenceBand(confidence?: number | null) {
-  if (typeof confidence !== 'number') return null;
-  if (confidence >= 0.85) return { label: 'High confidence', tone: 'olive' };
-  if (confidence >= 0.65) return { label: 'Medium confidence', tone: 'gold' };
-  return { label: 'Low confidence', tone: 'peach' };
-}
-
-function PaperConfidence({ confidence }: { confidence?: number | null }) {
-  const band = confidenceBand(confidence);
-  if (!band) return null;
-  return <span className={`confidence-chip tone-${band.tone}`} title={`Author-match confidence ${Math.round((confidence as number) * 100)}%`}>{band.label}</span>;
-}
 
 export default function ProfessorDetailPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
@@ -123,7 +110,7 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
           <TagList tags={tags} max={12} />
           <div className="signals" style={{ marginTop: 24 }}>
             <Signal status={p.recruiting_signal} />
-            <span className="signal"><i />source confidence {Math.round(p.source_confidence * 100)}%</span>
+            <ConfidenceChip confidence={p.source_confidence} />
           </div>
           <div className="actions">{links.map(([label, url]) => <a key={label} className="button secondary" href={url as string} target="_blank" rel="noreferrer">{label}</a>)}</div>
         </div>
@@ -188,7 +175,7 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
             <div key={pub.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
               <div className="row between" style={{ gap: 12, alignItems: 'baseline', flexWrap: 'nowrap' }}>
                 <b>{pub.url ? <a className="accent" href={pub.url} target="_blank" rel="noreferrer">{pub.title}</a> : pub.title}</b>
-                <PaperConfidence confidence={pub.match_confidence} />
+                <ConfidenceChip confidence={pub.match_confidence} kind="Author-match" />
               </div>
               <p className="muted small-text" style={{ marginTop: 4 }}>{pub.venue || 'Unknown venue'} · {pub.year || 'n.d.'} · {pub.source}</p>
               {pub.abstract && <p className="muted" style={{ marginTop: 8, lineHeight: 1.5 }}>{pub.abstract}</p>}
