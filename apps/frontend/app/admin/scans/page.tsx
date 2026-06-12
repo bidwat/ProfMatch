@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getAdminScan, listAdminScans, importAdminScan, listAdapters, runAdminScan, getScanStatus, listScanJobs, getScanJob, listScanJobTasks, listScanJobResults, listScanJobLogs, cancelScanJob, approveScanResult, rejectScanResult, fetchScanJobPublications, importApprovedScanResults } from '@/lib/api';
@@ -79,7 +80,7 @@ export default function AdminScansPage() {
           <h2>University Scan Dashboard</h2>
           <p className="muted">Review durable Postgres scan jobs, task state, logs, and importable candidates. Legacy QA artifacts remain visible below.</p>
         </div>
-        <a className="button secondary" href="/professors">Browse indexed professors</a>
+        <Link className="button secondary" href="/professors">Browse indexed professors</Link>
       </div>
 
       <div className="grid">

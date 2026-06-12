@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProfessor, patchUserState } from '@/lib/api';
 import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/components/ProfessorCard';
@@ -12,7 +12,8 @@ import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
 
-export default function ProfessorDetailPage({ params }: { params: { id: string } }) {
+export default function ProfessorDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
   const searchParams = useSearchParams();
   const from = searchParams.get('from') || '/professors';
   const [data, setData] = useState<GetProfessorResponse | null>(null);

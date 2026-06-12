@@ -41,6 +41,34 @@ remains Supabase Postgres; only SQLite was removed.
 - [~] Accessibility: global :focus-visible outline added; still to do: contrast audit, landmark review
 - [x] Jest + Playwright updated for revamped UI; screenshots captured by e2e under `apps/frontend/test-results/`
 
+## Phase 1R — System-plan alignment + HeroUI v3 re-skin (added 2026-06-12 after system_plan.md + design.md landed)
+
+### System-plan alignment review (docs/new/system_plan.md) — deviations recorded under the owner's "easier way" clause
+- [x] FastAPI + Pydantic + Postgres (Supabase) — aligned
+- [x] Crawl4AI as the crawler for agentic onboarding + durable scans — aligned (plan §9)
+- [x] Artifact-first import with admin review — aligned (scan_results review/approve/import flow)
+- DEVIATION (accepted): DB-backed scan task queue instead of Redis/Celery — single-worker scale is fine for MVP; revisit at multi-worker
+- DEVIATION (accepted): cookie-session auth instead of Clerk — working, tested; Google login may come later
+- DEVIATION (accepted): in-process lexical shortlist instead of tsvector/pg_trgm/pgvector — fine at ~1k professors; Postgres-native search is a Phase 2 item
+- DEVIATION (accepted): SQLModel create_all instead of Alembic — adopt Alembic when the schema next changes
+- DEVIATION (accepted): universities/departments stay denormalized strings on professors for now; first-class tables when university/department pages ship
+
+### HeroUI v3 migration (design.md §7 — mandatory component layer)
+- [~] Platform upgrade: Next 15, React 19, Tailwind v4 (HeroUI v3 hard requirement; system plan targets Next 16/React 19)
+- [ ] Install @heroui/react@3 + @heroui/styles; theme via CSS variables
+- [ ] Rebrand tokens to design.md §6: Rubik (display) + DM Sans (body), navy/teal/amber/slate palette replacing gold/olive Sora
+- [ ] Migrate shared components to HeroUI (modals, buttons, inputs, chips, tabs, toasts)
+- [ ] Migrate pages: auth, landing, discover, detail, match, dashboard, saved, profile, admin
+- [ ] All tests green after migration
+
+### Feature implementation (spec §30 MVP, buildable now)
+- [ ] Pricing page (/pricing, spec §23 + design §8.4) — static, free-vs-paid trust copy
+- [ ] Report incorrect data (spec §14.6): reports table + POST /api/reports + admin queue + ReportIssueModal
+- [ ] Application board with stages (spec §16): board page on tracker_rows state, stage select (accessible alternative to drag)
+- [ ] Outreach email drafts (spec §17): POST /api/outreach-drafts (LLM, draft-only, never auto-send) + editor page
+- [ ] Compare professors (spec §15.6): compare view from saved professors
+- GATED (per docs, owner decision needed): Stripe billing (pricing undecided), CV/SOP uploads (privacy gates), public reviews (trust/legal gates), professor claims (verification design)
+
 ## Phase 2 — Production hardening (launch gates from doc.md §7.5)
 
 - [ ] Rate limiting backed by something durable (current: in-memory per-process)
