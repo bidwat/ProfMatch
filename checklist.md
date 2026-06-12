@@ -54,18 +54,18 @@ remains Supabase Postgres; only SQLite was removed.
 - DEVIATION (accepted): universities/departments stay denormalized strings on professors for now; first-class tables when university/department pages ship
 
 ### HeroUI v3 migration (design.md §7 — mandatory component layer)
-- [~] Platform upgrade: Next 15, React 19, Tailwind v4 (HeroUI v3 hard requirement; system plan targets Next 16/React 19)
-- [ ] Install @heroui/react@3 + @heroui/styles; theme via CSS variables
-- [ ] Rebrand tokens to design.md §6: Rubik (display) + DM Sans (body), navy/teal/amber/slate palette replacing gold/olive Sora
-- [ ] Migrate shared components to HeroUI (modals, buttons, inputs, chips, tabs, toasts)
-- [ ] Migrate pages: auth, landing, discover, detail, match, dashboard, saved, profile, admin
-- [ ] All tests green after migration
+- [x] Platform upgrade: Next 15.5, React 19.2, Tailwind v4 (d9f8a08) — all suites green
+- [x] @heroui/react@3.1.0 + @heroui/styles installed; CSS-first, no provider; jest/next transpile config (dd2babc)
+- [x] Rebrand tokens to design.md §6: Rubik + DM Sans (next/font), navy/teal/amber/slate palette mapped onto legacy variable names so every page rebrands at once (d9f8a08)
+- [~] Shared components on HeroUI: LoginModal, ConfirmDialog, ReportIssueModal, OutreachDraftModal, auth forms (Modal/TextField/Input/TextArea/Button/Chip/Card). Remaining: Toast→HeroUI Toast, Filters dropdowns→Select/ListBox, tabs on detail page→Tabs, per-page button sweep
+- [ ] Page-by-page sweep: landing CTAs, discover, match, dashboard, saved, profile, admin tables
+- [x] All tests green after each migration step
 
 ### Feature implementation (spec §30 MVP, buildable now)
-- [ ] Pricing page (/pricing, spec §23 + design §8.4) — static, free-vs-paid trust copy
-- [ ] Report incorrect data (spec §14.6): reports table + POST /api/reports + admin queue + ReportIssueModal
+- [x] Pricing page /pricing (spec §23 + design §8.4) — public, trust copy, HeroUI cards/chips (583895a)
+- [x] Report incorrect data (spec §14.6): reports table, POST /api/reports, admin list/resolve endpoints, ReportIssueModal on professor detail (583895a). Remaining: admin queue UI panel
+- [x] Outreach email drafts (spec §17): POST /api/outreach-drafts (LLM-grounded, draft-only, never auto-send, personalization checklist) + modal on professor detail (583895a)
 - [ ] Application board with stages (spec §16): board page on tracker_rows state, stage select (accessible alternative to drag)
-- [ ] Outreach email drafts (spec §17): POST /api/outreach-drafts (LLM, draft-only, never auto-send) + editor page
 - [ ] Compare professors (spec §15.6): compare view from saved professors
 - GATED (per docs, owner decision needed): Stripe billing (pricing undecided), CV/SOP uploads (privacy gates), public reviews (trust/legal gates), professor claims (verification design)
 

@@ -15,6 +15,7 @@ const studentNav = [
   { href: '/match', label: 'Matches', icon: 'sparkle' as const },
   { href: '/professors', label: 'Discover', icon: 'compass' as const },
   { href: '/saved', label: 'Saved', icon: 'bookmark' as const },
+  { href: '/board', label: 'Board', icon: 'paper' as const },
 ];
 
 const anonymousNav = [
