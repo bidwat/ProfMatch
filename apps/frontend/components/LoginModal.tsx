@@ -1,34 +1,31 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { Modal } from '@heroui/react';
 
 export function LoginModal({ isOpen, onClose, message }: { isOpen: boolean; onClose: () => void; message?: string }) {
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" onMouseDown={event => event.stopPropagation()}>
-        <button className="ghost small" aria-label="Close" onClick={onClose} style={{ float: 'right' }}>✕</button>
-        <div className="modal-icon">PM</div>
-        <h3 id="login-modal-title">Log in required</h3>
-        <p className="muted" style={{ marginTop: 8, lineHeight: 1.6 }}>
-          {message || 'You must be logged in to use this feature.'}
-        </p>
-        <div style={{ display: 'grid', gap: 10, marginTop: 22 }}>
-          <Link className="button primary" href="/signin">Sign in</Link>
-          <Link className="button secondary" href="/signup">Create an account</Link>
-        </div>
-      </div>
-    </div>
+    <Modal isOpen={isOpen} onOpenChange={(open: boolean) => { if (!open) onClose(); }}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="sm:max-w-[400px]" aria-labelledby="login-modal-title">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Icon className="bg-default text-foreground"><span style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>PM</span></Modal.Icon>
+              <Modal.Heading id="login-modal-title">Log in required</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p className="muted" style={{ lineHeight: 1.6 }}>
+                {message || 'You must be logged in to use this feature.'}
+              </p>
+            </Modal.Body>
+            <Modal.Footer style={{ display: 'grid', gap: 10 }}>
+              <Link className="button primary" href="/signin">Sign in</Link>
+              <Link className="button secondary" href="/signup">Create an account</Link>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

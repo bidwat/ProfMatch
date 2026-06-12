@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Button, Input, Label, Modal, TextField } from '@heroui/react';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -33,35 +33,37 @@ export function ConfirmDialog({
   onCancel,
   confirming,
 }: ConfirmDialogProps) {
-  useEffect(() => {
-    if (!open || confirming) return;
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onCancel();
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, confirming, onCancel]);
-
-  if (!open) return null;
   const needsValue = value !== undefined && onValueChange;
-  const disabled = confirming || (needsValue && !value.trim());
+  const disabled = !!confirming || (!!needsValue && !value!.trim());
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onCancel}>
-      <div className={`modal-card confirm-dialog ${variant}`} role="dialog" aria-modal="true" aria-labelledby="confirm-title" onMouseDown={e => e.stopPropagation()}>
-        <div className={`modal-icon ${variant}`}>{variant === 'danger' ? '!' : variant === 'warning' ? '•' : '✓'}</div>
-        <h3 id="confirm-title">{title}</h3>
-        <p className="muted">{message}</p>
-        {needsValue && (
-          <label className="label" style={{ marginTop: 14 }}>
-            {valueLabel || 'Value'}
-            <input className="input" value={value} placeholder={valuePlaceholder} onChange={e => onValueChange(e.target.value)} autoFocus />
-          </label>
-        )}
-        <div className="row end" style={{ marginTop: 18 }}>
-          <button className="button secondary" onClick={onCancel} disabled={confirming}>{cancelLabel}</button>
-          <button className={`button ${variant === 'danger' ? 'danger-primary' : 'primary'}`} onClick={onConfirm} disabled={disabled}>{confirming ? 'Working…' : confirmLabel}</button>
-        </div>
-      </div>
-    </div>
+    <Modal isOpen={open} onOpenChange={(next: boolean) => { if (!next && !confirming) onCancel(); }}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="sm:max-w-[420px]" aria-labelledby="confirm-title">
+            <Modal.Header>
+              <Modal.Icon className={variant === 'danger' ? 'bg-danger text-danger-foreground' : variant === 'warning' ? 'bg-warning text-warning-foreground' : 'bg-default text-foreground'}>
+                <span aria-hidden>{variant === 'danger' ? '!' : variant === 'warning' ? '•' : '✓'}</span>
+              </Modal.Icon>
+              <Modal.Heading id="confirm-title">{title}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p className="muted">{message}</p>
+              {needsValue && (
+                <TextField style={{ marginTop: 14 }}>
+                  <Label>{valueLabel || 'Value'}</Label>
+                  <Input value={value} placeholder={valuePlaceholder} onChange={e => onValueChange!(e.target.value)} autoFocus />
+                </TextField>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onPress={onCancel} isDisabled={confirming}>{cancelLabel}</Button>
+              <Button variant={variant === 'danger' ? 'danger' : 'primary'} onPress={onConfirm} isDisabled={disabled} isPending={confirming}>
+                {confirming ? 'Working…' : confirmLabel}
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }
