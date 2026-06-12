@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useEffect, useMemo, useState } from 'react';
 import { getProfessorFacets, getUserState, listProfessors, patchUserState } from '@/lib/api';
 import { track } from '@/lib/analytics';
@@ -121,10 +123,10 @@ export default function ProfessorsPage() {
           <div className="card soft">
             <h3>No professors match these filters.</h3>
             <p className="muted">Try clearing filters or searching for a broader research area.</p>
-            <button className="button secondary" style={{ marginTop: 12 }} onClick={() => { setQ(''); setUniversities([]); setTags([]); setDepartments([]); setRecruiting(''); }}>Clear filters</button>
+            <Button variant="secondary" style={{ marginTop: 12 }} onPress={() => { setQ(''); setUniversities([]); setTags([]); setDepartments([]); setRecruiting(''); }}>Clear filters</Button>
           </div>
         )}
-        {!loading && nextCursor && <button className="button secondary" onClick={() => setCursorToLoad(nextCursor)}>Load more professors</button>}
+        {!loading && nextCursor && <Button variant="secondary" onPress={() => setCursorToLoad(nextCursor)}>Load more professors</Button>}
       </div>
 
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} message="Log in to save professors to your account and build a shortlist." />

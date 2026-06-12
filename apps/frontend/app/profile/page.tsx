@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -258,7 +260,7 @@ export default function ProfilePage() {
           <h3>Don’t see who you’re looking for?</h3>
           <p className="muted">Recommend universities and departments so they can be added to Professor Match.</p>
         </div>
-        <button className="button primary" type="button" onClick={() => setRecommendOpen(true)}><Icon name="plus" size={14} />Recommend Universities and Departments</button>
+        <Button type="button" onPress={() => setRecommendOpen(true)}><Icon name="plus" size={14} />Recommend Universities and Departments</Button>
       </div>
 
       <div className="row between" style={{ marginBottom: 22 }}>
@@ -315,14 +317,14 @@ export default function ProfilePage() {
           <p className="muted small-text">Save small edits now, or save and refresh your matches.</p>
           <div className="row end profile-action-group">
             {saving && <span className="inline-saving" role="status" aria-live="polite"><i />Saving…</span>}
-            <button className="button secondary" type="submit" disabled={saving}>{dirty ? 'Update profile' : 'Save profile'}</button>
-            <button className="button primary" type="button" disabled={saving} onClick={() => saveProfile(true)}>Update and match</button>
+            <Button variant="secondary" type="submit" isDisabled={saving}>{dirty ? 'Update profile' : 'Save profile'}</Button>
+            <Button type="button" isDisabled={saving} onPress={() => saveProfile(true)}>Update and match</Button>
           </div>
         </div>
       </form>
 
       <div className="danger-zone">
-        <button className="button danger-primary" onClick={() => setConfirmDelete(true)} disabled={deleting}><Icon name="trash" size={13} />{deleting ? 'Deleting…' : 'Delete account'}</button>
+        <Button variant="danger" onPress={() => setConfirmDelete(true)} isDisabled={deleting}><Icon name="trash" size={13} />{deleting ? 'Deleting…' : 'Delete account'}</Button>
       </div>
       {recommendOpen && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => !recommendSubmitting && setRecommendOpen(false)}>
@@ -334,8 +336,8 @@ export default function ProfilePage() {
             <label className="label">Department<input className="input" value={recommendForm.department} onChange={e => setRecommendForm(f => ({ ...f, department: e.target.value }))} placeholder="Computer Science" required /></label>
             <label className="label">Faculty Page URL<input className="input" type="url" value={recommendForm.faculty_page_url} onChange={e => setRecommendForm(f => ({ ...f, faculty_page_url: e.target.value }))} placeholder="https://example.edu/cs/faculty" required /></label>
             <div className="row end">
-              <button className="button secondary" type="button" onClick={() => setRecommendOpen(false)}>Cancel</button>
-              <button className="button primary" type="submit" disabled={recommendSubmitting}>{recommendSubmitting ? 'Submitting…' : 'Submit recommendation'}</button>
+              <Button variant="secondary" type="button" onPress={() => setRecommendOpen(false)}>Cancel</Button>
+              <Button type="submit" isDisabled={recommendSubmitting}>{recommendSubmitting ? 'Submitting…' : 'Submit recommendation'}</Button>
             </div>
           </form>
         </div>

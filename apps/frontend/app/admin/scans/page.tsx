@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -226,10 +228,10 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
     <div className="row between">
       <div><h3>Job #{jobId}</h3>{job && <p className="muted small-text">{job.status} · {job.total_tasks} task(s)</p>}</div>
       <div className="row" style={{ gap: 8 }}>
-        <button className="button secondary" onClick={load} disabled={loading}>Refresh</button>
-        {active && <button className="button secondary" onClick={() => action(() => cancelScanJob(jobId))}>Cancel</button>}
-        <button className="button secondary" onClick={() => action(() => fetchScanJobPublications(jobId, { max_publications: 10 }))} disabled={results.length === 0}>Fetch 10 publications with OpenAlex</button>
-        {results.some(r => r.status === 'approved') && <button className="button primary" onClick={() => action(() => importApprovedScanResults(jobId))}>Import approved to Supabase</button>}
+        <Button variant="secondary" onPress={load} isDisabled={loading}>Refresh</Button>
+        {active && <Button variant="secondary" onPress={() => action(() => cancelScanJob(jobId))}>Cancel</Button>}
+        <Button variant="secondary" onPress={() => action(() => fetchScanJobPublications(jobId, { max_publications: 10 }))} isDisabled={results.length === 0}>Fetch 10 publications with OpenAlex</Button>
+        {results.some(r => r.status === 'approved') && <Button onPress={() => action(() => importApprovedScanResults(jobId))}>Import approved to Supabase</Button>}
       </div>
     </div>
     {job && <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${job.progress_percent}%` }} /></div>}
@@ -245,8 +247,8 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
         <p className="muted small-text">Fetching publications replaces the staged publication list with OpenAlex results.</p>
         {result.qa_issues?.length > 0 && <p className="muted small-text">QA: {result.qa_issues.map(issue => issue.code || issue.message).join(', ')}</p>}
         <div className="row" style={{ gap: 8, marginTop: 8 }}>
-          <button className="button secondary" onClick={() => action(() => approveScanResult(result.id))}>Approve</button>
-          <button className="button secondary" onClick={() => action(() => rejectScanResult(result.id))}>Reject</button>
+          <Button variant="secondary" onPress={() => action(() => approveScanResult(result.id))}>Approve</Button>
+          <Button variant="secondary" onPress={() => action(() => rejectScanResult(result.id))}>Reject</Button>
         </div>
       </div>)}</div>}
     </DetailSection>
@@ -352,17 +354,17 @@ function ScanDetail({ scan }: { scan: AdminScanDetail }) {
     <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         {scan.db_import_allowed ? (
-          <button className="button primary" onClick={() => setConfirmImport(true)} disabled={importing}>
+          <Button onPress={() => setConfirmImport(true)} isDisabled={importing}>
             {importing ? 'Importing...' : 'Import legacy artifact to Supabase'}
-          </button>
+          </Button>
         ) : (
           <p className="muted small-text">Import disabled because QA validation did not pass.</p>
         )}
 
         {scan.adapter_name && (
-          <button className="button secondary" onClick={handleRerun} disabled={rerunning}>
+          <Button variant="secondary" onPress={handleRerun} isDisabled={rerunning}>
             {rerunning ? 'Starting...' : 'Enrich & Re-run Scan'}
-          </button>
+          </Button>
         )}
       </div>
 

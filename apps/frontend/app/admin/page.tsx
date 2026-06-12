@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getAdminMetrics, getCurrentUser, getScanStatus, listAdminReports, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications, updateAdminReport } from '@/lib/api';
@@ -156,7 +158,7 @@ export default function AdminDashboardPage() {
           <p className="muted">Manage indexed universities, user requests, and QA-gated agentic workflows. Existing data is only replaced after a staged workflow is published.</p>
         </div>
         <div className="row">
-          <button className="button secondary" onClick={load}>Refresh</button>
+          <Button variant="secondary" onPress={load}>Refresh</Button>
           <Link className="button primary" href="/admin/onboarding">New agentic scan</Link>
         </div>
       </div>
@@ -177,7 +179,7 @@ export default function AdminDashboardPage() {
               <strong>{activeProgress.status === 'completed' ? 'Complete' : activeProgress.status === 'error' ? 'Error' : 'Working'}:</strong> {activeProgress.message}
               {activeProgress.total > 0 && <p className="muted small-text">{activeProgress.current} of {activeProgress.total} professors · {Math.round(activeProgress.percent || 0)}%</p>}
             </div>
-            {activeProgress.status === 'completed' && <button className="button secondary" onClick={() => setActiveProgress(null)}>Dismiss</button>}
+            {activeProgress.status === 'completed' && <Button variant="secondary" onPress={() => setActiveProgress(null)}>Dismiss</Button>}
           </div>
           <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${activeProgress.percent || 0}%` }} /></div>
           {activeProgress.summary && <p className="muted small-text" style={{ marginTop: 10 }}>{JSON.stringify(activeProgress.summary)}</p>}
@@ -198,10 +200,10 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
                   <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
                   <td style={{ padding: 10 }} align="right">
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</button>{' '}
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => setEnrichGroup(group)}>Enrich profiles</button>{' '}
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</button>{' '}
-                    <button className="button secondary danger-button" onClick={() => setDeleteGroup(group)}>Delete</button>
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</Button>{' '}
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setEnrichGroup(group)}>Enrich profiles</Button>{' '}
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</Button>{' '}
+                    <Button variant="danger-soft" onPress={() => setDeleteGroup(group)}>Delete</Button>
                   </td>
                 </tr>
               );
@@ -243,8 +245,8 @@ export default function AdminDashboardPage() {
                 <p className="muted small-text" style={{ margin: '4px 0' }}>{report.description}</p>
                 {report.source_url && <a className="accent small-text" href={report.source_url} target="_blank" rel="noreferrer">{report.source_url}</a>}
                 <div className="row" style={{ gap: 8, marginTop: 8 }}>
-                  <button className="button secondary small" onClick={() => resolveReport(report.id, 'resolved')}>Mark resolved</button>
-                  <button className="ghost small" onClick={() => resolveReport(report.id, 'rejected')}>Reject</button>
+                  <Button size="sm" variant="secondary" onPress={() => resolveReport(report.id, 'resolved')}>Mark resolved</Button>
+                  <Button size="sm" variant="ghost" onPress={() => resolveReport(report.id, 'rejected')}>Reject</Button>
                 </div>
               </div>
             ))}

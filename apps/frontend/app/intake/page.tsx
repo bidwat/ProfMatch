@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { findMatches, getUserState, patchUserState } from '@/lib/api';
@@ -78,7 +80,7 @@ export default function IntakePage() {
         {step === 2 && <div className="form-grid"><label className="label">Target degree<select className="select" value={data.target_degree} onChange={e => setData(d => ({ ...d, target_degree: e.target.value }))}><option>PhD</option><option>MS thesis</option><option>MS coursework</option><option>Research internship</option></select></label><label className="label">Preferred departments<input className="input" value={data.departments} onChange={e => setData(d => ({ ...d, departments: e.target.value }))} /></label></div>}
         {step === 3 && <div className="form"><label className="label">Preferred universities, optional<input className="input" placeholder="Stanford, Cornell, UIUC" value={data.universities} onChange={e => setData(d => ({ ...d, universities: e.target.value }))} /></label><label className="label">Preferred locations, optional<input className="input" placeholder="California, Texas, New York" value={data.locations} onChange={e => setData(d => ({ ...d, locations: e.target.value }))} /></label><label className="row"><input type="checkbox" checked={data.rerank} onChange={e => setData(d => ({ ...d, rerank: e.target.checked }))} /> Optional LLM rerank with free OpenRouter model</label><p className="muted small-text">Leave rerank off for fast local-only FTS5 + metadata scoring.</p></div>}
         {error && <div className="error" style={{ marginTop: 16 }}>{error}</div>}
-        <div className="row" style={{ marginTop: 24 }}><button className="button secondary" disabled={step === 0 || loading} onClick={() => setStep(s => s - 1)}>← Back</button><div style={{ flex: 1 }} />{step < 3 ? <button className="button primary" onClick={() => setStep(s => s + 1)}>Continue →</button> : <button className="button primary" disabled={loading} onClick={submit}>{loading ? 'Matching…' : 'Find my professors →'}</button>}</div>
+        <div className="row" style={{ marginTop: 24 }}><Button variant="secondary" isDisabled={step === 0 || loading} onPress={() => setStep(s => s - 1)}>← Back</Button><div style={{ flex: 1 }} />{step < 3 ? <Button onPress={() => setStep(s => s + 1)}>Continue →</Button> : <Button isDisabled={loading} onPress={submit}>{loading ? 'Matching…' : 'Find my professors →'}</Button>}</div>
       </div>
     </div>
   );

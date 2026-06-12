@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -105,7 +107,7 @@ export default function LandingPage() {
                 placeholder="Search by professor, university, department, or research topic"
                 aria-label="Search professors"
               />
-              <button className="button primary" type="submit">Search professors</button>
+              <Button type="submit">Search professors</Button>
             </form>
             <div className="landing-search-chips" aria-label="Example research topics">
               {exampleTopics.map(topic => (

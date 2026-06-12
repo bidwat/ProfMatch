@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { use, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProfessor, patchUserState } from '@/lib/api';
-import { Tabs } from '@heroui/react';
+import { Button, Tabs } from '@heroui/react';
 import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
@@ -100,12 +100,12 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
         <div className="professor-sticky-toolbar">
           <Link className="accent" href={from}>← Back</Link>
           <div className="row" style={{ gap: 8 }}>
-            <button className="button secondary" onClick={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowOutreachModal(true); }}>
+            <Button variant="secondary" onPress={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowOutreachModal(true); }}>
               <Icon name="paper" size={13} /> Draft email
-            </button>
-            <button className="button secondary" onClick={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowReportModal(true); }}>
+            </Button>
+            <Button variant="secondary" onPress={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowReportModal(true); }}>
               Report issue
-            </button>
+            </Button>
             <button className={`button ${isSaved ? 'saved' : 'secondary'}`} onClick={toggleSave}>
               <Icon name="save" size={13} /> {isSaved ? 'Saved' : 'Save'}
             </button>

@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ProfessorCard } from '@/components/ProfessorCard';
@@ -175,9 +177,9 @@ export default function MatchPage() {
             <h2 style={{ margin: 0 }}>Matches</h2>
             <p className="muted">{filteredMatches.length} of {matches.matches.length} matched professors</p>
           </div>
-          <button className="button primary" type="button" onClick={refreshMatches} disabled={refreshing}>
+          <Button type="button" onPress={refreshMatches} isDisabled={refreshing}>
             {refreshing ? 'Refreshing…' : 'Update results'}
-          </button>
+          </Button>
         </div>
         <div className="card soft match-threshold-card">
           <div className="row between">
@@ -250,7 +252,7 @@ export default function MatchPage() {
             />
           );
         })}
-        {visibleCount < filteredMatches.length && <button className="button secondary" onClick={() => setVisibleCount(v => v + 20)}>Load more matches</button>}
+        {visibleCount < filteredMatches.length && <Button variant="secondary" onPress={() => setVisibleCount(v => v + 20)}>Load more matches</Button>}
       </div>
 
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} message="Log in to save this professor and track your outreach progress." />
