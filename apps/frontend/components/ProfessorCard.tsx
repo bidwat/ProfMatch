@@ -99,9 +99,11 @@ export function ProfessorCard({ professor, matchData, saved, onSave, from }: Pro
           </div>
         </Link>
         {matchData ? (
-          <div className="score">
-            <strong>{Math.round(matchData.score * 100)}%</strong>
-            <span>match</span>
+          <div style={{ textAlign: 'center', flexShrink: 0 }}>
+            <div className="uv-score-ring" style={{ background: `conic-gradient(var(--uv-accent) ${Math.round(matchData.score * 100)}%, var(--uv-surface2) 0)`, margin: '0 auto' }}>
+              <div>{Math.round(matchData.score * 100)}%</div>
+            </div>
+            <span className="muted small-text">research fit</span>
           </div>
         ) : (
           <div className="mini-stat">
@@ -141,7 +143,7 @@ export function ProfessorCard({ professor, matchData, saved, onSave, from }: Pro
           ) : null}
         </div>
         <div className="actions">
-          <Link className="button secondary" href={href}><Icon name="eye" size={13} /> Expand</Link>
+          <Link className="button secondary" href={href}>View profile</Link>
           {onSave && <button className={`button primary ${saved ? 'saved' : ''}`} onClick={handleSave}><Icon name="save" size={13} /> {saved ? 'Saved' : 'Save'}</button>}
         </div>
       </div>
