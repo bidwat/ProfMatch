@@ -12,31 +12,24 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason n
 
 ## Phase 0 — Cleanup & Firebase migration (CURRENT)
 
-### 0.1 Remove legacy persistence
-- [~] Replace SQLModel/SQLAlchemy data layer (`app/db/__init__.py`) with Firestore client layer
-- [ ] Remove SQLite fallback, `db/professor_match_publications.sqlite` seed, `load_data.py`
-- [ ] Remove Supabase/Postgres env plumbing (`SUPABASE_*`, `DATABASE_URL`) from code, `.env.example`, compose files, `.do/app.yaml`
-- [ ] Remove sqlite seed/volume logic from `docker-compose*.yml` and backend Dockerfile
-- [ ] Drop `sqlmodel`/`psycopg` from `requirements.txt`; add `firebase-admin`
+### 0.1 Remove legacy persistence — DONE 2026-06-12 (branch `feat/firebase-migration`, commit 93cfc0b)
+- [x] Replace SQLModel/SQLAlchemy data layer (`app/db/__init__.py`) with Firestore client layer
+- [x] Remove SQLite fallback and `load_data.py` (seed file kept in `db/` only as migration source)
+- [x] Remove Supabase/Postgres env plumbing from code, `.env.example`, compose files, `.do/app.yaml`
+- [x] Remove sqlite seed/volume logic from `docker-compose*.yml` and backend Dockerfile
+- [x] Drop `sqlmodel`/`sqlalchemy`/`psycopg` from `requirements.txt`; add `firebase-admin`
 
-### 0.2 Firebase foundation
-- [~] Firestore client init from env: `FIREBASE_SERVICE_ACCOUNT_JSON` (inline JSON), `GOOGLE_APPLICATION_CREDENTIALS` (path), or emulator (`FIRESTORE_EMULATOR_HOST`)
-- [ ] In-memory store implementation for tests/local dev without credentials
-- [ ] Collections: `users`, `sessions`, `professors`, `publications`, `student_profiles`, `scan_jobs`, `scrape_runs`, `onboarding_jobs`
-- [ ] Port models from SQLModel tables to plain Pydantic documents (string IDs)
-- [ ] Migration script: export Supabase Postgres → import to Firestore (one-time, run before cutover)
+### 0.2 Firebase foundation — DONE 2026-06-12
+- [x] Firestore client init from env: `FIREBASE_SERVICE_ACCOUNT_JSON`, `GOOGLE_APPLICATION_CREDENTIALS`, or emulator
+- [x] In-memory store implementation for tests/local dev without credentials (`PROFMATCH_DB=memory`)
+- [x] Collections: users, user_states, auth_sessions, professors, publications, student_profiles, scan_jobs/tasks/results/logs, scrape_runs
+- [x] Models ported to Pydantic documents (integer ids kept via `counters` collection — REST contract unchanged)
+- [x] Migration script `scripts/migrate_to_firestore.py` (dry-run verified: 1039 professors, 4358 publications in local seed; run against Supabase for real data)
 
-### 0.3 Service/API ports (keep REST contract stable for frontend)
-- [ ] `auth_service` + `api/auth` (users, sessions, account deletion)
-- [ ] `professor_service` + `api/professors` (list/search/filters/facets/detail)
-- [ ] `university_service` + `api/universities`, `api/stats`
-- [ ] `student_profile_service` + `api/student_profiles`
-- [ ] `match_service` + `api/match`/`api/matches` (replace SQLite FTS shortlist with in-memory scoring)
-- [ ] `recommendation_service` + `api/recommendations`
-- [ ] `scan_job_service`, `scrape_run_service`, `scan_task_runner`, `workers/scan_worker`
-- [ ] `agentic_onboarding_service` publish step (currently "publish to SQLite")
-- [ ] `admin_scan_service`, `import_service`, `durable_agentic_scan_service`, `api/admin`
-- [ ] Port backend tests (conftest currently builds a SQLite engine)
+### 0.3 Service/API ports — DONE 2026-06-12 (41 backend tests passing)
+- [x] All services and API routers ported; SQLite FTS replaced by lexical shortlist
+- [x] Backend tests rewritten on the in-memory store
+- Caveat: scan-task claiming is serialized per process (single worker); Firestore transactions needed for multi-worker
 
 ### 0.4 Cutover (requires user/console action — flag before merge)
 - [!] `FIREBASE_SERVICE_ACCOUNT_JSON` set on DigitalOcean backend env — **no Firebase credentials found locally; must be set in DO console**

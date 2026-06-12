@@ -39,6 +39,9 @@ export default function ProfessorsPage() {
   const limit = 24;
 
   useEffect(() => {
+    // Seed search from /professors?q=… (landing hero search, shared links).
+    const initialQ = new URLSearchParams(window.location.search).get('q');
+    if (initialQ) setQ(initialQ);
     getProfessorFacets().then(setFacets).catch(() => {});
     setSaved(localStore.getSaved());
     setIsLoggedIn(!!localStore.getUser());

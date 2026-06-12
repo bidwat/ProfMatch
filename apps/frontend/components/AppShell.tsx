@@ -17,7 +17,17 @@ const studentNav = [
   { href: '/saved', label: 'Saved', icon: 'bookmark' as const },
 ];
 
-const publicRoutes = new Set(['/', '/signin', '/signup']);
+const anonymousNav = [
+  { href: '/professors', label: 'Discover', icon: 'compass' as const },
+];
+
+// Pages that render their own chrome (landing, auth) for signed-out visitors.
+const bareRoutes = new Set(['/', '/signin', '/signup']);
+
+// Professor browsing is free and public; everything else requires sign-in.
+function isPublicPath(pathname: string) {
+  return bareRoutes.has(pathname) || pathname === '/professors' || pathname.startsWith('/professors/');
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -31,7 +41,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     setAuthChecked(false);
 
     const localUser = localStore.getUser();
-    if (publicRoutes.has(pathname) && !localUser) {
+    if (isPublicPath(pathname) && !localUser) {
       setAuthChecked(true);
       return () => { cancelled = true; };
     }
@@ -68,7 +78,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         localStore.clearPrivateState();
         setUser(null);
         setAuthChecked(true);
-        if (!publicRoutes.has(pathname)) router.replace(`/signin?next=${encodeURIComponent(pathname)}`);
+        if (!isPublicPath(pathname)) router.replace(`/signin?next=${encodeURIComponent(pathname)}`);
       });
 
     return () => { cancelled = true; };
@@ -101,25 +111,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
 
-  const nav = user?.role === 'admin' ? [...studentNav, { href: '/admin', label: 'Admin', icon: 'shield' as const }] : studentNav;
+  const nav = user
+    ? (user.role === 'admin' ? [...studentNav, { href: '/admin', label: 'Admin', icon: 'shield' as const }] : studentNav)
+    : anonymousNav;
   const displayName = user?.name || 'Profile';
 
-  if (publicRoutes.has(pathname) && !user) {
+  if (bareRoutes.has(pathname) && !user) {
     return <main className="public-main">{children}</main>;
   }
 
-  if (!authChecked && !publicRoutes.has(pathname)) {
+  if (!authChecked && !isPublicPath(pathname)) {
     return <main className="public-main"><PageSkeleton /></main>;
   }
 
-  if (!user && !publicRoutes.has(pathname)) {
+  if (!user && !isPublicPath(pathname)) {
     return <main className="public-main"><PageSkeleton /></main>;
   }
 
   return (
     <div className="app-shell">
       <header className="app-top-nav">
-        <Link className="brand top-brand" href="/dashboard">
+        <Link className="brand top-brand" href={user ? '/dashboard' : '/'}>
           <span className="brand-mark">PM</span><span>ProfMatch</span>
         </Link>
 
@@ -149,8 +161,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {open && (
         <nav id="mobile-navigation" className="mobile-menu" aria-label="Mobile navigation">
           {nav.map(item => <Link key={item.href} className={pathname === item.href || (item.href === '/admin' && pathname.startsWith('/admin')) ? 'active' : ''} href={item.href}><Icon name={item.icon} size={14} /> {item.label}</Link>) }
-          <Link href="/profile" className="mobile-profile-link"><Avatar name={displayName} photoUrl={user?.photo_url} /> Profile</Link>
-          {user && <button className="ghost" onClick={signOut}>Sign Out</button>}
+          {user ? (
+            <>
+              <Link href="/profile" className="mobile-profile-link"><Avatar name={displayName} photoUrl={user?.photo_url} /> Profile</Link>
+              <button className="ghost" onClick={signOut}>Sign Out</button>
+            </>
+          ) : (
+            <>
+              <Link href="/signin">Sign in</Link>
+              <Link href="/signup">Sign up</Link>
+            </>
+          )}
         </nav>
       )}
       <main className="main">{children}</main>

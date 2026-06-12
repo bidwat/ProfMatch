@@ -11,9 +11,29 @@ test('homepage shows ProfMatch landing', async ({ page }) => {
   await page.goto('/')
 
   await expect(page).toHaveTitle(/ProfMatch/)
-  await expect(page.locator('h1')).toContainText('Build a shortlist of professors')
-  await expect(page.getByRole('link', { name: 'Get started →' })).toBeVisible()
+  await expect(page.locator('h1')).toContainText('Find professors whose recent work matches')
+  await expect(page.getByPlaceholder(/Search by professor, university, department/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Search professors' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Get started →' }).first()).toBeVisible()
   await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+})
+
+test('anonymous visitors can browse professors from the landing search', async ({ page }) => {
+  await page.route('**/api/auth/me', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/auth/state', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/stats', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ professor_count: 1, publication_count: 1, university_count: 1, professors_with_email: 1, professors_with_homepage: 1, professors_with_publications: 1, universities: [] }) }))
+  await page.route('**/api/professors/facets', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tags: ['Robotics'], universities: ['Example University'], departments: ['Computer Science'], titles: [], recruiting_signals: ['unknown'] }) }))
+  await page.route('**/api/professors?**', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 1, page: 1, limit: 24, next_cursor: null, professors: [{ id: 1, name: 'Grace Hopper', title: 'Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Compilers and systems.', recruiting_signal: 'unknown', source_confidence: 0.9, publication_count: 4, tags: ['Robotics'], photo_url: null }] }) }))
+
+  await page.goto('/')
+  await page.getByPlaceholder(/Search by professor, university, department/).fill('robotics')
+  await page.getByRole('button', { name: 'Search professors' }).click()
+
+  await expect(page).toHaveURL(/\/professors\?q=robotics/)
+  await expect(page.getByRole('heading', { name: 'Discover' })).toBeVisible()
+  await expect(page.getByText('Grace Hopper')).toBeVisible()
+  // Signed-out shell shows public navigation, not the authenticated tabs.
+  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
 })
 
 test('local signup leads to intake flow', async ({ page }) => {
@@ -47,7 +67,7 @@ test('design refresh covers match intake and discover filters', async ({ page })
   await page.route('**/api/professors?**', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 1, page: 1, limit: 24, next_cursor: null, professors: [{ id: 1, name: 'Ada Lovelace', title: 'Assistant Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Works on machine learning for robotics.', recruiting_signal: 'unknown', source_confidence: 0.82, publication_count: 12, tags: ['Machine Learning', 'Robotics'], photo_url: null }] }) }))
 
   await page.goto('/match')
-  await expect(page.getByRole('heading', { name: 'Background' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'No academic profile yet' })).toBeVisible()
   await page.screenshot({ path: 'test-results/design-match-intake.png', fullPage: true })
 
   await page.goto('/professors')

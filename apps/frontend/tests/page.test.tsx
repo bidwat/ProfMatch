@@ -2,12 +2,19 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import Home from '../app/page'
 
+const pushMock = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock, replace: jest.fn(), prefetch: jest.fn() }),
+}))
+
 beforeEach(() => {
+  pushMock.mockClear()
   global.fetch = jest.fn(() =>
     Promise.resolve({
       ok: true,
       json: () => Promise.resolve({
-        database_path: '/tmp/professor_match_publications.sqlite',
+        database_path: 'firestore',
         professor_count: 890,
         publication_count: 4094,
         university_count: 9,
@@ -27,16 +34,29 @@ afterEach(() => {
 })
 
 describe('Home', () => {
-  it('renders the cleaned-up public landing page', async () => {
+  it('renders the search-first public landing page', async () => {
     render(<Home />)
 
-    expect(screen.getByText(/Build a shortlist of professors/)).toBeInTheDocument()
-    expect(screen.getAllByText('Get started →')).toHaveLength(2)
-    expect(screen.getAllByText('Sign in')).toHaveLength(2)
+    expect(screen.getByText(/Find professors whose recent work matches/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Search by professor, university, department/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Search professors' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Robotics' })).toBeInTheDocument()
+    expect(screen.getByText('Browse all professors')).toBeInTheDocument()
     expect(screen.getByText('Match preview')).toBeInTheDocument()
-    expect(await screen.findByText('Professors')).toBeInTheDocument()
+    expect(screen.getByText(/What does the match percentage mean/)).toBeInTheDocument()
     expect(await screen.findByText('890')).toBeInTheDocument()
     expect(screen.queryByText('Stanford University')).not.toBeInTheDocument()
-    expect(screen.queryByText('How it works')).not.toBeInTheDocument()
+  })
+
+  it('routes hero searches to the public discover page', async () => {
+    const { fireEvent } = await import('@testing-library/react')
+    render(<Home />)
+
+    fireEvent.change(screen.getByPlaceholderText(/Search by professor/), { target: { value: 'climate modeling' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Search professors' }))
+    expect(pushMock).toHaveBeenCalledWith('/professors?q=climate%20modeling')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Robotics' }))
+    expect(pushMock).toHaveBeenCalledWith('/professors?q=Robotics')
   })
 })
