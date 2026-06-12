@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Card } from '@heroui/react';
 import { getProfessor, getUserState, patchUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
+import { track } from '@/lib/analytics';
 import { Toast } from '@/components/Toast';
 import type { GetProfessorResponse } from '@/lib/types';
 
@@ -52,7 +53,9 @@ export default function BoardPage() {
   };
 
   const setStage = (professorId: number, stage: string) => {
+    const from = rows.find(row => row.professor_id === professorId)?.stage;
     persist(rows.map(row => row.professor_id === professorId ? { ...row, stage, updated_at: new Date().toISOString() } : row));
+    track('board_card_moved', { from_stage: from || null, to_stage: stage });
     setToast(`Moved to ${stage}.`);
   };
 

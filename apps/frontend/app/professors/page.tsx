@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getProfessorFacets, getUserState, listProfessors, patchUserState } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { localStore } from '@/lib/local-store';
 import type { ProfessorSummary } from '@/lib/types';
 import { ProfessorCard } from '@/components/ProfessorCard';
@@ -61,6 +62,9 @@ export default function ProfessorsPage() {
         setProfessors(current => cursorToLoad ? [...current, ...r.professors] : r.professors);
         setTotal(r.total);
         setNextCursor(r.next_cursor || null);
+        if (!cursorToLoad && debouncedQ) {
+          track('search_performed', { query_length: debouncedQ.length, results_count: r.total, filters_count: universities.length + tags.length + departments.length + (recruiting ? 1 : 0) });
+        }
       })
       .catch(e => setError(e.message || 'Could not load professors'))
       .finally(() => setLoading(false));
@@ -69,6 +73,7 @@ export default function ProfessorsPage() {
   const toggleSave = (id: number) => {
     if (!isLoggedIn) { setShowLoginModal(true); return; }
     const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id];
+    if (!saved.includes(id)) track('professor_saved', { professor_id: id, surface: 'discover' });
     setSaved(next); localStore.setSaved(next); patchUserState({ saved_professor_ids: next }).catch(() => undefined);
   };
 

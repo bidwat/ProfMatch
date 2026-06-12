@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button, Label, Modal, TextArea, TextField } from '@heroui/react';
 import { generateOutreachDraft, type OutreachDraft } from '@/lib/api';
+import { track } from '@/lib/analytics';
 
 const PURPOSES: [string, string][] = [
   ['phd_inquiry', 'PhD inquiry'],
@@ -31,6 +32,7 @@ export function OutreachDraftModal({ isOpen, onClose, professorId, professorName
     setGenerating(true);
     try {
       setDraft(await generateOutreachDraft({ professor_id: professorId, purpose, extra_context: extraContext.trim() || undefined }));
+      track('outreach_draft_generated', { professor_id: professorId, purpose });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not generate a draft. Try again.');
     } finally {

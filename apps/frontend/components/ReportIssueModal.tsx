@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button, Input, Label, Modal, TextArea, TextField } from '@heroui/react';
 import { submitReport } from '@/lib/api';
+import { track } from '@/lib/analytics';
 
 const REASONS: [string, string][] = [
   ['wrong_email', 'Wrong email'],
@@ -43,6 +44,7 @@ export function ReportIssueModal({ isOpen, onClose, professorId, onSubmitted }: 
         description: description.trim(),
         source_url: sourceUrl.trim() || undefined,
       });
+      track('report_submitted', { target_type: 'professor', reason });
       onSubmitted?.(response.message);
       setDescription('');
       setSourceUrl('');

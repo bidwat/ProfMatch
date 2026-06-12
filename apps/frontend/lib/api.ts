@@ -338,3 +338,7 @@ export function generateOutreachDraft(payload: { professor_id: number; purpose?:
     body: JSON.stringify(payload),
   });
 }
+
+export function getAdminMetrics(days = 30) {
+  return request<{ days: number; total_events: number; events: { name: string; count: number }[] }>(`/api/admin/metrics?days=${days}`);
+}

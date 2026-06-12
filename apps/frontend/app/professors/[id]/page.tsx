@@ -12,6 +12,7 @@ import { ReportIssueModal } from '@/components/ReportIssueModal';
 import { OutreachDraftModal } from '@/components/OutreachDraftModal';
 import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
+import { track } from '@/lib/analytics';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
 
 export default function ProfessorDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -32,9 +33,10 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
   const [showOutreachModal, setShowOutreachModal] = useState(false);
   const compactRef = useRef(false);
 
-  useEffect(() => { 
-    getProfessor(params.id).then(setData).catch(e => setError(e.message || 'Could not load professor')); 
-    
+  useEffect(() => {
+    getProfessor(params.id).then(setData).catch(e => setError(e.message || 'Could not load professor'));
+    track('profile_opened', { professor_id: Number(params.id) });
+
     // Load state
     const s = localStore.getSaved();
     setSaved(s);
@@ -70,8 +72,9 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
       return;
     }
     const id = Number(params.id);
-    const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id]; 
-    setSaved(next); 
+    const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id];
+    if (!saved.includes(id)) track('professor_saved', { professor_id: id, surface: 'detail' });
+    setSaved(next);
     localStore.setSaved(next); 
     setToast(saved.includes(id) ? 'Professor removed from saved.' : 'Professor saved.');
     patchUserState({ saved_professor_ids: next }).catch(() => undefined); 

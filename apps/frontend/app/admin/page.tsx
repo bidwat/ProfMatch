@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications } from '@/lib/api';
+import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getAdminMetrics, getCurrentUser, getScanStatus, listAdminReports, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications, updateAdminReport } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
 
@@ -21,12 +21,20 @@ export default function AdminDashboardPage() {
   const [publicationRefreshGroup, setPublicationRefreshGroup] = useState<IndexedDepartment | null>(null);
   const [enrichGroup, setEnrichGroup] = useState<IndexedDepartment | null>(null);
   const [activeProgress, setActiveProgress] = useState<any | null>(null);
+  const [reports, setReports] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<{ total_events: number; events: { name: string; count: number }[] } | null>(null);
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
     listAgenticJobGroups().then(setJobs).catch(() => undefined);
     listRecommendationRequests().then(r => setRequests(r.requests)).catch(() => undefined);
     getScanStatus().then(setJobStatus).catch(() => undefined);
+    listAdminReports('new').then(r => setReports(r.reports)).catch(() => undefined);
+    getAdminMetrics().then(setMetrics).catch(() => undefined);
+  };
+
+  const resolveReport = (id: number, status: 'resolved' | 'rejected') => {
+    updateAdminReport(id, { status }).then(() => setReports(current => current.filter(r => r.id !== id))).catch(() => undefined);
   };
 
   useEffect(() => {
@@ -218,6 +226,39 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="card">
+          <div className="row between">
+            <h3>Data reports queue</h3>
+            <span className="home-count-chip">{reports.length} new</span>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {reports.length === 0 ? <p className="muted">No open reports. User-submitted corrections will appear here.</p> : reports.slice(0, 8).map(report => (
+              <div className="card soft" key={report.id}>
+                <div className="row between">
+                  <strong>{String(report.reason || '').replace(/_/g, ' ')}</strong>
+                  {report.target_id && <Link className="accent small-text" href={`/professors/${report.target_id}`}>professor #{report.target_id}</Link>}
+                </div>
+                <p className="muted small-text" style={{ margin: '4px 0' }}>{report.description}</p>
+                {report.source_url && <a className="accent small-text" href={report.source_url} target="_blank" rel="noreferrer">{report.source_url}</a>}
+                <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                  <button className="button secondary small" onClick={() => resolveReport(report.id, 'resolved')}>Mark resolved</button>
+                  <button className="ghost small" onClick={() => resolveReport(report.id, 'rejected')}>Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {metrics && (
+            <div style={{ marginTop: 18, borderTop: '1px solid var(--divider)', paddingTop: 12 }}>
+              <div className="row between"><strong>Product events · last {metrics ? 30 : 0} days</strong><span className="muted small-text">{metrics.total_events} total</span></div>
+              <div className="row" style={{ gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {metrics.events.length === 0 ? <span className="muted small-text">No events recorded yet.</span> : metrics.events.map(e => (
+                  <span className="signal" key={e.name}><i />{e.name.replace(/_/g, ' ')} · {e.count}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="card">
