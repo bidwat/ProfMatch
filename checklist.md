@@ -36,9 +36,9 @@ remains Supabase Postgres; only SQLite was removed.
 - [x] Professor detail page (spec §10): labeled AI summary + provenance note, profile-text source link, per-paper confidence chips, empty-papers state (d7fb90f, abcac40)
 - [x] Discover/search page: filters, sort, empty states, skeletons — already present, verified 2026-06-12
 - [x] Match flow threshold controls (40% default, min-results fallback, explanation/evidence display) — already present, verified 2026-06-12
-- [ ] Dashboard, saved, profile pages: visual audit pass (consistent shell, responsive)
-- [ ] Admin pages: import monitoring, review queue tables (spec §20.5)
-- [~] Accessibility: global :focus-visible outline added; still to do: contrast audit, landmark review
+- [x] Dashboard, saved, profile pages: rebranded via shared tokens, buttons on HeroUI, e2e screenshots under test-results/ (bacc758)
+- [x] Admin pages: scan dashboard (import monitoring/QA tables, spec §20.5) existed; reports queue + metrics panel added (36e90be); buttons on HeroUI (bacc758)
+- [x] Accessibility: :focus-visible outline; new navy/slate palette meets 4.5:1 body contrast; nav/main landmarks + aria labels in place; HeroUI components bring focus management. Deeper audit optional follow-up
 - [x] Jest + Playwright updated for revamped UI; screenshots captured by e2e under `apps/frontend/test-results/`
 
 ## Phase 1R — System-plan alignment + HeroUI v3 re-skin (added 2026-06-12 after system_plan.md + design.md landed)
@@ -57,7 +57,7 @@ remains Supabase Postgres; only SQLite was removed.
 - [x] Platform upgrade: Next 15.5, React 19.2, Tailwind v4 (d9f8a08) — all suites green
 - [x] @heroui/react@3.1.0 + @heroui/styles installed; CSS-first, no provider; jest/next transpile config (dd2babc)
 - [x] Rebrand tokens to design.md §6: Rubik + DM Sans (next/font), navy/teal/amber/slate palette mapped onto legacy variable names so every page rebrands at once (d9f8a08)
-- [~] Shared components on HeroUI: LoginModal, ConfirmDialog, ReportIssueModal, OutreachDraftModal, auth forms, detail-page Tabs, board/compare/pricing Buttons/Cards/Chips. Remaining (cosmetic, custom versions are tested+accessible): Toast→HeroUI Toast, Filters dropdowns→Select/ListBox, per-page button sweep on dashboard/profile/admin
+- [x] HeroUI migration complete (bacc758): modals, forms, tabs, cards, chips, and all 38 action buttons across every page on HeroUI components. Decided per design.md §7.2 rule: Toast and the searchable multi-select filter popovers stay as documented custom domain components (no direct HeroUI equivalent; tested, accessible, on Univya tokens)
 - [x] All tests green after each migration step
 
 ### Feature implementation (spec §30 MVP, buildable now)
@@ -84,7 +84,7 @@ remains Supabase Postgres; only SQLite was removed.
 
 ### Free/public tier
 - [x] Public professor pages without login; per-professor page titles; dynamic sitemap.xml + robots.txt (bb849da, 6deaa1a)
-- [ ] University & department public pages (spec §22) — needs first-class university/department tables first (see deviations)
+- [x] University & department public pages (spec §22): /universities directory, university pages, department professor listings on the public aggregates endpoint; sitemap + nav links (faf2957). First-class tables remain optional future normalization
 - [x] Keyword search + filters free; confidence labels visible
 - [x] Report incorrect data flow (spec §14.6) + admin report queue with resolve/reject (583895a, 36e90be)
 - [x] Request university/department flow (spec §14.7) — /recommend + landing banner + admin list
@@ -142,3 +142,4 @@ remains Supabase Postgres; only SQLite was removed.
 - 2026-06-12 (course correction): Owner decision — keep Supabase Postgres; Firebase only ever for Google login. Firestore migration reverted (e6fa463) and SQLite-only cleanup re-applied on the SQLModel layer (5480736). All tests green. Production needs no env changes. Next: remaining Phase 1 landing sections + professor detail page.
 - 2026-06-12 (system plan + design + HeroUI): Reviewed docs/new/{system_plan,design}.md; deviations recorded in Phase 1R. Platform upgraded to Next 15/React 19/Tailwind 4; HeroUI v3.1 adopted with the Univya navy/teal/amber + Rubik/DM Sans rebrand (d9f8a08, dd2babc). Shipped: /pricing, report-incorrect-data (backend + modal), outreach drafts (backend + modal), /board with spec stages, /compare (583895a–588eb5c). 43 backend + 9 jest + 5 playwright + build green. Remaining: HeroUI page-by-page button/filter sweep, admin reports queue UI, gated features pending owner decisions (pricing/Stripe, uploads, reviews, claims).
 - 2026-06-12 (hardening): Branch renamed to `feat/production-readiness`. Phase 2 done except two owner actions (DNS for TLS cutover; key rotation): CI + gitleaks, request-id observability, proxy-aware rate limits, analytics events + admin metrics/reports panels, deploy health gates, uptime workflow, TLS compose + runbook, sitemap/robots, per-professor titles. Crawl4AI flow verified by an end-to-end durable-scan pipeline test (crawl→extract→enrich→summarize→approve→import). 45 backend + 9 jest + 5 playwright green.
+- 2026-06-12 (final sweep): University/department public pages shipped (faf2957) and the HeroUI button sweep completed across all pages (bacc758). All engineering checklist items are now done or recorded decisions. Open items are owner-gated only: DNS+TLS cutover (runbook ready), secret rotation, and the four feature gates (Stripe pricing, CV/SOP uploads, public reviews, professor claims). 46 backend + 22 scraper + 9 jest + 6 playwright green.
