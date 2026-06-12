@@ -74,6 +74,7 @@ export default function LandingPage() {
         </Link>
         <nav className="landing-nav-links" aria-label="Landing navigation">
           <Link href="/professors" prefetch={false}>Browse professors</Link>
+          <Link href="/universities" prefetch={false}>Universities</Link>
           <a href="#workflow">How it works</a>
           <a href="#features">Features</a>
           <Link href="/pricing" prefetch={false}>Pricing</Link>

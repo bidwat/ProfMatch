@@ -124,3 +124,28 @@ test('admin scan dashboard shows QA details and captures evidence screenshot', a
   await expect(page.getByText('same profile URL', { exact: true }).first()).toBeVisible()
   await page.screenshot({ path: 'test-results/admin-scans-dashboard.png', fullPage: true })
 })
+
+test('public university and department pages render from overview data', async ({ page }) => {
+  await page.route('**/api/auth/me', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/auth/state', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/universities/overview', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ groups: [
+    { university: 'Example University', department: 'Computer Science', professor_count: 2, publication_count: 12 },
+    { university: 'Example University', department: 'Biology', professor_count: 1, publication_count: 3 },
+  ] }) }))
+  await page.route('**/api/professors?**', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 2, page: 1, limit: 100, next_cursor: null, professors: [
+    { id: 1, name: 'Grace Hopper', title: 'Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Compilers.', recruiting_signal: 'unknown', source_confidence: 0.9, publication_count: 6, tags: [], photo_url: null },
+    { id: 2, name: 'Alan Turing', title: 'Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Computation.', recruiting_signal: 'unknown', source_confidence: 0.92, publication_count: 6, tags: [], photo_url: null },
+  ] }) }))
+
+  await page.goto('/universities')
+  await expect(page.getByRole('heading', { name: 'Universities' })).toBeVisible()
+  await page.getByText('Example University').click()
+
+  await expect(page).toHaveURL(/\/universities\/example-university/)
+  await expect(page.getByRole('heading', { name: 'Example University' })).toBeVisible()
+  await page.getByText('Computer Science', { exact: true }).click()
+
+  await expect(page).toHaveURL(/\/universities\/example-university\/computer-science/)
+  await expect(page.getByText('Grace Hopper')).toBeVisible()
+  await expect(page.getByText('Alan Turing')).toBeVisible()
+})

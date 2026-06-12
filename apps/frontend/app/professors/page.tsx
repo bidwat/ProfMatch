@@ -40,9 +40,17 @@ export default function ProfessorsPage() {
   const limit = 24;
 
   useEffect(() => {
-    // Seed search from /professors?q=… (landing hero search, shared links).
-    const initialQ = new URLSearchParams(window.location.search).get('q');
+    // Seed search/filters from URL params (landing search, university and
+    // department page cross-links, shared URLs).
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQ = urlParams.get('q');
     if (initialQ) setQ(initialQ);
+    const initialUniversity = urlParams.get('university');
+    if (initialUniversity) setUniversities([initialUniversity]);
+    const initialDepartment = urlParams.get('department');
+    if (initialDepartment) setDepartments([initialDepartment]);
+    const initialTag = urlParams.get('tag');
+    if (initialTag) setTags([initialTag]);
     getProfessorFacets().then(setFacets).catch(() => {});
     setSaved(localStore.getSaved());
     setIsLoggedIn(!!localStore.getUser());

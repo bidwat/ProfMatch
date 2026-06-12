@@ -342,3 +342,14 @@ export function generateOutreachDraft(payload: { professor_id: number; purpose?:
 export function getAdminMetrics(days = 30) {
   return request<{ days: number; total_events: number; events: { name: string; count: number }[] }>(`/api/admin/metrics?days=${days}`);
 }
+
+export interface DepartmentGroup {
+  university: string;
+  department: string;
+  professor_count: number;
+  publication_count: number;
+}
+
+export function getUniversitiesOverview() {
+  return request<{ groups: DepartmentGroup[] }>('/api/universities/overview');
+}

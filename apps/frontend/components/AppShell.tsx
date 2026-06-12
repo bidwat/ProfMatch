@@ -20,14 +20,18 @@ const studentNav = [
 
 const anonymousNav = [
   { href: '/professors', label: 'Discover', icon: 'compass' as const },
+  { href: '/universities', label: 'Universities', icon: 'building' as const },
 ];
 
 // Pages that render their own chrome (landing, auth) for signed-out visitors.
 const bareRoutes = new Set(['/', '/signin', '/signup']);
 
-// Professor browsing and pricing are free and public; everything else requires sign-in.
+// Professor/university browsing and pricing are free and public; everything else requires sign-in.
 function isPublicPath(pathname: string) {
-  return bareRoutes.has(pathname) || pathname === '/pricing' || pathname === '/professors' || pathname.startsWith('/professors/');
+  return bareRoutes.has(pathname)
+    || pathname === '/pricing'
+    || pathname === '/professors' || pathname.startsWith('/professors/')
+    || pathname === '/universities' || pathname.startsWith('/universities/');
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

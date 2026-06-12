@@ -203,3 +203,11 @@ def test_get_professor_invalid_id(test_client: TestClient):
 def test_get_professor_negative_id(test_client: TestClient):
     response = test_client.get("/api/professors/-1")
     assert response.status_code == 422
+
+
+def test_public_universities_overview(test_client: TestClient, sample_data):
+    response = test_client.get("/api/universities/overview")
+    assert response.status_code == 200
+    groups = response.json()["groups"]
+    assert {"university": "Test University", "department": "Computer Science", "professor_count": 1, "publication_count": 2} in groups
+    assert {"university": "Another University", "department": "Engineering", "professor_count": 1, "publication_count": 0} in groups
