@@ -39,8 +39,9 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason n
 
 ## Phase 1 — UI revamp
 
-- [ ] Design system pass: typography, spacing, color tokens in `globals.css` (Tailwind), consistent with `design_reference/`
-- [ ] Landing page per spec §21: hero + search-first, problem section, how-it-works, free-vs-paid clarity, FAQ
+- [x] Design system pass: hi-fi tokens (Sora, gold/olive/peach, sharp radii) already implemented in `globals.css`, matching `design_reference/hifi-tokens.css` — verified 2026-06-12
+- [x] Public free browsing (spec FR-001): `/professors` and professor detail pages work signed-out with a public shell (commit bb849da)
+- [~] Landing page per spec §21: search-first hero with topic chips + FAQ added (bb849da); problem-comparison section and professor-claim/department-request sections still to do
 - [ ] Professor cards (spec §11.5): photo, tags, confidence badge, recruiting status, AI summary snippet
 - [ ] Professor detail page (spec §10): header, labeled "AI Summary", tags, recent papers with confidence labels, source links, actions
 - [ ] Discover/search page: filters (university, department, tags, recruiting), sort, empty states, skeletons
@@ -120,3 +121,4 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason n
 ## Session log
 
 - 2026-06-12: Checklist created. Phase 0 started: Firebase data layer + SQLite cleanup on branch `feat/firebase-migration`. Found no Firebase credentials in either repo — code reads creds from env; cutover blocked on console env vars (see 0.4).
+- 2026-06-12 (cont.): Phase 0.1–0.3 complete (commit 93cfc0b, 41 backend tests). Phase 1 started: public professor browsing + search-first landing with FAQ (commit bb849da; 9 jest + 5 playwright green, build clean). Next: finish landing sections, professor detail per spec §10, then Phase 0.4 cutover once Firebase creds are set in DO/Vercel.
