@@ -22,8 +22,11 @@ from apps.backend.app.api.admin import router as admin_router
 from apps.backend.app.api.scrape_runs import router as scrape_runs_router
 from apps.backend.app.api.recommendations import router as recommendations_router
 from apps.backend.app.api.student_profiles import router as student_profiles_router
+from apps.backend.app.api.reports import router as reports_router
+from apps.backend.app.api.outreach import router as outreach_router
 from apps.backend.app.models import auth as auth_models  # noqa: F401 - ensure auth tables are registered
 from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - ensure durable scan tables are registered
+from apps.backend.app.models import report as report_models  # noqa: F401 - ensure report table is registered
 
 # --- Structured Logging Setup ---
 class JsonFormatter(logging.Formatter):
@@ -165,4 +168,6 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(scrape_runs_router, prefix="/api")
 app.include_router(recommendations_router, prefix="/api")
 app.include_router(student_profiles_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(outreach_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")

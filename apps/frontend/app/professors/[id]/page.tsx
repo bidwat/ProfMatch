@@ -8,6 +8,8 @@ import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/component
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
 import { LoginModal } from '@/components/LoginModal';
+import { ReportIssueModal } from '@/components/ReportIssueModal';
+import { OutreachDraftModal } from '@/components/OutreachDraftModal';
 import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
@@ -26,6 +28,8 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
   const [matchData, setMatchData] = useState<MatchScore | null>(null);
   const [compact, setCompact] = useState(false);
   const [toast, setToast] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showOutreachModal, setShowOutreachModal] = useState(false);
   const compactRef = useRef(false);
 
   useEffect(() => { 
@@ -88,9 +92,17 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
       <div className={`card sticky-professor-card ${compact ? 'compact' : ''}`}>
         <div className="professor-sticky-toolbar">
           <Link className="accent" href={from}>← Back</Link>
-          <button className={`button ${isSaved ? 'saved' : 'secondary'}`} onClick={toggleSave}>
-            <Icon name="save" size={13} /> {isSaved ? 'Saved' : 'Save'}
-          </button>
+          <div className="row" style={{ gap: 8 }}>
+            <button className="button secondary" onClick={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowOutreachModal(true); }}>
+              <Icon name="paper" size={13} /> Draft email
+            </button>
+            <button className="button secondary" onClick={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowReportModal(true); }}>
+              Report issue
+            </button>
+            <button className={`button ${isSaved ? 'saved' : 'secondary'}`} onClick={toggleSave}>
+              <Icon name="save" size={13} /> {isSaved ? 'Saved' : 'Save'}
+            </button>
+          </div>
         </div>
 
         <div className="professor-sticky-main">
@@ -186,7 +198,9 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
       )}
 
       <Toast message={toast} onClose={() => setToast('')} />
-      <LoginModal 
+      <ReportIssueModal isOpen={showReportModal} onClose={() => setShowReportModal(false)} professorId={Number(params.id)} onSubmitted={setToast} />
+      <OutreachDraftModal isOpen={showOutreachModal} onClose={() => setShowOutreachModal(false)} professorId={Number(params.id)} professorName={p.name} onToast={setToast} />
+      <LoginModal
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
         message="Log in to save this professor and track your outreach progress." 

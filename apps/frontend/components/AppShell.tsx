@@ -24,9 +24,9 @@ const anonymousNav = [
 // Pages that render their own chrome (landing, auth) for signed-out visitors.
 const bareRoutes = new Set(['/', '/signin', '/signup']);
 
-// Professor browsing is free and public; everything else requires sign-in.
+// Professor browsing and pricing are free and public; everything else requires sign-in.
 function isPublicPath(pathname: string) {
-  return bareRoutes.has(pathname) || pathname === '/professors' || pathname.startsWith('/professors/');
+  return bareRoutes.has(pathname) || pathname === '/pricing' || pathname === '/professors' || pathname.startsWith('/professors/');
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

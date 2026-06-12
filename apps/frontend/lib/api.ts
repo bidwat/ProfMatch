@@ -301,3 +301,40 @@ export function submitRecommendation(payload: { university: string; department: 
 export function listRecommendationRequests() {
   return request<{ requests: any[] }>('/api/admin/recommendations');
 }
+
+export interface OutreachDraft {
+  professor_id: number;
+  professor_name: string;
+  purpose: string;
+  subject: string;
+  body: string;
+  suggested_paper?: string | null;
+  personalization_checklist: string[];
+  review_reminder: string;
+}
+
+export function submitReport(payload: { target_type: string; target_id?: number; reason: string; description: string; source_url?: string }) {
+  return request<{ status: string; id: number; message: string }>('/api/reports', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listAdminReports(status?: string) {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  return request<{ reports: any[] }>(`/api/reports/admin${qs}`);
+}
+
+export function updateAdminReport(id: number, payload: { status: string; admin_notes?: string }) {
+  return request<{ report: any }>(`/api/reports/admin/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function generateOutreachDraft(payload: { professor_id: number; purpose?: string; extra_context?: string }) {
+  return request<OutreachDraft>('/api/outreach-drafts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}

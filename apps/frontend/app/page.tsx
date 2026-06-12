@@ -76,6 +76,7 @@ export default function LandingPage() {
           <Link href="/professors" prefetch={false}>Browse professors</Link>
           <a href="#workflow">How it works</a>
           <a href="#features">Features</a>
+          <Link href="/pricing" prefetch={false}>Pricing</Link>
           <a href="#faq">FAQ</a>
         </nav>
         <div className="row">
