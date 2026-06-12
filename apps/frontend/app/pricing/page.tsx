@@ -35,10 +35,10 @@ function CheckList({ items }: { items: string[] }) {
 
 export default function PricingPage() {
   return (
-    <main style={{ maxWidth: 880, margin: '0 auto', padding: 32 }}>
+    <main className="uv-wrap" style={{ maxWidth: 880, paddingTop: 32, paddingBottom: 32 }}>
       <div style={{ textAlign: 'center', padding: '48px 0 40px' }}>
         <div className="uv-eyebrow">Pricing</div>
-        <h1 style={{ margin: '12px auto 0', fontSize: 38, letterSpacing: '-0.025em', maxWidth: 640 }}>Browsing is free. Personalization and workflow are paid.</h1>
+        <h1 style={{ margin: '12px auto 0', fontSize: 'clamp(28px, 5.5vw, 38px)', letterSpacing: '-0.025em', maxWidth: 640 }}>Browsing is free. Personalization and workflow are paid.</h1>
         <p className="muted" style={{ margin: '16px auto 0', fontSize: 15.5, lineHeight: 1.6, maxWidth: 560 }}>
           Public professor discovery stays free forever — it’s how Univya earns trust.
           Paid plans unlock matching and application workflow built on your research profile.

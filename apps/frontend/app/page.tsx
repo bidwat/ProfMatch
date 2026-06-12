@@ -51,7 +51,7 @@ export default function LandingPage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'color-mix(in oklab, var(--uv-bg) 86%, transparent)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--uv-border)' }}>
         <div className="uv-wrap" style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
           <Link className="brand" href="/" style={{ fontSize: 20 }}><span>Univya<span className="brand-dot">.</span></span></Link>
-          <nav className="row" style={{ gap: 26, fontSize: 14, fontWeight: 500 }} aria-label="Landing navigation">
+          <nav className="uv-nav-desktop" aria-label="Landing navigation">
             <Link className="muted" href="/professors" prefetch={false}>Browse professors</Link>
             <Link className="muted" href="/universities" prefetch={false}>Universities</Link>
             <a className="muted" href="#how">How it works</a>
@@ -60,19 +60,19 @@ export default function LandingPage() {
           </nav>
           <div className="row" style={{ gap: 10 }}>
             <ThemeToggle />
-            <Link className="button secondary" href="/signin" prefetch={false}>Sign in</Link>
+            <Link className="button secondary uv-hide-sm" href="/signin" prefetch={false}>Sign in</Link>
             <Link className="button primary" href="/signup" prefetch={false}>Get started →</Link>
           </div>
         </div>
       </header>
 
       <main className="uv-wrap">
-        <section aria-label="Hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.05fr) minmax(0,.95fr)', gap: 64, alignItems: 'center', padding: '80px 0 72px' }}>
+        <section aria-label="Hero" className="uv-hero">
           <div style={{ display: 'grid', gap: 22, justifyItems: 'start' }}>
             <span className="uv-pill"><i />Research-fit advisor discovery</span>
             <h1 style={{ margin: 0, fontSize: 'clamp(36px, 4.6vw, 52px)', lineHeight: 1.06, letterSpacing: '-0.025em' }}>Find professors whose recent work matches your research story.</h1>
             <p className="muted" style={{ margin: 0, fontSize: 17, lineHeight: 1.6, maxWidth: 520 }}>Univya turns your background, interests, and degree goals into an explainable shortlist of potential MS/PhD advisors — with recent-paper evidence and clear reasons for every match.</p>
-            <form role="search" style={{ display: 'flex', gap: 10, width: '100%', maxWidth: 540, marginTop: 4 }} onSubmit={e => { e.preventDefault(); searchProfessors(query); }}>
+            <form role="search" className="uv-search-row" onSubmit={e => { e.preventDefault(); searchProfessors(query); }}>
               <input
                 type="search"
                 value={query}
@@ -95,7 +95,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div aria-label="Match preview" style={{ background: 'var(--uv-navy-soft)', borderRadius: 24, padding: '36px 32px', display: 'grid', gap: 14 }}>
+          <div aria-label="Match preview" className="uv-preview-panel">
             <div className="t-label" style={{ letterSpacing: '.1em' }}>Match preview</div>
             <div className="uv-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
               <div className="uv-score-ring" style={{ background: 'conic-gradient(var(--uv-accent) 78%, var(--uv-surface2) 0)' }}><div>78%</div></div>
@@ -220,7 +220,7 @@ export default function LandingPage() {
         </section>
 
         <section aria-label="Final CTA" style={{ padding: '0 0 80px' }}>
-          <div className="uv-deep" style={{ borderRadius: 24, padding: '64px 48px', textAlign: 'center' }}>
+          <div className="uv-deep uv-cta-deep">
             <h2 style={{ margin: '0 auto', fontSize: 34, maxWidth: 560 }}>Build a shortlist backed by recent research evidence.</h2>
             <p className="uv-deep-muted" style={{ margin: '14px auto 28px', fontSize: 15.5, lineHeight: 1.6, maxWidth: 480 }}>Create your profile, review explainable matches, and save the professors you want to revisit.</p>
             <div className="row center" style={{ gap: 12 }}>

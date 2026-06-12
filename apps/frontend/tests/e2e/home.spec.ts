@@ -149,3 +149,24 @@ test('public university and department pages render from overview data', async (
   await expect(page.getByText('Grace Hopper')).toBeVisible()
   await expect(page.getByText('Alan Turing')).toBeVisible()
 })
+
+test('mobile viewports render without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/api/auth/me', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/auth/state', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
+  await page.route('**/api/stats', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ professor_count: 1037, publication_count: 4397, university_count: 9, professors_with_email: 1, professors_with_homepage: 1, professors_with_publications: 912, universities: [] }) }))
+  await page.route('**/api/professors/facets', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tags: ['Robotics'], universities: ['Example University'], departments: ['Computer Science'], titles: [], recruiting_signals: ['unknown'] }) }))
+  await page.route('**/api/professors?**', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 1, page: 1, limit: 24, next_cursor: null, professors: [{ id: 1, name: 'Grace Hopper', title: 'Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Compilers and systems.', recruiting_signal: 'unknown', source_confidence: 0.9, publication_count: 4, tags: ['Robotics'], photo_url: null }] }) }))
+  await page.route('**/api/universities/overview', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ groups: [{ university: 'Example University', department: 'Computer Science', professor_count: 1, publication_count: 4 }] }) }))
+
+  for (const path of ['/', '/pricing', '/professors', '/universities']) {
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, `horizontal overflow on ${path}`).toBeLessThanOrEqual(1)
+  }
+  // Landing hero stacks to one column and the search button is full width.
+  await page.goto('/')
+  const heroColumns = await page.locator('.uv-hero').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)
+  expect(heroColumns).toBe(1)
+})
