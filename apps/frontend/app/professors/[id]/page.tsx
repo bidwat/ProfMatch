@@ -35,7 +35,10 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
   const compactRef = useRef(false);
 
   useEffect(() => {
-    getProfessor(params.id).then(setData).catch(e => setError(e.message || 'Could not load professor'));
+    getProfessor(params.id).then(response => {
+      setData(response);
+      document.title = `${response.professor.name} – ${response.professor.university} | ProfMatch`;
+    }).catch(e => setError(e.message || 'Could not load professor'));
     track('profile_opened', { professor_id: Number(params.id) });
 
     // Load state
