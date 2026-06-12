@@ -177,6 +177,33 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="landing-section">
+          <div className="landing-section-heading compact">
+            <span className="t-label">The problem</span>
+            <h2>Finding an advisor should not require dozens of tabs and a spreadsheet.</h2>
+          </div>
+          <div className="landing-compare-grid">
+            <div className="landing-compare-col without">
+              <h3>Without ProfMatch</h3>
+              <ul>
+                <li>Search department faculty pages one university at a time</li>
+                <li>Read bios that may be years out of date</li>
+                <li>Guess whether a professor&apos;s current work fits your interests</li>
+                <li>Track candidates in a spreadsheet you maintain by hand</li>
+              </ul>
+            </div>
+            <div className="landing-compare-col with">
+              <h3>With ProfMatch</h3>
+              <ul>
+                <li>Search professor profiles across universities in one place</li>
+                <li>See AI summaries informed by recent publications, with sources</li>
+                <li>Get explainable research-fit scores with paper evidence</li>
+                <li>Save a shortlist tied to your account</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
         <section id="workflow" className="landing-section landing-workflow-section">
           <div className="landing-section-heading compact">
             <span className="t-label">How it works</span>
@@ -203,6 +230,16 @@ export default function LandingPage() {
             <div className="landing-list-grid">
               {researchChecks.map(([title, body]) => <div className="landing-list-item" key={title}><strong>{title}</strong><p>{body}</p></div>)}
             </div>
+          </div>
+        </section>
+
+        <section className="landing-section">
+          <div className="landing-request-banner">
+            <div>
+              <strong>Don&apos;t see your university or department?</strong>
+              <p>Request it with the faculty page URL and our admins will review it for import.</p>
+            </div>
+            <Link className="button secondary" href="/recommend" prefetch={false}>Request a department →</Link>
           </div>
         </section>
 

@@ -12,6 +12,19 @@ import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
 
+function confidenceBand(confidence?: number | null) {
+  if (typeof confidence !== 'number') return null;
+  if (confidence >= 0.85) return { label: 'High confidence', tone: 'olive' };
+  if (confidence >= 0.65) return { label: 'Medium confidence', tone: 'gold' };
+  return { label: 'Low confidence', tone: 'peach' };
+}
+
+function PaperConfidence({ confidence }: { confidence?: number | null }) {
+  const band = confidenceBand(confidence);
+  if (!band) return null;
+  return <span className={`confidence-chip tone-${band.tone}`} title={`Author-match confidence ${Math.round((confidence as number) * 100)}%`}>{band.label}</span>;
+}
+
 export default function ProfessorDetailPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const from = searchParams.get('from') || '/professors';
@@ -147,21 +160,36 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
       
       {tab === 'overview' && (
         <div className="card">
-          <h3>Research Summary</h3>
+          <div className="row between" style={{ alignItems: 'baseline' }}>
+            <h3>Research summary</h3>
+            <span className="t-label">AI summary · generated from public sources</span>
+          </div>
           <p className="summary" style={{ display: 'block', WebkitLineClamp: 'unset', marginTop: 10, lineHeight: 1.6 }}>{p.research_summary || p.research_text || 'Research summary unavailable.'}</p>
+          <p className="muted small-text" style={{ marginTop: 10 }}>
+            Summarized from the public faculty profile, personal/lab pages, and recent publications. It can lag behind the professor&apos;s newest work — verify against the source links above before outreach.
+          </p>
           <div className="signals" style={{ marginTop: 18 }}>
             <span className="signal"><i />Updated {new Date(p.updated_at).toLocaleDateString()}</span>
+            {(p.extra?.research_source_url || p.extra?.bio_source_url) && (
+              <a className="signal" href={(p.extra?.research_source_url || p.extra?.bio_source_url) as string} target="_blank" rel="noreferrer"><i />Profile text source</a>
+            )}
             {p.photo_source_url && <span className="signal"><i />Photo source-backed</span>}
           </div>
         </div>
       )}
-      
+
       {tab === 'papers' && (
         <div className="card">
           <h3>Recent publications</h3>
+          {data.publications.length === 0 && (
+            <p className="muted" style={{ marginTop: 10 }}>No reliably matched publications yet. Check the homepage or Google Scholar links above for the professor&apos;s own list.</p>
+          )}
           {data.publications.map(pub => (
             <div key={pub.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
-              <b>{pub.url ? <a className="accent" href={pub.url} target="_blank" rel="noreferrer">{pub.title}</a> : pub.title}</b>
+              <div className="row between" style={{ gap: 12, alignItems: 'baseline', flexWrap: 'nowrap' }}>
+                <b>{pub.url ? <a className="accent" href={pub.url} target="_blank" rel="noreferrer">{pub.title}</a> : pub.title}</b>
+                <PaperConfidence confidence={pub.match_confidence} />
+              </div>
               <p className="muted small-text" style={{ marginTop: 4 }}>{pub.venue || 'Unknown venue'} · {pub.year || 'n.d.'} · {pub.source}</p>
               {pub.abstract && <p className="muted" style={{ marginTop: 8, lineHeight: 1.5 }}>{pub.abstract}</p>}
             </div>

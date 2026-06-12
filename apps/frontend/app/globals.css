@@ -125,6 +125,27 @@
 .landing-topic-chip{display:inline-flex;align-items:center;padding:4px 11px;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:999px;background:var(--paper);color:var(--ink-65);cursor:pointer;transition:background .14s ease,color .14s ease,border-color .14s ease}
 .landing-topic-chip:hover{background:var(--tint-gold);border-color:var(--gold-100);color:var(--gold-500)}
 
+/* Publication confidence bands (spec: high >=0.85, medium >=0.65, low below) */
+.confidence-chip{display:inline-flex;align-items:center;flex-shrink:0;padding:2px 8px;border-radius:var(--r-sm);font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.confidence-chip.tone-olive{background:var(--tint-olive);color:var(--olive-500)}
+.confidence-chip.tone-gold{background:var(--tint-gold);color:var(--gold-500)}
+.confidence-chip.tone-peach{background:var(--tint-peach);color:var(--peach-500)}
+
+/* Landing problem comparison */
+.landing-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.landing-compare-col{display:grid;gap:10px;align-content:start;background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px;box-shadow:var(--shadow-sm)}
+.landing-compare-col.with{background:var(--tint-gold);border-color:var(--gold-100)}
+.landing-compare-col h3{margin:0;font-size:14px;font-weight:600}
+.landing-compare-col ul{margin:0;padding:0;list-style:none;display:grid;gap:9px}
+.landing-compare-col li{font-size:13px;line-height:1.55;color:var(--ink-80);padding-left:18px;position:relative}
+.landing-compare-col.without li::before{content:'✕';position:absolute;left:0;color:var(--peach-300);font-size:11px}
+.landing-compare-col.with li::before{content:'✓';position:absolute;left:0;color:var(--olive-400);font-size:11px}
+@media(max-width:767px){.landing-compare-grid{grid-template-columns:1fr}}
+
+/* Landing department request banner */
+.landing-request-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px 22px;box-shadow:var(--shadow-sm)}
+.landing-request-banner p{margin:4px 0 0;color:var(--ink-65);font-size:13px;line-height:1.6}
+
 /* Landing FAQ */
 .landing-faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
 .landing-faq-item{display:grid;gap:7px;align-content:start;background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px 20px;box-shadow:var(--shadow-sm)}
