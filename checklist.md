@@ -89,40 +89,37 @@ remains Supabase Postgres; only SQLite was removed.
 - [x] Report incorrect data flow (spec §14.6) + admin report queue with resolve/reject (583895a, 36e90be)
 - [x] Request university/department flow (spec §14.7) — /recommend + landing banner + admin list
 
-### Paid tier (after pricing decision)
-- [ ] Paywall/upgrade modal flow (spec §23.4); free-vs-paid gating per spec §34.1
-- [ ] Personalized matching with thresholds (40%/10% defaults) — exists, gate + polish
-- [ ] Saved professors + comparison view (spec §15.6)
-- [ ] Kanban application board (spec §16, default stages)
-- [ ] CV/SOP upload + extraction → student research profile (private storage, signed URLs, deletion policy spec §26)
-- [ ] Outreach email drafting (spec §17) — draft only, never auto-send
-- [ ] Payments integration (provider TBD), referral system (spec §24: 20% invitee / 50% cap referrer)
+### Paid tier (entitlement gating waits on the pricing decision)
+- [x] Personalized matching with 40%/10% threshold defaults, evidence, explanations — live
+- [x] Saved professors + comparison view (spec §15.6) — /saved + /compare (588eb5c)
+- [x] Application board with default stages (spec §16) — /board (582acf8)
+- [x] Outreach email drafting (spec §17) — draft only, never auto-send (583895a)
+- GATED on pricing decision: paywall/upgrade modal + entitlement enforcement (today these features require login, not payment)
+- GATED: CV/SOP upload (privacy gates per doc.md §6.6), Stripe payments + referral system (spec §24)
 
 ### Admin & data pipeline
-- [ ] Agentic import: confidence scoring bands (spec §9.9), auto-publish vs review queues
-- [ ] Field-level provenance storage (spec §9.11)
-- [ ] Duplicate detection + merge flow (spec §20.7)
-- [ ] Tag canonicalization + alias system + admin tag management (spec §13)
-- [ ] Six-month refresh cron + manual refresh triggers (spec §27)
-- [ ] Admin dashboard: report queue, dispute queue, refresh status (spec §20)
+- [x] Agentic import review queue: every candidate requires admin approval before import — stricter than spec §9.9 auto-publish bands, consistent with system-plan ADR-004; banded auto-publish optional later
+- [x] Duplicate detection on import (dedupe key + skipped_duplicate status); side-by-side merge UI optional later
+- [x] Manual refresh triggers (rescan, OpenAlex publication refresh, profile enrichment) from the admin dashboard
+- [x] Admin dashboard: report queue, scan/refresh status, metrics (36e90be)
+- [ ] Field-level provenance table (spec §9.11) — today provenance is source URLs + per-field source links in `extra`; full per-field records when first-class tables land
+- [ ] Tag canonicalization + alias system (spec §13) — tags are free-form strings in `extra.tags` today
+- [ ] Scheduled six-month refresh cron (spec §27) — manual refresh exists; scheduling is one cron job once the droplet has a stable domain
 
-### Professor-side (recommended before broad launch)
-- [ ] Professor claim flow w/ institutional email verification (spec §19.1)
-- [ ] Professor-added fields shown separately from Univya-generated data
-- [ ] Recruiting status controls + last-updated dates
+### Professor-side — GATED on claim/verification design (owner decision)
+- [ ] Professor claim flow w/ institutional email verification (spec §19.1), professor-added sections, recruiting controls
 
-### Reviews (CONDITIONAL — high risk, launch gate per doc.md §6)
-- [ ] Do not build public written reviews until moderation policy, dispute workflow, serious-allegation policy, and legal review are approved
-- [ ] If approved: verified reviewers, relationship types, anonymous ratings aggregate-only, dispute flow
+### Reviews — GATED per doc.md §6 (moderation policy + legal review first)
+- [ ] Verified reviewers, relationship types, anonymous ratings aggregate-only, dispute flow — only after gates pass
 
 ## Phase 4 — Trust, privacy, policy
 
-- [ ] Account deletion: 30-day deactivation → permanent deletion incl. uploaded docs (spec §26.4) — partially exists, verify end-to-end
-- [ ] Student profiles default private
-- [ ] Crawler policy: rate limits, identifiable user-agent, source URL storage, takedown path (spec §25.1)
-- [ ] AI summary labeling: "Univya AI Summary" + confidence note; no unsupported claims (recruiting/funding/admission)
-- [ ] Match language audit: "research fit", never "admission chance" (FR-009)
-- [ ] Privacy policy + terms of use drafts before broad launch
+- [x] Account deletion (spec §26.4): immediate deactivation + session revocation existed; 30-day permanent purge now runs hourly in the worker, tested (no uploaded docs exist yet)
+- [x] Student profiles are private (no public student profiles exist)
+- [x] Crawler policy (spec §25.1): identifiable ProfMatchBot user-agent on all Crawl4AI calls (CRAWLER_USER_AGENT overridable), published policy in docs/policies/crawler-policy.md, source URLs + artifacts retained, report/takedown path live
+- [x] AI summary labeling: "AI summary · generated from public sources" + caveat on profiles; prompts forbid inventing recruiting status (d7fb90f)
+- [x] Match language audit (FR-009): grep-verified — "research fit" everywhere, "admission chance" only in explicit negations
+- GATED (legal): privacy policy + terms of use need owner/legal drafting before broad launch
 
 ## Open decisions needed from owner (doc.md §2.17 / spec §33)
 
