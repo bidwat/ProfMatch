@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session
 from typing import Optional, Any
-from apps.backend.app.db import get_session
+from apps.backend.app.db import Database, get_session
 from apps.backend.app.services.professor_service import ProfessorService
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -98,8 +97,8 @@ router = APIRouter()
 
 
 @router.get("/professors/facets", response_model=ProfessorFacetsResponse)
-def professor_facets(session: Session = Depends(get_session)):
-    service = ProfessorService(session)
+def professor_facets(db: Database = Depends(get_session)):
+    service = ProfessorService(db)
     try:
         return service.list_facets()
     except Exception as e:
@@ -118,9 +117,9 @@ def list_professors(
     cursor: Optional[str] = Query(None, description="Opaque cursor for lazy loading"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    session: Session = Depends(get_session),
+    db: Database = Depends(get_session),
 ):
-    service = ProfessorService(session)
+    service = ProfessorService(db)
     try:
         return service.list_professors(q=q, university=university, department=department, title=title, tag=tag, recruiting_signal=recruiting_signal.value if recruiting_signal else None, sort=sort, cursor=cursor, page=page, limit=limit)
     except Exception as e:
@@ -128,11 +127,11 @@ def list_professors(
 
 
 @router.get("/professors/{professor_id}", response_model=GetProfessorResponse)
-def get_professor(professor_id: int, session: Session = Depends(get_session)):
+def get_professor(professor_id: int, db: Database = Depends(get_session)):
     if professor_id <= 0:
         raise HTTPException(status_code=422, detail="Invalid professor ID")
 
-    service = ProfessorService(session)
+    service = ProfessorService(db)
     try:
         result = service.get_professor_by_id(professor_id)
         if result is None:

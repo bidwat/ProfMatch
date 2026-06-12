@@ -1,15 +1,16 @@
-from sqlmodel import Session, select
 from typing import List
-from apps.backend.app.models.scrape_run import ScrapeRun
+
+from apps.backend.app.db import Database
+from apps.backend.app.models.scrape_run import SCRAPE_RUNS, ScrapeRun
 
 
 class ScrapeRunService:
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self, db: Database):
+        self.db = db
 
     def list_scrape_runs(self) -> List[dict]:
-        query = select(ScrapeRun).order_by(ScrapeRun.started_at.desc())
-        runs = self.session.exec(query).all()
+        runs = [ScrapeRun.from_doc(doc) for doc in self.db.collection(SCRAPE_RUNS).all()]
+        runs.sort(key=lambda r: r.started_at, reverse=True)
 
         return [
             {

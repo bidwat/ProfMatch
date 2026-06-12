@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urljoin
 
-from sqlmodel import Session
-
+from apps.backend.app.db import Database
 from apps.backend.app.models.scan_job import ScanResult, ScanTask, utcnow
 from apps.backend.app.services.agentic_onboarding_service import _call_llm
 from apps.backend.app.services.openalex_publication_service import OpenAlexPublicationRevisionService
@@ -12,7 +11,7 @@ from apps.backend.app.services.scan_job_service import ScanJobService
 
 
 class DurableAgenticScanService:
-    """Agentic scan pipeline that persists state directly to Postgres.
+    """Agentic scan pipeline that persists state directly to the database.
 
     No job state is written to JSON. Each extracted professor is saved as a
     scan_result immediately, publications are fetched from OpenAlex and replace
@@ -20,10 +19,10 @@ class DurableAgenticScanService:
     OpenAlex publication evidence.
     """
 
-    def __init__(self, session: Session):
-        self.session = session
-        self.jobs = ScanJobService(session)
-        self.openalex = OpenAlexPublicationRevisionService(session)
+    def __init__(self, db: Database):
+        self.db = db
+        self.jobs = ScanJobService(db)
+        self.openalex = OpenAlexPublicationRevisionService(db)
 
     async def _crawl_url(self, url: str) -> str:
         from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
@@ -118,7 +117,7 @@ class DurableAgenticScanService:
         return summary
 
     def _summarize_result(self, result_id: int) -> None:
-        result = self.session.get(ScanResult, result_id)
+        result = self.jobs.get_scan_result(result_id)
         if not result:
             return
         payload = result.professor_payload or {}
@@ -155,5 +154,4 @@ class DurableAgenticScanService:
         payload["durable_summary_generated"] = True
         result.professor_payload = payload
         result.updated_at = utcnow()
-        self.session.add(result)
-        self.session.commit()
+        self.jobs.save_scan_result(result)

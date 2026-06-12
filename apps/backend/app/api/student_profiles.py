@@ -1,8 +1,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
-from apps.backend.app.db import get_session
+from apps.backend.app.db import Database, get_session
 from apps.backend.app.services.student_profile_service import StudentProfileService, CreateStudentProfileRequest
 from pydantic import BaseModel
 
@@ -21,8 +20,8 @@ router = APIRouter()
 
 
 @router.post("/student-profiles", response_model=CreateStudentProfileResponse)
-def create_student_profile(request: CreateStudentProfileRequest, session: Session = Depends(get_session)):
-    service = StudentProfileService(session)
+def create_student_profile(request: CreateStudentProfileRequest, db: Database = Depends(get_session)):
+    service = StudentProfileService(db)
     try:
         profile = service.create_student_profile(request)
         return profile

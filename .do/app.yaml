@@ -17,10 +17,13 @@ services:
     health_check:
       http_path: /health
     envs:
-      - key: DATABASE_URL
+      - key: APP_ENV
+        scope: RUN_TIME
+        value: production
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
         scope: RUN_TIME
         type: SECRET
-        value: REPLACE_WITH_DO_POSTGRES_OR_SUPABASE_POOLER_URL
+        value: REPLACE_WITH_FIREBASE_SERVICE_ACCOUNT_JSON
       - key: ALLOWED_ORIGINS
         scope: RUN_TIME
         value: https://REPLACE_WITH_FRONTEND_HOSTNAME
@@ -52,9 +55,4 @@ services:
       - key: BACKEND_URL
         scope: RUN_AND_BUILD_TIME
         value: https://REPLACE_WITH_APP_HOSTNAME
-# Optional: create a DigitalOcean managed Postgres component instead of reusing Supabase.
-# databases:
-#   - name: professor-match-db
-#     engine: PG
-#     version: "16"
-#     production: false
+# Data lives in Firebase Firestore; configure FIREBASE_SERVICE_ACCOUNT_JSON above.

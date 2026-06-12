@@ -1,13 +1,17 @@
-from sqlmodel import SQLModel, Field
+from datetime import datetime
 from typing import Optional
-from datetime import datetime, timezone
+
+from pydantic import Field
+
+from apps.backend.app.models.base import DocModel, utcnow
+
+STUDENT_PROFILES = "student_profiles"
 
 
-class StudentProfile(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class StudentProfile(DocModel):
     background: str
     research_interests: str
     target_degree: str  # e.g., "MS", "PhD"
     preferred_locations: Optional[str] = None  # comma-separated or JSON
     preferred_universities: Optional[str] = None  # comma-separated or JSON
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(default_factory=utcnow)

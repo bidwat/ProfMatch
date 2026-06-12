@@ -1,14 +1,13 @@
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
 
 from apps.backend.app.api.admin import require_admin
 from apps.backend.app.api.auth import get_current_user
-from apps.backend.app.db import get_session
+from apps.backend.app.db import MemoryDatabase
 from apps.backend.app.main import app
 from apps.backend.app.models.auth import User
-from apps.backend.app.models.professor import Professor, Publication, RecruitingSignal
+from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication, RecruitingSignal
 from apps.backend.app.services import admin_scan_service
 
 
@@ -47,7 +46,7 @@ def test_admin_scan_artifacts_are_listed(tmp_path, monkeypatch):
         }
         """
     )
-    (qa_dir / "2026-05-01_stanford-university_scan_manifest.json").write_text('{"import_policy":"No SQLite import"}')
+    (qa_dir / "2026-05-01_stanford-university_scan_manifest.json").write_text('{"import_policy":"No direct import"}')
     (qa_dir / "2026-05-01_stanford-university_openrouter_audit.json").write_text('{"status":"disabled","model":null}')
     monkeypatch.setattr(admin_scan_service, "QA_SCAN_DIR", qa_dir)
 
@@ -88,13 +87,13 @@ def test_admin_scan_detail_404s_for_missing_scan(tmp_path, monkeypatch):
 def test_admin_scan_import(tmp_path, monkeypatch):
     qa_dir = tmp_path / "data" / "qa" / "scraper_runs"
     qa_dir.mkdir(parents=True)
-    
+
     import json
-    
+
     # Fake processed files
     prof_path = tmp_path / "prof.jsonl"
     pub_path = tmp_path / "pub.jsonl"
-    
+
     prof_path.write_text(json.dumps({
         "name": "Jane Import",
         "normalized_name": "jane import",
@@ -103,7 +102,7 @@ def test_admin_scan_import(tmp_path, monkeypatch):
         "faculty_profile_url": "http://test.u/jane",
         "source_confidence": 0.9,
     }) + "\n")
-    
+
     pub_path.write_text(json.dumps({
         "title": "A Great Paper",
         "year": 2026,
@@ -117,7 +116,7 @@ def test_admin_scan_import(tmp_path, monkeypatch):
             "professor_university": "Test U"
         }
     }) + "\n")
-    
+
     validation = qa_dir / "2026-05-01_test-import_validation.json"
     validation.write_text(json.dumps({
         "run": {"university": "Test U", "status": "success"},
@@ -131,9 +130,9 @@ def test_admin_scan_import(tmp_path, monkeypatch):
     }))
     (qa_dir / "2026-05-01_test-import_scan_manifest.json").write_text("{}")
     (qa_dir / "2026-05-01_test-import_openrouter_audit.json").write_text("{}")
-    
+
     monkeypatch.setattr(admin_scan_service, "QA_SCAN_DIR", qa_dir)
-    
+
     app.dependency_overrides[require_admin] = _admin_user
     client = TestClient(app)
     response = client.post("/api/admin/scans/2026-05-01_test-import/import")
@@ -142,7 +141,7 @@ def test_admin_scan_import(tmp_path, monkeypatch):
     assert res["professors_inserted"] + res["professors_updated"] == 1
     assert res["publications_inserted"] + res["publications_updated"] == 1
     assert res["errors"] == []
-    
+
     app.dependency_overrides.clear()
 
 
@@ -152,29 +151,20 @@ def test_admin_scans_require_admin_role():
     assert exc.value.status_code == 403
 
 
-def test_admin_indexed_departments_and_delete_are_admin_only(tmp_path):
-    engine = create_engine(f"sqlite:///{tmp_path / 'admin_indexed.sqlite'}", echo=False)
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        professor = Professor(
-            name="Indexed Prof",
-            normalized_name="indexed prof",
-            university="Indexed U",
-            department="CS",
-            recruiting_signal=RecruitingSignal.unknown,
-            source_confidence=0.8,
-        )
-        session.add(professor)
-        session.commit()
-        session.refresh(professor)
-        session.add(Publication(professor_id=professor.id, title="Paper", year=2026, venue="Conf", source="DBLP", match_confidence=0.8))
-        session.commit()
+def test_admin_indexed_departments_and_delete_are_admin_only(memory_db: MemoryDatabase):
+    professor = Professor(
+        name="Indexed Prof",
+        normalized_name="indexed prof",
+        university="Indexed U",
+        department="CS",
+        recruiting_signal=RecruitingSignal.unknown,
+        source_confidence=0.8,
+    )
+    professor_id = memory_db.collection(PROFESSORS).add(professor.to_doc())
+    memory_db.collection(PUBLICATIONS).add(
+        Publication(professor_id=professor_id, title="Paper", year=2026, venue="Conf", source="DBLP", match_confidence=0.8).to_doc()
+    )
 
-    def override_session():
-        with Session(engine) as session:
-            yield session
-
-    app.dependency_overrides[get_session] = override_session
     client = TestClient(app)
     try:
         app.dependency_overrides[get_current_user] = _student_user

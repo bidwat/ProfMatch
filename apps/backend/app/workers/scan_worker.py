@@ -6,12 +6,7 @@ import signal
 import socket
 from uuid import uuid4
 
-from sqlmodel import Session
-
-from apps.backend.app.db import engine
-from apps.backend.app.models import auth as auth_models  # noqa: F401 - register FK targets for worker sessions
-from apps.backend.app.models import professor as professor_models  # noqa: F401 - register import targets for worker sessions
-from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - register durable scan tables
+from apps.backend.app.db import get_db
 from apps.backend.app.services.scan_job_service import ScanJobService
 from apps.backend.app.services.scan_task_runner import run_department_scan_task
 
@@ -53,17 +48,16 @@ class ScanWorker:
             await asyncio.wait(self.active, timeout=10)
 
     def claim_one(self) -> int | None:
-        with Session(engine) as session:
-            task = ScanJobService(session).claim_next_scan_task(self.worker_id, self.lease_seconds)
-            return task.id if task else None
+        task = ScanJobService(get_db()).claim_next_scan_task(self.worker_id, self.lease_seconds)
+        return task.id if task else None
 
     async def run_one(self, task_id: int) -> None:
         heartbeat = asyncio.create_task(self.heartbeat_loop(task_id))
         try:
-            with Session(engine) as session:
-                scan_task = ScanJobService(session).get_scan_task(task_id)
-                if scan_task:
-                    await run_department_scan_task(scan_task, session, self.worker_id)
+            db = get_db()
+            scan_task = ScanJobService(db).get_scan_task(task_id)
+            if scan_task:
+                await run_department_scan_task(scan_task, db, self.worker_id)
         finally:
             heartbeat.cancel()
             try:
@@ -74,8 +68,7 @@ class ScanWorker:
     async def heartbeat_loop(self, task_id: int) -> None:
         while True:
             await asyncio.sleep(self.heartbeat_seconds)
-            with Session(engine) as session:
-                ScanJobService(session).heartbeat_task(task_id, self.worker_id, self.lease_seconds)
+            ScanJobService(get_db()).heartbeat_task(task_id, self.worker_id, self.lease_seconds)
 
 
 async def main() -> None:

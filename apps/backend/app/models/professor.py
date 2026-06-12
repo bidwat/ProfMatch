@@ -1,8 +1,13 @@
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import JSON
-from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
+from typing import Optional
+
+from pydantic import Field
+
+from apps.backend.app.models.base import DocModel, utcnow
+
+PROFESSORS = "professors"
+PUBLICATIONS = "publications"
 
 
 class RecruitingSignal(str, Enum):
@@ -11,8 +16,7 @@ class RecruitingSignal(str, Enum):
     unknown = "unknown"
 
 
-class Professor(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class Professor(DocModel):
     name: str
     normalized_name: str
     title: Optional[str] = None
@@ -27,29 +31,22 @@ class Professor(SQLModel, table=True):
     semantic_scholar_id: Optional[str] = None
     research_text: Optional[str] = None
     research_summary: Optional[str] = None
-    recruiting_signal: RecruitingSignal = Field(default=RecruitingSignal.unknown)
+    recruiting_signal: str = RecruitingSignal.unknown.value
     recruiting_evidence_url: Optional[str] = None
     recruiting_evidence_text: Optional[str] = None
-    source_confidence: float
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    extra: dict = Field(default_factory=dict, sa_type=JSON)
-
-    # Relationship to publications
-    publications: List["Publication"] = Relationship(back_populates="professor")
+    source_confidence: float = 0.0
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+    extra: dict = Field(default_factory=dict)
 
 
-class Publication(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(foreign_key="professor.id")
+class Publication(DocModel):
+    professor_id: int
     title: str
-    year: int
-    venue: str
+    year: int = 0
+    venue: str = "Unknown"
     abstract: Optional[str] = None
     url: Optional[str] = None
-    source: str
+    source: str = "unknown"
     source_author_id: Optional[str] = None
-    match_confidence: float
-
-    # Back reference
-    professor: Optional[Professor] = Relationship(back_populates="publications")
+    match_confidence: float = 0.0

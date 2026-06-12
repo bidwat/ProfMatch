@@ -3,10 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-import requests
-from sqlmodel import Session, select
-
-from apps.backend.app.models.professor import Professor, Publication
+from apps.backend.app.db import Database
+from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication
 from apps.backend.app.models.scan_job import ScanResult, utcnow
 from apps.backend.app.services.scan_job_service import ScanJobService
 from packages.scraper.core.enrichers.openalex import OpenAlexEnricher
@@ -17,19 +15,21 @@ class OpenAlexPublicationRevisionService:
 
     Uses OpenAlex institution resolution + institution-filtered author search
     before fetching recent works. This updates scan_results only; it does not
-    import into canonical Professor/Publication tables.
+    import into the canonical professors/publications collections.
     """
 
-    def __init__(self, session: Session):
-        self.session = session
-        self.job_service = ScanJobService(session)
+    def __init__(self, db: Database):
+        self.db = db
+        self.job_service = ScanJobService(db)
+        self.professors = db.collection(PROFESSORS)
+        self.publications = db.collection(PUBLICATIONS)
         self.enricher = OpenAlexEnricher(
             api_key=os.getenv("OPENALEX_API_KEY", "").strip() or None,
             mailto=os.getenv("OPENALEX_MAILTO", "").strip() or None,
         )
 
     def fetch_job_publications(self, job_id: int, *, max_publications: int = 10, use_llm_verification: bool = False) -> dict[str, Any]:
-        results = self.session.exec(select(ScanResult).where(ScanResult.scan_job_id == job_id)).all()
+        results = self.job_service.list_scan_results(job_id, limit=1000)
         self.job_service.append_scan_log(
             job_id,
             None,
@@ -59,7 +59,6 @@ class OpenAlexPublicationRevisionService:
 
     def revise_job_publications(self, job_id: int, *, max_publications: int = 10, use_llm_verification: bool = False) -> dict[str, Any]:
         return self.fetch_job_publications(job_id, max_publications=max_publications, use_llm_verification=use_llm_verification)
-        return summary
 
     def fetch_result_publications(self, result: ScanResult, *, max_publications: int = 10) -> dict[str, Any]:
         if not result.professor_name.strip():
@@ -73,8 +72,7 @@ class OpenAlexPublicationRevisionService:
             result.publications_payload = []
             result.qa_issues = [*(result.qa_issues or []), {"severity": "warning", "code": "openalex_no_match", "message": enrichment.reason or "OpenAlex returned no verified publications"}]
             result.updated_at = utcnow()
-            self.session.add(result)
-            self.session.commit()
+            self.job_service.save_scan_result(result)
             return {"revised": False, "publication_count": 0, "reason": enrichment.reason}
 
         # Replace old staged publications with the OpenAlex-backed set.
@@ -90,9 +88,7 @@ class OpenAlexPublicationRevisionService:
         }
         result.professor_payload = payload
         result.updated_at = utcnow()
-        self.session.add(result)
-        self.session.commit()
-        self.session.refresh(result)
+        self.job_service.save_scan_result(result)
         self.job_service.append_scan_log(
             result.scan_job_id,
             result.scan_task_id,
@@ -106,6 +102,15 @@ class OpenAlexPublicationRevisionService:
     def revise_result_publications(self, result: ScanResult, *, max_publications: int = 10) -> dict[str, Any]:
         return self.fetch_result_publications(result, max_publications=max_publications)
 
+    def _department_professors(self, university: str, department: str, max_professors: int) -> list[Professor]:
+        professors = [
+            Professor.from_doc(doc)
+            for doc in self.professors.all()
+            if doc.get("university") == university and doc.get("department") == department
+        ]
+        professors.sort(key=lambda p: p.name or "")
+        return professors[:max_professors]
+
     def refresh_indexed_department_publications(
         self,
         *,
@@ -116,14 +121,7 @@ class OpenAlexPublicationRevisionService:
         regenerate_summaries: bool = False,
         progress_callback: Any | None = None,
     ) -> dict[str, Any]:
-        professors = list(
-            self.session.exec(
-                select(Professor)
-                .where(Professor.university == university, Professor.department == department)
-                .order_by(Professor.name)
-                .limit(max_professors)
-            ).all()
-        )
+        professors = self._department_professors(university, department, max_professors)
         refreshed = 0
         skipped = 0
         errors = 0
@@ -140,14 +138,13 @@ class OpenAlexPublicationRevisionService:
                 if not enrichment.matched or not enrichment.records:
                     skipped += 1
                     continue
-                existing = self.session.exec(select(Publication).where(Publication.professor_id == professor.id)).all()
-                for publication in existing:
-                    self.session.delete(publication)
+                for publication in self.publications.find(professor_id=professor.id):
+                    self.publications.delete(publication["id"])
                 for record in enrichment.records[:max_publications]:
                     title = str(record.get("title") or "").strip()
                     if not title:
                         continue
-                    self.session.add(Publication(
+                    self.publications.add(Publication(
                         professor_id=professor.id,
                         title=title,
                         year=int(record.get("year") or 0),
@@ -157,18 +154,20 @@ class OpenAlexPublicationRevisionService:
                         source="openalex",
                         source_author_id=record.get("source_author_id") or enrichment.source_author_id,
                         match_confidence=float(record.get("match_confidence") or enrichment.confidence or 0.5),
-                    ))
+                    ).to_doc())
                     publications_inserted += 1
-                professor.openalex_id = enrichment.source_author_id
-                professor.source_confidence = max(float(professor.source_confidence or 0), float(enrichment.confidence or 0))
-                professor.updated_at = utcnow()
+                patch: dict[str, Any] = {
+                    "openalex_id": enrichment.source_author_id,
+                    "source_confidence": max(float(professor.source_confidence or 0), float(enrichment.confidence or 0)),
+                    "updated_at": utcnow(),
+                }
                 if regenerate_summaries:
-                    professor.research_summary = self._summary_for_professor(professor, enrichment.records[:max_publications]) or professor.research_summary
-                self.session.add(professor)
+                    summary = self._summary_for_professor(professor, enrichment.records[:max_publications])
+                    if summary:
+                        patch["research_summary"] = summary
+                self.professors.update(professor.id, patch)
                 refreshed += 1
-                self.session.commit()
             except Exception:
-                self.session.rollback()
                 errors += 1
         if progress_callback:
             progress_callback(len(professors), len(professors), "OpenAlex publication refresh complete")
@@ -190,14 +189,7 @@ class OpenAlexPublicationRevisionService:
         max_professors: int = 250,
         progress_callback: Any | None = None,
     ) -> dict[str, Any]:
-        professors = list(
-            self.session.exec(
-                select(Professor)
-                .where(Professor.university == university, Professor.department == department)
-                .order_by(Professor.name)
-                .limit(max_professors)
-            ).all()
-        )
+        professors = self._department_professors(university, department, max_professors)
         enriched = 0
         skipped = 0
         errors = 0
@@ -207,12 +199,12 @@ class OpenAlexPublicationRevisionService:
             try:
                 publications = [
                     {
-                        "title": publication.title,
-                        "year": publication.year,
-                        "venue": publication.venue,
-                        "abstract": publication.abstract,
+                        "title": publication.get("title"),
+                        "year": publication.get("year"),
+                        "venue": publication.get("venue"),
+                        "abstract": publication.get("abstract"),
                     }
-                    for publication in self.session.exec(select(Publication).where(Publication.professor_id == professor.id)).all()
+                    for publication in self.publications.find(professor_id=professor.id)
                 ]
                 if not (professor.research_text or professor.research_summary or publications):
                     skipped += 1
@@ -221,13 +213,9 @@ class OpenAlexPublicationRevisionService:
                 if not summary:
                     skipped += 1
                     continue
-                professor.research_summary = summary
-                professor.updated_at = utcnow()
-                self.session.add(professor)
-                self.session.commit()
+                self.professors.update(professor.id, {"research_summary": summary, "updated_at": utcnow()})
                 enriched += 1
             except Exception:
-                self.session.rollback()
                 errors += 1
         if progress_callback:
             progress_callback(len(professors), len(professors), "Profile enrichment complete")

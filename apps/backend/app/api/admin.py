@@ -10,10 +10,9 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
-from sqlmodel import Session
 
 from apps.backend.app.api.auth import get_current_user
-from apps.backend.app.db import get_session
+from apps.backend.app.db import Database, get_db, get_session
 from apps.backend.app.models.auth import User
 from apps.backend.app.services.admin_scan_service import AdminScanService
 from apps.backend.app.services.import_service import ImportService
@@ -194,8 +193,8 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
 
 
 @router.post("/scan-jobs")
-def create_scan_job(req: CreateScanJobRequest, current_user: User = Depends(require_admin), session: Session = Depends(get_session)):
-    service = ScanJobService(session)
+def create_scan_job(req: CreateScanJobRequest, current_user: User = Depends(require_admin), db: Database = Depends(get_session)):
+    service = ScanJobService(db)
     job = service.create_scan_job(
         items=[item.model_dump() for item in req.items],
         settings=req.settings,
@@ -205,13 +204,13 @@ def create_scan_job(req: CreateScanJobRequest, current_user: User = Depends(requ
 
 
 @router.get("/scan-jobs")
-def list_scan_jobs(status: str | None = None, limit: int = 50, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return {"jobs": ScanJobService(session).list_scan_jobs(status=status, limit=limit, offset=offset)}
+def list_scan_jobs(status: str | None = None, limit: int = 50, offset: int = 0, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return {"jobs": ScanJobService(db).list_scan_jobs(status=status, limit=limit, offset=offset)}
 
 
 @router.get("/scan-jobs/{job_id}")
-def get_scan_job(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    service = ScanJobService(session)
+def get_scan_job(job_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    service = ScanJobService(db)
     job = service.get_scan_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Scan job not found")
@@ -219,58 +218,58 @@ def get_scan_job(job_id: int, _: User = Depends(require_admin), session: Session
 
 
 @router.post("/scan-jobs/{job_id}/cancel")
-def cancel_scan_job(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    job = ScanJobService(session).cancel_scan_job(job_id)
+def cancel_scan_job(job_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    job = ScanJobService(db).cancel_scan_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Scan job not found")
     return {"job": job}
 
 
 @router.get("/scan-jobs/{job_id}/tasks")
-def list_scan_job_tasks(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return {"tasks": ScanJobService(session).list_scan_tasks(job_id)}
+def list_scan_job_tasks(job_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return {"tasks": ScanJobService(db).list_scan_tasks(job_id)}
 
 
 @router.get("/scan-jobs/{job_id}/results")
-def list_scan_job_results(job_id: int, status: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return {"results": ScanJobService(session).list_scan_results(job_id, status=status, limit=limit, offset=offset)}
+def list_scan_job_results(job_id: int, status: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return {"results": ScanJobService(db).list_scan_results(job_id, status=status, limit=limit, offset=offset)}
 
 
 @router.get("/scan-jobs/{job_id}/logs")
-def list_scan_job_logs(job_id: int, level: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return {"logs": ScanJobService(session).list_scan_logs(job_id, level=level, limit=limit, offset=offset)}
+def list_scan_job_logs(job_id: int, level: str | None = None, limit: int = 200, offset: int = 0, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return {"logs": ScanJobService(db).list_scan_logs(job_id, level=level, limit=limit, offset=offset)}
 
 
 @router.post("/scan-results/{result_id}/approve")
-def approve_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    result = ScanJobService(session).approve_scan_result(result_id)
+def approve_scan_result(result_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    result = ScanJobService(db).approve_scan_result(result_id)
     if not result:
         raise HTTPException(status_code=404, detail="Scan result not found")
     return {"result": result}
 
 
 @router.post("/scan-results/{result_id}/reject")
-def reject_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    result = ScanJobService(session).reject_scan_result(result_id)
+def reject_scan_result(result_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    result = ScanJobService(db).reject_scan_result(result_id)
     if not result:
         raise HTTPException(status_code=404, detail="Scan result not found")
     return {"result": result}
 
 
 @router.post("/scan-results/{result_id}/import")
-def import_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    result = ScanJobService(session).import_scan_result(result_id)
+def import_scan_result(result_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    result = ScanJobService(db).import_scan_result(result_id)
     if not result:
         raise HTTPException(status_code=404, detail="Scan result not found")
     return {"result": result}
 
 
 @router.post("/scan-jobs/{job_id}/fetch-publications")
-def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    job = ScanJobService(session).get_scan_job(job_id)
+def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    job = ScanJobService(db).get_scan_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Scan job not found")
-    summary = OpenAlexPublicationRevisionService(session).fetch_job_publications(
+    summary = OpenAlexPublicationRevisionService(db).fetch_job_publications(
         job_id,
         max_publications=req.max_publications,
         use_llm_verification=req.use_llm_verification,
@@ -279,13 +278,13 @@ def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: 
 
 
 @router.post("/scan-jobs/{job_id}/revise-publications")
-def revise_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return fetch_scan_job_publications(job_id, req, _, session)
+def revise_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return fetch_scan_job_publications(job_id, req, _, db)
 
 
 @router.post("/scan-jobs/{job_id}/import-approved")
-def import_approved_scan_results(job_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    service = ScanJobService(session)
+def import_approved_scan_results(job_id: int, _: User = Depends(require_admin), db: Database = Depends(get_session)):
+    service = ScanJobService(db)
     imported = []
     for result in service.list_scan_results(job_id, status="approved", limit=1000):
         imported_result = service.import_scan_result(result.id)
@@ -489,26 +488,20 @@ def agentic_generate_summary(job_id: str, background_tasks: BackgroundTasks, _: 
     return {"status": "started", "message": "Generating AI summaries in background..."}
 
 @router.post("/agentic/job/{job_id}/publish")
-def agentic_publish(job_id: str, background_tasks: BackgroundTasks, session: Session = Depends(get_session), _: User = Depends(require_admin)):
+def agentic_publish(job_id: str, background_tasks: BackgroundTasks, db: Database = Depends(get_session), _: User = Depends(require_admin)):
     from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
     service = AgenticOnboardingService()
     
-    # We must run it synchronously or pass a fresh session if it was truly background, 
-    # but for this MVP let's just execute it inline to avoid session thread issues or we can create a fresh session inside the service.
-    # We will pass a function that creates its own session to the background task.
     def bg_publish():
-        from apps.backend.app.db import engine
-        from sqlmodel import Session as SMSession
-        with SMSession(engine) as s:
-            service.run_publish(job_id, s)
-            
+        service.run_publish(job_id, get_db())
+
     background_tasks.add_task(bg_publish)
-    return {"status": "started", "message": "Publishing to SQLite in background..."}
+    return {"status": "started", "message": "Publishing to database in background..."}
 
 
 @router.get("/indexed-departments", response_model=IndexedDepartmentsResponse)
-def list_indexed_departments(_: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return {"groups": ProfessorService(session).list_indexed_groups()}
+def list_indexed_departments(_: User = Depends(require_admin), db: Database = Depends(get_session)):
+    return {"groups": ProfessorService(db).list_indexed_groups()}
 
 
 @router.get("/recommendations")
@@ -517,8 +510,8 @@ def list_recommendations(_: User = Depends(require_admin)):
 
 
 @router.post("/indexed-departments/refresh")
-def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_user: User = Depends(require_admin), session: Session = Depends(get_session)):
-    job = ScanJobService(session).create_scan_job(
+def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_user: User = Depends(require_admin), db: Database = Depends(get_session)):
+    job = ScanJobService(db).create_scan_job(
         items=[{"university": req.university, "department": req.department, "faculty_url": req.faculty_page_url}],
         settings={"fetch_publications": True, "openalex_publications": True, "max_publications": 10, "regenerate_summaries": True},
         created_by_user_id=current_user.id,
@@ -528,40 +521,36 @@ def refresh_indexed_department(req: RefreshIndexedDepartmentRequest, current_use
 
 
 def _run_indexed_publication_refresh(progress_id: str, req: RefreshIndexedPublicationsRequest) -> None:
-    from apps.backend.app.db import engine
     _set_indexed_progress(progress_id, status="running", message="Starting OpenAlex publication refresh")
     try:
         def on_progress(current: int, total: int, message: str) -> None:
             _set_indexed_progress(progress_id, status="running", current=current, total=total, message=message)
 
-        with Session(engine) as session:
-            summary = OpenAlexPublicationRevisionService(session).refresh_indexed_department_publications(
-                university=req.university,
-                department=req.department,
-                max_publications=req.max_publications,
-                max_professors=req.max_professors,
-                regenerate_summaries=False,
-                progress_callback=on_progress,
-            )
+        summary = OpenAlexPublicationRevisionService(get_db()).refresh_indexed_department_publications(
+            university=req.university,
+            department=req.department,
+            max_publications=req.max_publications,
+            max_professors=req.max_professors,
+            regenerate_summaries=False,
+            progress_callback=on_progress,
+        )
         _set_indexed_progress(progress_id, status="completed", current=summary.get("professors_seen", 0), total=summary.get("professors_seen", 0), message="OpenAlex publication refresh complete", summary=summary)
     except Exception as exc:
         _set_indexed_progress(progress_id, status="error", message=str(exc))
 
 
 def _run_indexed_profile_enrichment(progress_id: str, req: EnrichIndexedProfilesRequest) -> None:
-    from apps.backend.app.db import engine
     _set_indexed_progress(progress_id, status="running", message="Starting profile enrichment")
     try:
         def on_progress(current: int, total: int, message: str) -> None:
             _set_indexed_progress(progress_id, status="running", current=current, total=total, message=message)
 
-        with Session(engine) as session:
-            summary = OpenAlexPublicationRevisionService(session).enrich_indexed_department_profiles(
-                university=req.university,
-                department=req.department,
-                max_professors=req.max_professors,
-                progress_callback=on_progress,
-            )
+        summary = OpenAlexPublicationRevisionService(get_db()).enrich_indexed_department_profiles(
+            university=req.university,
+            department=req.department,
+            max_professors=req.max_professors,
+            progress_callback=on_progress,
+        )
         _set_indexed_progress(progress_id, status="completed", current=summary.get("professors_seen", 0), total=summary.get("professors_seen", 0), message="Profile enrichment complete", summary=summary)
     except Exception as exc:
         _set_indexed_progress(progress_id, status="error", message=str(exc))
@@ -600,10 +589,10 @@ def enrich_indexed_department_profiles(req: EnrichIndexedProfilesRequest, backgr
 
 
 @router.delete("/indexed-departments")
-def delete_indexed_department(req: DeleteIndexedDepartmentRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+def delete_indexed_department(req: DeleteIndexedDepartmentRequest, _: User = Depends(require_admin), db: Database = Depends(get_session)):
     if not req.confirm:
         raise HTTPException(status_code=400, detail="Deletion requires explicit confirmation")
-    return ProfessorService(session).delete_indexed_group(req.university, req.department)
+    return ProfessorService(db).delete_indexed_group(req.university, req.department)
 
 
 @router.get("/scans/status")
@@ -648,10 +637,10 @@ def get_scan(scan_id: str, _: User = Depends(require_admin)):
 
 
 @router.post("/scans/{scan_id}/import")
-def import_scan(scan_id: str, _: User = Depends(require_admin), session: Session = Depends(get_session)):
+def import_scan(scan_id: str, _: User = Depends(require_admin), db: Database = Depends(get_session)):
     try:
         admin_service = AdminScanService()
-        import_service = ImportService(session, admin_service)
+        import_service = ImportService(db, admin_service)
         return import_service.import_scan(scan_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
