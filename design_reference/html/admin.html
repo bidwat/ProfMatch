@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — /admin, /admin/scans, /admin/onboarding</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.5}
+  main{padding:20px 24px;max-width:1120px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}.btn.danger{background:#fbeaea;border-color:#c66}
+  .card{border:1px solid #ccc;border-radius:12px;padding:16px;margin-bottom:14px}
+  .grid4{display:grid;gap:12px;grid-template-columns:repeat(4,1fr)}
+  .grid2{display:grid;gap:14px;grid-template-columns:1fr 1fr;align-items:start}
+  .stat{text-align:center}.stat strong{font-size:22px;display:block}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:2px 9px;font-size:11px}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#eee}
+  .badge.run{background:#dde7f5}.badge.ok{background:#e2efe6}.badge.fail{background:#f3e0de}
+  .muted{color:#666}.small{font-size:12px}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+  th,td{border-bottom:1px solid #ddd;padding:8px 10px;text-align:left;vertical-align:top}
+  .progress{background:#eee;border-radius:6px;height:8px;width:120px;overflow:hidden}
+  .progress span{display:block;height:100%;background:#444}
+  .count{border-radius:6px;background:#eee;padding:1px 8px;font-size:11px;font-weight:700}
+  .signal::before{content:"● ";font-size:9px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid #ccc;margin:10px 0}
+  .tab{padding:7px 14px;border:0;background:none;font-size:13px;cursor:pointer}
+  .tab[aria-selected=true]{border-bottom:2px solid #222;font-weight:700}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+  input{padding:8px 10px;border:1px solid #aaa;border-radius:8px;font-size:13px;width:100%}
+  pre{background:#f4f4f4;padding:10px;border-radius:8px;font-size:12px;overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ============ PAGE 1: /admin (dashboard) ============ -->
+<section aria-label="Admin dashboard">
+  <div class="row between">
+    <div><span class="muted small">Local admin</span><h2 style="margin:2px 0">Admin Dashboard</h2>
+      <span class="muted small">Manage indexed universities, user requests, and QA-gated agentic workflows.</span></div>
+    <span class="row"><button class="btn">Refresh</button><button class="btn primary">New agentic scan</button></span>
+  </div>
+
+  <div class="grid4" style="margin-top:14px">
+    <div class="card stat"><strong>11</strong><span class="muted small">indexed departments</span></div>
+    <div class="card stat"><strong>1,037</strong><span class="muted small">indexed professors</span></div>
+    <div class="card stat"><strong>2</strong><span class="muted small">ongoing workflows</span></div>
+    <div class="card stat"><strong>4</strong><span class="muted small">requested items</span></div>
+  </div>
+
+  <div class="card" aria-label="Indexed departments table">
+    <h3 style="margin:0 0 6px">Indexed Universities and Departments</h3>
+    <table>
+      <thead><tr class="muted"><th>University</th><th>Department</th><th>Professors</th><th>Publications</th><th>Actions</th></tr></thead>
+      <tbody>
+        <tr><td>Stanford University</td><td>Computer Science</td><td>96</td><td>612</td>
+          <td class="row"><button class="btn">Fetch 10 pubs</button><button class="btn">Enrich profiles</button><button class="btn">Rescan faculty</button><button class="btn danger">Delete</button></td></tr>
+        <tr><td>MIT</td><td>EECS</td><td>88</td><td>540</td>
+          <td class="row"><button class="btn">Fetch 10 pubs</button><button class="btn">Enrich profiles</button><button class="btn">Rescan faculty</button><button class="btn danger">Delete</button></td></tr>
+      </tbody>
+    </table>
+    <div class="row" style="margin-top:10px"><div class="progress"><span style="width:62%"></span></div><span class="muted small">Fetching OpenAlex publications for Grace Hopper… 62%</span></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card" aria-label="Requested departments">
+      <div class="row between"><h3 style="margin:0">Requested Universities and Departments</h3><a class="small" href="#">Recommend page</a></div>
+      <div class="card" style="margin-top:10px"><div class="row between"><strong>University of Toronto</strong><span class="chip">submitted</span></div>
+        <div class="muted small">Psychology · jordan@uni.edu</div><a class="small" href="#">https://psych.utoronto.ca/faculty</a></div>
+    </div>
+
+    <div class="card" aria-label="Reports queue and metrics">
+      <div class="row between"><h3 style="margin:0">Data reports queue</h3><span class="count">2 new</span></div>
+      <div class="card" style="margin-top:10px">
+        <div class="row between"><strong>wrong email</strong><a class="small" href="#">professor #214</a></div>
+        <p class="muted small">The listed email bounces; the faculty page shows j.smith@stanford.edu now.</p>
+        <span class="row"><button class="btn">Mark resolved</button><button class="btn">Reject</button></span>
+      </div>
+      <div style="border-top:1px solid #ddd;margin-top:12px;padding-top:10px">
+        <div class="row between"><strong>Product events · last 30 days</strong><span class="muted small">1,284 total</span></div>
+        <div class="row small" style="margin-top:6px"><span class="signal">search performed · 512</span><span class="signal">profile opened · 387</span><span class="signal">professor saved · 121</span><span class="signal">outreach draft generated · 44</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" aria-label="Agentic jobs">
+    <div class="row between"><h3 style="margin:0">Agentic scan dashboard</h3><a class="small" href="#">Open wizard</a></div>
+    <div class="tabs"><button class="tab" aria-selected="true">Ongoing (2)</button><button class="tab" aria-selected="false">Ready (1)</button><button class="tab" aria-selected="false">Completed (8)</button></div>
+    <div class="card"><div class="row between"><strong>University of Toronto — Psychology</strong><span class="badge run">running</span></div>
+      <span class="muted small">Crawling profile 14/38: Dr. Maya Patel…</span></div>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 2: /admin/scans (durable scan dashboard) ============ -->
+<section aria-label="Scan dashboard">
+  <div class="row between">
+    <div><span class="muted small">Local admin · QA-gated ingestion</span><h2 style="margin:2px 0">University Scan Dashboard</h2></div>
+    <button class="btn">Browse indexed professors</button>
+  </div>
+  <div class="grid4" style="margin-top:12px">
+    <div class="card stat"><strong>6</strong><span class="muted small">durable jobs</span></div>
+    <div class="card stat"><strong>1</strong><span class="muted small">running tasks</span></div>
+    <div class="card stat"><strong>0</strong><span class="muted small">failed tasks</span></div>
+    <div class="card stat"><strong>2</strong><span class="muted small">legacy imports ready</span></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card" aria-label="Jobs table">
+      <h3 style="margin:0">Durable scan jobs</h3>
+      <table>
+        <thead><tr class="muted"><th>Job</th><th>Status</th><th>Progress</th><th>Tasks</th></tr></thead>
+        <tbody>
+          <tr><td><strong>#42</strong><br><span class="muted small">6/12 · refresh_existing_department</span></td>
+            <td><span class="badge run">running</span></td>
+            <td><div class="progress"><span style="width:45%"></span></div><span class="muted small">45%</span></td>
+            <td class="muted small">0 ok · 1 running · 0 queued · 0 failed</td></tr>
+          <tr><td><strong>#41</strong><br><span class="muted small">6/10 · agentic_onboarding</span></td>
+            <td><span class="badge ok">completed</span></td>
+            <td><div class="progress"><span style="width:100%"></span></div><span class="muted small">100%</span></td>
+            <td class="muted small">1 ok · 0 running · 0 queued · 0 failed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card" aria-label="Job detail">
+      <div class="row between"><h3 style="margin:0">Job #41 — Stanford CS</h3>
+        <span class="row"><button class="btn">Fetch publications</button><button class="btn primary">Import approved</button><button class="btn danger">Cancel</button></span></div>
+      <h4>Candidates (38)</h4>
+      <table>
+        <thead><tr class="muted"><th>Professor</th><th>QA</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ada Lovelace</strong><div class="muted small">ada@stanford.edu · 10 pubs</div></td>
+            <td><span class="badge ok">clean</span></td><td><span class="chip">ready_for_review</span></td>
+            <td class="row"><button class="btn">Approve</button><button class="btn">Reject</button></td></tr>
+          <tr><td><strong>John Doe</strong><div class="muted small">no email · 0 pubs</div></td>
+            <td><span class="badge fail">missing_email</span></td><td><span class="chip">ready_for_review</span></td>
+            <td class="row"><button class="btn">Approve</button><button class="btn">Reject</button></td></tr>
+          <tr><td><strong>Grace Hopper</strong><div class="muted small">grace@stanford.edu · 8 pubs</div></td>
+            <td><span class="badge ok">clean</span></td><td><span class="chip">imported</span></td><td class="muted small">—</td></tr>
+        </tbody>
+      </table>
+      <h4>Logs</h4>
+      <pre>[info] publication_fetch_completed — OpenAlex publication fetch completed
+[info] result_saved — Saved 38 candidate result(s)
+[info] extraction_completed — Found 38 profile candidate(s)</pre>
+    </div>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 3: /admin/onboarding (agentic wizard) ============ -->
+<section aria-label="Agentic onboarding wizard">
+  <h2 style="margin:0">Agentic Onboarding</h2>
+  <p class="muted">Provide a faculty directory URL. The agent crawls the roster (Crawl4AI), extracts each professor, enriches homepages and publications, and generates AI summaries — all staged for review before publish.</p>
+  <div class="card">
+    <label class="small"><strong>Faculty page URL</strong><input value="https://cs.stanford.edu/people/faculty"></label>
+    <div class="row" style="margin-top:10px">
+      <input placeholder="University" value="Stanford University" style="width:240px">
+      <input placeholder="Department" value="Computer Science" style="width:240px">
+      <label class="small row"><input type="checkbox" checked style="width:auto"> Automatic pipeline</label>
+      <button class="btn primary">Start extraction →</button>
+    </div>
+  </div>
+  <div class="card" aria-label="Live job state">
+    <div class="row between"><strong>Job e9a1c2 — Stanford CS</strong><span class="badge run">running</span></div>
+    <p class="muted small">Summarizing 22/38: Fei Chen…</p>
+    <div class="row"><button class="btn">Enrich homepages</button><button class="btn">Fetch publications</button><button class="btn">Generate summaries</button><button class="btn primary">Publish to database</button><button class="btn danger">Stop</button></div>
+    <h4>Extracted professors (38)</h4>
+    <table>
+      <thead><tr class="muted"><th>Name</th><th>Position</th><th>Email</th><th>Pubs</th><th>AI summary</th></tr></thead>
+      <tbody>
+        <tr><td>Ada Lovelace</td><td>Assistant Professor</td><td>ada@stanford.edu</td><td>10</td><td class="muted small">Robot learning and vision-based systems…</td></tr>
+        <tr><td>Grace Hopper</td><td>Professor</td><td>grace@stanford.edu</td><td>8</td><td class="muted small">Programming systems and ML-assisted compilation…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

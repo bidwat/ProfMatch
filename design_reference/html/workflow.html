@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow — /saved, /compare, /board</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.5}
+  main{padding:20px 24px;max-width:1080px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}.btn.sel{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:16px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#e2efe6}
+  .muted{color:#666}.small{font-size:12px}
+  .avatar{width:48px;height:48px;border-radius:8px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  table{border-collapse:collapse;width:100%;margin-top:14px}
+  th,td{border:1px solid #ddd;padding:10px 12px;text-align:left;font-size:13px;vertical-align:top}
+  thead th,tbody th{background:#f4f4f4}
+  select,textarea{width:100%;padding:7px 9px;border:1px solid #aaa;border-radius:7px;font-size:13px}
+  .columns{display:flex;gap:14px;overflow-x:auto;padding:14px 0}
+  .col{flex:0 0 290px;background:#f4f4f4;border:1px solid #ddd;border-radius:12px;padding:12px;display:grid;gap:10px;align-content:start}
+  .count{border-radius:6px;background:#e3e3e3;padding:1px 8px;font-size:11px;font-weight:700}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ============ PAGE 1: /saved ============ -->
+<section aria-label="Saved page">
+  <div class="row between">
+    <div><h2 style="margin:0">Saved</h2><span class="muted small">5 saved professors · 5 visible</span></div>
+    <span class="row"><button class="btn">Compare</button><button class="btn">Open board</button><button class="btn primary">Discover more</button></span>
+  </div>
+  <div class="row" style="margin:12px 0">
+    <input type="search" placeholder="Search saved…" style="padding:8px 10px;border:1px solid #aaa;border-radius:8px">
+    <button class="btn">⇅ Sort: Recently saved ▾</button><button class="btn"># Tags ▾</button><button class="btn">🏛 Universities ▾</button>
+  </div>
+  <article class="card" style="margin-bottom:12px">
+    <div class="row between">
+      <span class="row"><span class="avatar">AL</span><span><strong>Ada Lovelace</strong><div class="muted small">Assistant Professor · Stanford · Computer Science</div></span></span>
+      <span class="row"><span class="badge">High confidence</span><button class="btn">👁 Expand</button><button class="btn">Remove</button></span>
+    </div>
+  </article>
+  <article class="card">
+    <div class="row between">
+      <span class="row"><span class="avatar">GH</span><span><strong>Grace Hopper</strong><div class="muted small">Professor · Stanford · Computer Science</div></span></span>
+      <span class="row"><span class="badge">High confidence</span><button class="btn">👁 Expand</button><button class="btn">Remove</button></span>
+    </div>
+  </article>
+  <div class="card" style="text-align:center;margin-top:16px" aria-label="Empty state">
+    <h3>No saved professors yet.</h3><p class="muted">Save professors you want to compare, contact, or track.</p>
+    <button class="btn primary">Search professors</button>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 2: /compare ============ -->
+<section aria-label="Compare page">
+  <h2 style="margin:0">Compare professors</h2>
+  <p class="muted">Pick two to four saved professors and compare research fit, evidence, and contact signals side by side.</p>
+  <div class="row" aria-label="Professor picker">
+    <button class="btn sel">Ada Lovelace</button><button class="btn sel">Grace Hopper</button><button class="btn sel">Alan Turing</button><button class="btn">Fei Chen</button><button class="btn" disabled>Maria Santos</button>
+  </div>
+  <table>
+    <thead><tr><th>Field</th><th>Ada Lovelace<div class="muted small" style="font-weight:400">Assistant Professor</div></th><th>Grace Hopper<div class="muted small" style="font-weight:400">Professor</div></th><th>Alan Turing<div class="muted small" style="font-weight:400">Professor</div></th></tr></thead>
+    <tbody>
+      <tr><th>Research fit</th><td><strong>78%</strong></td><td><strong>61%</strong></td><td class="muted">Run matches first</td></tr>
+      <tr><th>University</th><td>Stanford University</td><td>Stanford University</td><td>Stanford University</td></tr>
+      <tr><th>Department</th><td>Computer Science</td><td>Computer Science</td><td>Computer Science</td></tr>
+      <tr><th>Recruiting</th><td>● Recruiting evidence</td><td>● Unknown</td><td>● Not recruiting</td></tr>
+      <tr><th>Source confidence</th><td><span class="badge">High</span></td><td><span class="badge">High</span></td><td><span class="badge" style="background:#f3e0de">Low</span></td></tr>
+      <tr><th>Publications indexed</th><td>12</td><td>8</td><td>21</td></tr>
+      <tr><th>Research tags</th><td><span class="chip">ML</span> <span class="chip">Robotics</span></td><td><span class="chip">Compilers</span> <span class="chip">Systems</span></td><td><span class="chip">Theory</span></td></tr>
+      <tr><th>Summary</th><td class="muted small">Robot learning and vision-based autonomous systems…</td><td class="muted small">Programming systems and ML-assisted compilation…</td><td class="muted small">Foundations of computation and learning theory…</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 3: /board ============ -->
+<section aria-label="Application board">
+  <div class="row between">
+    <div><h2 style="margin:0">Application board</h2><span class="muted small">Track each professor from discovery to outreach to application. Stages save to your account.</span></div>
+    <button class="btn">Add saved professors</button>
+  </div>
+  <div class="columns">
+    <div class="col" aria-label="Reading papers column">
+      <div class="row between"><strong>Reading papers</strong><span class="count">2</span></div>
+      <div class="card">
+        <a href="#"><strong>Ada Lovelace</strong></a><div class="muted small">Stanford University</div>
+        <label class="small"><b>Stage</b><select><option>Reading papers</option><option>Email drafted</option><option>Contacted</option></select></label>
+        <label class="small"><b>Notes</b><textarea rows="2">Read RSS-25 paper; mention sim-to-real angle.</textarea></label>
+        <a class="small" href="#">Remove from board</a>
+      </div>
+      <div class="card">
+        <a href="#"><strong>Fei Chen</strong></a><div class="muted small">Carnegie Mellon University</div>
+        <label class="small"><b>Stage</b><select><option>Reading papers</option></select></label>
+        <label class="small"><b>Notes</b><textarea rows="2"></textarea></label>
+        <a class="small" href="#">Remove from board</a>
+      </div>
+    </div>
+    <div class="col" aria-label="Contacted column">
+      <div class="row between"><strong>Contacted</strong><span class="count">1</span></div>
+      <div class="card">
+        <a href="#"><strong>Grace Hopper</strong></a><div class="muted small">Stanford University</div>
+        <label class="small"><b>Stage</b><select><option>Contacted</option><option>Follow-up needed</option></select></label>
+        <label class="small"><b>Notes</b><textarea rows="2">Emailed 6/8 — follow up 6/22 if quiet.</textarea></label>
+        <a class="small" href="#">Remove from board</a>
+      </div>
+    </div>
+    <div class="col" aria-label="Applying column">
+      <div class="row between"><strong>Applying</strong><span class="count">1</span></div>
+      <div class="card">
+        <a href="#"><strong>Randall Davis</strong></a><div class="muted small">MIT</div>
+        <label class="small"><b>Stage</b><select><option>Applying</option><option>Applied</option></select></label>
+        <label class="small"><b>Notes</b><textarea rows="2">SOP paragraph drafted around mixed-reality work.</textarea></label>
+        <a class="small" href="#">Remove from board</a>
+      </div>
+    </div>
+  </div>
+  <p class="muted small">All 15 stages: Discovered · Interested · Reading papers · Email drafted · Contacted · Follow-up needed · Positive reply · Negative reply · No response · Applying · Applied · Interview · Accepted · Rejected · Archived</p>
+  <div class="card" style="text-align:center" aria-label="Empty state">
+    <h3>Start your application board</h3><p class="muted">Add saved professors to track reading, outreach, follow-ups, and applications.</p>
+    <span class="row" style="justify-content:center"><button class="btn primary">Add saved professors</button><button class="btn">Search professors</button></span>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

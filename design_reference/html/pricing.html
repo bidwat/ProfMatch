@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing — /pricing</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.6}
+  main{padding:24px;max-width:860px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{border:1px solid #444;background:#fff;padding:9px 18px;border-radius:8px;font-size:14px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:24px}
+  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;align-items:stretch;margin-top:24px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 12px;font-size:12px}
+  .muted{color:#666}
+  ul{list-style:none;padding:0;margin:16px 0 20px;display:grid;gap:8px}
+  li::before{content:"✓ ";font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <div style="text-align:center;margin:30px 0">
+    <h1 style="font-size:32px">Browsing is free. Personalization and workflow are paid.</h1>
+    <p class="muted" style="max-width:620px;margin:10px auto 0">Public professor discovery stays free forever — it is how ProfMatch earns trust. Paid plans unlock matching and application workflow built on your research profile.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <span class="chip">Free</span>
+      <h2>Public discovery</h2>
+      <p class="muted">For every prospective research student.</p>
+      <ul>
+        <li>Browse professor profiles</li>
+        <li>Keyword search and filters</li>
+        <li>AI summaries with source links</li>
+        <li>Recent publications with confidence labels</li>
+        <li>Report incorrect data</li>
+        <li>Request missing departments</li>
+      </ul>
+      <button class="btn">Start searching</button>
+    </div>
+
+    <div class="card" style="border-color:#222;border-width:2px">
+      <span class="chip">Pro · pricing coming soon</span>
+      <h2>Personalized workflow</h2>
+      <p class="muted">For applicants who want research-fit matching and an organized outreach pipeline.</p>
+      <ul>
+        <li>Personalized research-fit matching</li>
+        <li>Match threshold controls and evidence</li>
+        <li>Saved professor shortlists</li>
+        <li>Professor comparison</li>
+        <li>Application board with outreach stages</li>
+        <li>Outreach email drafts (never auto-sent)</li>
+      </ul>
+      <button class="btn primary">Create your research profile</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;background:#fafafa">
+    <h3>Trust comes first</h3>
+    <p class="muted">Professors and universities never pay for ranking or visibility. Match scores measure <b>research fit</b> — the overlap between your interests and a professor’s recent, source-backed work. They are not admission chances and never a guarantee of a reply.</p>
+  </div>
+</main>
+</body>
+</html>

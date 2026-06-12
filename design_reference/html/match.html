@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match — /match (+ /intake wizard)</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.5}
+  main{padding:20px 24px;max-width:980px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:18px;margin-bottom:14px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#f4ecd9}
+  .muted{color:#666}.small{font-size:12px}
+  .avatar{width:52px;height:52px;border-radius:8px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .score{text-align:center;border:2px solid #222;border-radius:10px;padding:6px 12px}
+  input[type=range]{width:240px}
+  textarea,input[type=text]{width:100%;padding:9px 11px;border:1px solid #aaa;border-radius:8px;font-size:14px}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+  .step{display:inline-flex;align-items:center;gap:6px;margin-right:14px}
+  .stepnum{width:22px;height:22px;border-radius:50%;border:1px solid #444;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  .stepnum.active{background:#222;color:#fff}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ============ PAGE 1: /match (results) ============ -->
+<section aria-label="Matches page">
+  <div class="row between">
+    <div><h2 style="margin:0">Matches</h2><span class="muted small">Ranked by research fit for your profile · 12 results</span></div>
+    <button class="btn primary">Refresh matches</button>
+  </div>
+
+  <!-- Threshold controls -->
+  <div class="card" aria-label="Threshold controls">
+    <div class="row between">
+      <span><strong>Show professors with at least</strong> <strong>40%</strong> research fit<br>
+      <input type="range" min="0" max="100" value="40" aria-label="Match threshold"></span>
+      <span class="badge">Threshold active · 8 above 40%</span>
+    </div>
+    <p class="muted small">If fewer than 10 results clear the threshold, the top 10 are shown as a fallback. These settings change recommendation breadth — they do not change admission chances.</p>
+  </div>
+
+  <!-- Match card -->
+  <article class="card" aria-label="Match result card">
+    <div class="row between">
+      <span class="row"><span class="avatar">AL</span>
+        <span><strong style="font-size:17px">Ada Lovelace</strong>
+        <div class="muted small">Assistant Professor · Stanford University · Computer Science</div></span></span>
+      <span class="score"><strong>78%</strong><div class="small">research fit</div></span>
+    </div>
+    <p style="margin:10px 0 4px"><b>Why matched ·</b> Research overlap includes robot, learning, vision, manipulation. Profile tags include Robotics, Machine Learning. Recent publication evidence includes “Robot Learning with Vision Foundation Models” (2025).</p>
+    <div class="muted small">3 relevant papers matched</div>
+    <div class="row" style="margin-top:8px"><span class="chip">robot learning</span><span class="chip">vision</span><span class="chip">manipulation</span></div>
+    <div class="muted small" style="margin-top:8px">⚠ Risks: recruiting status is unknown — verify before outreach.</div>
+    <div class="row between" style="margin-top:10px">
+      <span class="row small"><span>Recruiting 35%</span><span>·</span><span>Confidence 92%</span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn primary">🔖 Save</button></span>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="row between">
+      <span class="row"><span class="avatar">RD</span>
+        <span><strong style="font-size:17px">Randall Davis</strong>
+        <div class="muted small">Professor · MIT · EECS</div></span></span>
+      <span class="score"><strong>74%</strong><div class="small">research fit</div></span>
+    </div>
+    <p style="margin:10px 0 4px"><b>Why matched ·</b> Recent papers align with HCI, machine learning, and mixed-reality systems; explicit positive recruiting evidence.</p>
+    <div class="row between" style="margin-top:10px">
+      <span class="row small"><span>Recruiting 100%</span><span>·</span><span>Confidence 88%</span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn primary">🔖 Save</button></span>
+    </div>
+  </article>
+
+  <div style="text-align:center"><button class="btn">Load 20 more</button></div>
+
+  <!-- No-profile empty state -->
+  <div class="card" style="text-align:center" aria-label="No profile state">
+    <h3>No academic profile yet</h3>
+    <p class="muted">Tell us about your research interests to get an explainable advisor shortlist.</p>
+    <button class="btn primary">Create research profile →</button>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 2: /intake (profile wizard) ============ -->
+<section aria-label="Intake wizard">
+  <h2>Create your research profile</h2>
+  <p class="muted">Private by default — used only to rank professors and explain research fit.</p>
+  <div style="margin:14px 0" aria-label="Stepper">
+    <span class="step"><span class="stepnum">1</span> Goals</span>
+    <span class="step"><span class="stepnum active">2</span> Interests</span>
+    <span class="step"><span class="stepnum">3</span> Background</span>
+  </div>
+  <div class="card">
+    <label><strong>Research interests</strong>
+      <textarea rows="4" placeholder="e.g. robot learning with vision foundation models; sim-to-real transfer; data-efficient imitation learning">robot learning, computer vision, reinforcement learning for manipulation</textarea></label>
+    <div class="row" style="margin-top:10px"><span class="muted small">Suggested:</span><span class="chip">+ Machine Learning</span><span class="chip">+ Robotics</span><span class="chip">+ Computer Vision</span></div>
+    <div class="row between" style="margin-top:16px">
+      <button class="btn">← Back</button>
+      <button class="btn primary">Continue →</button>
+    </div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

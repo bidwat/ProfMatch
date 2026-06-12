@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile — /profile (+ /recommend)</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55}
+  main{padding:20px 24px;max-width:760px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:8px 15px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}.btn.danger{background:#a22;color:#fff;border-color:#a22}
+  .card{border:1px solid #ccc;border-radius:12px;padding:20px;margin-bottom:16px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px}.chip::after{content:" ✕"}
+  .muted{color:#666}.small{font-size:12px}
+  label{display:grid;gap:6px;font-weight:600;font-size:13px}
+  input,textarea,select{padding:9px 11px;border:1px solid #aaa;border-radius:8px;font-size:14px;font-weight:400;width:100%}
+  .grid2{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+  .avatar{width:84px;height:84px;border-radius:50%;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:24px}
+  .savebar{background:#f4f4f4;border:1px solid #ccc;border-radius:10px;padding:12px 14px}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+  .notice{border:1px solid #cba;background:#faf6ec;border-radius:8px;padding:10px 13px;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ============ PAGE 1: /profile ============ -->
+<section aria-label="Academic profile page">
+  <h2>Academic Profile</h2>
+  <p class="muted">Your profile is private and drives research-fit matching and outreach drafts.</p>
+
+  <div class="card">
+    <div class="row">
+      <span class="avatar">JL</span>
+      <span>
+        <strong>Profile photo</strong>
+        <div class="muted small">Drag a photo here or click to upload (optional)</div>
+      </span>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <label>Full name<input value="Jordan Lee"></label>
+      <label>Target degree<select><option>PhD</option><option>MS</option><option>Undergraduate research</option></select></label>
+    </div>
+    <label style="margin-top:14px">Research interests
+      <textarea rows="3">robot learning, computer vision, reinforcement learning for manipulation</textarea></label>
+    <label style="margin-top:14px">Background
+      <textarea rows="3">MS in CS at State University; thesis on data-efficient imitation learning; two workshop papers; industry internship on perception systems.</textarea></label>
+    <div class="grid2" style="margin-top:14px">
+      <label>Preferred universities
+        <span class="row" style="border:1px solid #aaa;border-radius:8px;padding:7px"><span class="chip">Stanford</span><span class="chip">MIT</span><input style="border:0;flex:1;min-width:80px;padding:2px" placeholder="Add…"></span></label>
+      <label>Preferred locations
+        <span class="row" style="border:1px solid #aaa;border-radius:8px;padding:7px"><span class="chip">USA</span><span class="chip">Canada</span><input style="border:0;flex:1;min-width:80px;padding:2px" placeholder="Add…"></span></label>
+    </div>
+    <div class="savebar row between" style="margin-top:18px">
+      <span class="muted small">Saving updates your matches automatically.</span>
+      <button class="btn primary">Update and match →</button>
+    </div>
+  </div>
+
+  <div style="text-align:right" aria-label="Danger zone">
+    <button class="btn danger">🗑 Delete account</button>
+    <p class="muted small">Deletion deactivates your account for 30 days, then permanently removes your personal data.</p>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 2: /recommend (request department) ============ -->
+<section aria-label="Request department page">
+  <h2>Request a university or department</h2>
+  <p class="muted">Don’t see your department? Give us the faculty page URL and our admins will review it for import.</p>
+  <div class="card">
+    <label>University<input placeholder="e.g. University of Toronto" value="University of Toronto"></label>
+    <label style="margin-top:14px">Department<input placeholder="e.g. Department of Psychology" value="Psychology"></label>
+    <label style="margin-top:14px">Faculty page URL<input placeholder="https://university.edu/department/faculty" value="https://psych.utoronto.ca/faculty"></label>
+    <div class="notice" style="margin-top:14px">URLs must be public faculty pages — private or internal links are rejected.</div>
+    <button class="btn primary" style="margin-top:16px">Submit recommendation →</button>
+  </div>
+  <div class="card" style="text-align:center" aria-label="Success state">
+    <h3>✓ Thanks — your recommendation was submitted.</h3>
+    <p class="muted">Admins review every request. Once imported, the department appears in the public directory.</p>
+    <button class="btn">Make another request</button>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

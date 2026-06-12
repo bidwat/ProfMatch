@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing — / </title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55}
+  header,section,footer{padding:28px 24px;max-width:1080px;margin:0 auto}
+  nav,.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:18px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:4px 12px;font-size:12px;background:#fff}
+  .muted{color:#666}.small{font-size:12px}
+  .grid{display:grid;gap:14px}.cols2{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:repeat(3,1fr)}.cols4{grid-template-columns:repeat(4,1fr)}
+  input[type=search]{flex:1;padding:12px 14px;border:1px solid #aaa;border-radius:8px;font-size:15px}
+  h1{font-size:40px;line-height:1.1;margin:10px 0}
+  hr{border:0;border-top:1px solid #ddd;margin:0}
+  details{border:1px solid #ccc;border-radius:8px;padding:10px 14px}
+</style>
+</head>
+<body>
+
+<header class="row between" aria-label="Public navigation">
+  <strong>⬡ ProfMatch</strong>
+  <nav aria-label="Landing navigation">
+    <a href="#">Browse professors</a><a href="#">Universities</a><a href="#">How it works</a><a href="#">Features</a><a href="#">Pricing</a><a href="#">FAQ</a>
+  </nav>
+  <span class="row"><button class="btn">Sign in</button><button class="btn primary">Get started →</button></span>
+</header>
+<hr>
+
+<section class="grid cols2" aria-label="Hero">
+  <div>
+    <span class="chip">✦ Research-fit professor discovery</span>
+    <h1>Find professors whose recent work matches your research story.</h1>
+    <p class="muted">ProfMatch turns your background, interests, and degree goals into an explainable shortlist of potential MS/PhD advisors — with recent paper context and clear reasons for every recommendation.</p>
+    <form class="row" role="search">
+      <input type="search" placeholder="Search by professor, university, department, or research topic">
+      <button class="btn primary" type="submit">Search professors</button>
+    </form>
+    <div class="row" style="margin-top:10px" aria-label="Example topics">
+      <span class="chip">Artificial Intelligence</span><span class="chip">Computational Biology</span><span class="chip">Public Health</span><span class="chip">Robotics</span><span class="chip">Psychology</span><span class="chip">Climate Science</span>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn">Browse all professors</button>
+      <button class="btn primary">Create your research profile →</button>
+    </div>
+    <div class="row" style="margin-top:18px" aria-label="Dataset stats">
+      <div class="card"><strong>1,037</strong><div class="small muted">Professors indexed</div></div>
+      <div class="card"><strong>4,397</strong><div class="small muted">Papers indexed</div></div>
+      <div class="card"><strong>912</strong><div class="small muted">Profiles with papers</div></div>
+    </div>
+  </div>
+  <div class="card" aria-label="Match preview card">
+    <div class="small muted">MATCH PREVIEW</div>
+    <p>[ Venn illustration: “You — HCI · ML · AR” overlapping “Lab — Prof. Davis” with “92% research fit” in the middle ]</p>
+    <div class="row between card">
+      <span><strong>Randall Davis · MIT</strong><div class="small muted">Recent papers align with HCI, machine learning, and mixed-reality systems.</div></span>
+      <strong>74%</strong>
+    </div>
+    <div class="card" style="background:#222;color:#fff"><strong>Know why someone matched</strong><div class="small">Topics · recent papers · fit reasons · uncertainty notes</div></div>
+  </div>
+</section>
+
+<section aria-label="Product preview screenshots">
+  <div class="small muted">PRODUCT PREVIEW</div>
+  <h2>Everything you need to evaluate professor fit in one workflow.</h2>
+  <div class="grid cols3">
+    <div class="card"><div>[screenshot: Discover]</div><strong>Browse professors without opening dozens of tabs</strong><p class="small muted">Search by name, university, department, research area, and recruiting signal from one directory.</p></div>
+    <div class="card"><div>[screenshot: Matches]</div><strong>See why each professor fits your profile</strong><p class="small muted">Ranked results explain the overlap with paper evidence and caveats.</p></div>
+    <div class="card"><div>[screenshot: Profiles]</div><strong>Review the details before you shortlist</strong><p class="small muted">Summaries, tags, publications, contact links, and source confidence in one place.</p></div>
+  </div>
+</section>
+
+<section aria-label="Problem comparison">
+  <div class="small muted">THE PROBLEM</div>
+  <h2>Finding an advisor should not require dozens of tabs and a spreadsheet.</h2>
+  <div class="grid cols2">
+    <div class="card"><h3>Without ProfMatch</h3><ul>
+      <li>✕ Search department faculty pages one university at a time</li>
+      <li>✕ Read bios that may be years out of date</li>
+      <li>✕ Guess whether a professor’s current work fits your interests</li>
+      <li>✕ Track candidates in a spreadsheet you maintain by hand</li></ul></div>
+    <div class="card"><h3>With ProfMatch</h3><ul>
+      <li>✓ Search professor profiles across universities in one place</li>
+      <li>✓ AI summaries informed by recent publications, with sources</li>
+      <li>✓ Explainable research-fit scores with paper evidence</li>
+      <li>✓ Save a shortlist tied to your account</li></ul></div>
+  </div>
+</section>
+
+<section aria-label="How it works">
+  <div class="small muted">HOW IT WORKS</div>
+  <h2>From your interests to a focused advisor shortlist.</h2>
+  <div class="grid cols4">
+    <div class="card"><span class="muted">01</span><br><strong>Describe your research goals</strong></div>
+    <div class="card"><span class="muted">02</span><br><strong>Browse matching faculty records</strong></div>
+    <div class="card"><span class="muted">03</span><br><strong>Review paper-backed reasons</strong></div>
+    <div class="card"><span class="muted">04</span><br><strong>Save professors for later</strong></div>
+  </div>
+</section>
+
+<section class="grid cols2" aria-label="Audience features">
+  <div class="card"><div class="small muted">FOR APPLICANTS</div><h2>Built around the decisions students actually make.</h2>
+    <ul><li><strong>Academic profile</strong> — interests, background, degree, preferences once.</li>
+    <li><strong>Smart ranked recommendations</strong> — ordered by research fit and evidence.</li>
+    <li><strong>Evidence-backed explanations</strong> — what matched and where the system is uncertain.</li>
+    <li><strong>Saved professors</strong> — a shortlist you can return to.</li></ul></div>
+  <div class="card"><div class="small muted">WHY IT HELPS</div><h2>Spend more time evaluating fit, less time collecting links.</h2>
+    <ul><li><strong>Recent work first</strong> — current publications, not stale bios.</li>
+    <li><strong>Clear uncertainty</strong> — unknown means unknown.</li>
+    <li><strong>Less manual scanning</strong> — compare faculty across universities.</li></ul></div>
+</section>
+
+<section aria-label="Department request banner">
+  <div class="card row between">
+    <span><strong>Don’t see your university or department?</strong><div class="small muted">Request it with the faculty page URL and our admins will review it for import.</div></span>
+    <button class="btn">Request a department →</button>
+  </div>
+</section>
+
+<section aria-label="FAQ">
+  <div class="small muted">FAQ</div>
+  <h2>Common questions, answered plainly.</h2>
+  <div class="grid cols2">
+    <details><summary><strong>Is ProfMatch free?</strong></summary><p class="muted">Browsing, keyword search, and filters are free without an account. An account adds saved shortlists and personalized matching.</p></details>
+    <details><summary><strong>What does the match percentage mean?</strong></summary><p class="muted">A research-fit score — overlap between your interests and a professor’s recent, source-backed work. Not an admission chance.</p></details>
+    <details><summary><strong>Where does professor data come from?</strong></summary><p class="muted">Public faculty pages, personal/lab websites, and OpenAlex — each profile keeps source links and a confidence label.</p></details>
+    <details><summary><strong>Can I report incorrect data?</strong></summary><p class="muted">Yes. Every profile has a report path reviewed by admins before public data changes.</p></details>
+  </div>
+</section>
+
+<section class="card row between" aria-label="Final CTA">
+  <span><span class="chip">Ready to make your professor search more focused?</span>
+  <h2>Build a shortlist backed by recent research evidence.</h2>
+  <p class="muted">Create your profile, review explainable matches, and save the professors you want to revisit.</p></span>
+  <button class="btn primary">Get started →</button>
+</section>
+
+<footer class="muted small">⬡ ProfMatch · Browse professors · Universities · Pricing · Crawler policy · Contact</footer>
+</body>
+</html>

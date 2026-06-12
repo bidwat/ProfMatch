@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Professor detail — /professors/[id]</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55}
+  main{padding:20px 24px;max-width:860px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:18px;margin-bottom:14px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#eee}
+  .badge.high{background:#e2efe6}.badge.med{background:#f4ecd9}
+  .muted{color:#666}.small{font-size:12px}
+  .avatar{width:84px;height:84px;border-radius:10px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;flex-shrink:0}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid #ccc;margin:16px 0}
+  .tab{padding:8px 16px;border:0;background:none;font-size:14px;cursor:pointer}
+  .tab[aria-selected=true]{border-bottom:2px solid #222;font-weight:700}
+  .paper{padding:14px 0;border-bottom:1px solid #ddd}
+  .signal::before{content:"●";margin-right:5px;font-size:9px;vertical-align:1px}
+</style>
+</head>
+<body>
+<main>
+  <!-- Sticky header card (compacts on scroll in the app) -->
+  <div class="card" aria-label="Professor header">
+    <div class="row between">
+      <a href="#">← Back</a>
+      <span class="row">
+        <button class="btn">📄 Draft email</button>
+        <button class="btn">Report issue</button>
+        <button class="btn primary">🔖 Save</button>
+      </span>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <span class="avatar">AL</span>
+      <span style="flex:1">
+        <h1 style="margin:0;font-size:26px">Ada Lovelace</h1>
+        <div class="muted">Assistant Professor · Computer Science</div>
+        <div class="muted">Stanford University</div>
+        <a href="mailto:ada@stanford.edu">ada@stanford.edu</a>
+      </span>
+      <span style="text-align:center"><strong style="font-size:22px">12</strong><div class="muted small">papers</div></span>
+    </div>
+    <div class="row" style="margin-top:12px" aria-label="Research tags">
+      <span class="chip">Machine Learning</span><span class="chip">Robotics</span><span class="chip">Computer Vision</span><span class="chip">Reinforcement Learning</span><span class="chip">Sim-to-Real</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="signal small">Recruiting evidence</span>
+      <span class="badge high" title="Source confidence 92%">High confidence</span>
+    </div>
+    <div class="row" style="margin-top:10px" aria-label="External links">
+      <button class="btn">Homepage</button><button class="btn">Faculty profile</button><button class="btn">Google Scholar</button><button class="btn">DBLP</button>
+    </div>
+  </div>
+
+  <!-- Match insight banner: signed-out variant -->
+  <div class="card row between" aria-label="Signed-out match banner">
+    <span class="muted">Want to see if this professor is a good fit for your research?</span>
+    <button class="btn primary">Log in to view match score</button>
+  </div>
+
+  <!-- Match insight banner: signed-in variant with a prior match run -->
+  <div class="card" style="border-color:#222" aria-label="Match insight banner">
+    <h3 style="margin:0">✨ 78% Match</h3>
+    <p>Research overlap includes robot, learning, vision, manipulation. Profile tags include Robotics, Machine Learning. Recent publication evidence includes “Robot Learning with Vision Foundation Models” (2025).</p>
+    <div class="small muted"><b>Relevant papers for your profile</b></div>
+    <div class="paper"><b><a href="#">Robot Learning with Vision Foundation Models</a></b> (2025)
+      <p class="muted small">…we show that pretrained vision backbones transfer to manipulation tasks with 40% fewer demonstrations…</p></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" aria-selected="false">Papers</button>
+  </div>
+
+  <!-- Overview tab -->
+  <div class="card" aria-label="Overview tab">
+    <div class="row between"><h3 style="margin:0">Research summary</h3><span class="small muted">AI SUMMARY · GENERATED FROM PUBLIC SOURCES</span></div>
+    <p>Ada Lovelace works on robot learning and vision-based autonomous systems. Her recent publications focus on foundation models for manipulation, sim-to-real transfer, and data-efficient imitation learning. Current projects combine large pretrained vision models with reinforcement learning for household robotics.</p>
+    <p class="muted small">Summarized from the public faculty profile, personal/lab pages, and recent publications. It can lag behind the professor’s newest work — verify against the source links above before outreach.</p>
+    <div class="row small">
+      <span class="signal">Updated 6/1/2026</span>
+      <a class="signal" href="#">Profile text source</a>
+      <span class="signal">Photo source-backed</span>
+    </div>
+  </div>
+
+  <!-- Papers tab -->
+  <div class="card" aria-label="Papers tab">
+    <h3 style="margin-top:0">Recent publications</h3>
+    <div class="paper">
+      <div class="row between"><b><a href="#">Robot Learning with Vision Foundation Models</a></b><span class="badge high" title="Author-match confidence 95%">High confidence</span></div>
+      <div class="muted small">Robotics: Science and Systems · 2025 · openalex</div>
+      <p class="muted">We study how pretrained vision backbones transfer to robotic manipulation, showing large gains in sample efficiency across 12 tasks…</p>
+    </div>
+    <div class="paper">
+      <div class="row between"><b><a href="#">Sim-to-Real Transfer via Latent Dynamics Alignment</a></b><span class="badge high" title="Author-match confidence 90%">High confidence</span></div>
+      <div class="muted small">CoRL · 2024 · openalex</div>
+      <p class="muted">A method for aligning latent dynamics between simulation and hardware that reduces calibration time by 70%…</p>
+    </div>
+    <div class="paper">
+      <div class="row between"><b>Notes Toward an Analytical Engine</b><span class="badge med" title="Author-match confidence 70%">Medium confidence</span></div>
+      <div class="muted small">Computation Letters · 2023 · dblp</div>
+    </div>
+    <p class="muted small" style="margin-top:12px">Empty state: “No reliably matched publications yet. Check the homepage or Google Scholar links above for the professor’s own list.”</p>
+  </div>
+</main>
+</body>
+</html>

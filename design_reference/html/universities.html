@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universities — /universities, /universities/[slug], /universities/[slug]/[department]</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55}
+  main{padding:20px 24px;max-width:860px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:18px}
+  .grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:14px}
+  .muted{color:#666}.small{font-size:12px}
+  input{padding:9px 12px;border:1px solid #aaa;border-radius:8px;font-size:14px;width:340px}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+  .avatar{width:48px;height:48px;border-radius:8px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#e2efe6}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ============ PAGE 1: /universities (directory) ============ -->
+<section aria-label="Universities directory">
+  <h1 style="font-size:30px">Universities</h1>
+  <p class="muted">Browse the institutions indexed on ProfMatch. Every professor profile is public and source-backed.</p>
+  <input placeholder="Filter universities…">
+  <div class="grid">
+    <a class="card" href="#"><h3 style="margin:0">Stanford University</h3><div class="muted small">4 departments · 214 professors · 1,102 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">MIT</h3><div class="muted small">3 departments · 188 professors · 940 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">Carnegie Mellon University</h3><div class="muted small">2 departments · 152 professors · 873 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">University of Toronto</h3><div class="muted small">2 departments · 120 professors · 512 publications indexed</div></a>
+  </div>
+  <div class="card" style="text-align:center;margin-top:18px" aria-label="Empty state">
+    <h3>No universities match.</h3>
+    <p class="muted">Missing your university? Request it and our admins will review it for import.</p>
+    <button class="btn">Request a department</button>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 2: /universities/stanford-university ============ -->
+<section aria-label="University page">
+  <nav class="small muted"><a href="#">Universities</a> / Stanford University</nav>
+  <h1 style="font-size:30px;margin:8px 0">Stanford University</h1>
+  <p class="muted">4 departments indexed · 214 professors · 1,102 publications</p>
+  <button class="btn">Search all professors at Stanford University</button>
+  <div class="grid">
+    <a class="card" href="#"><h3 style="margin:0">Computer Science</h3><div class="muted small">96 professors · 612 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">Electrical Engineering</h3><div class="muted small">58 professors · 240 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">Biology</h3><div class="muted small">38 professors · 170 publications indexed</div></a>
+    <a class="card" href="#"><h3 style="margin:0">Psychology</h3><div class="muted small">22 professors · 80 publications indexed</div></a>
+  </div>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ PAGE 3: /universities/stanford-university/computer-science ============ -->
+<section aria-label="Department page">
+  <nav class="small muted"><a href="#">Universities</a> / <a href="#">Stanford University</a> / Computer Science</nav>
+  <h1 style="font-size:28px;margin:8px 0">Computer Science</h1>
+  <p class="muted">Stanford University · 96 professors indexed</p>
+
+  <article class="card" style="margin-top:14px">
+    <div class="row between">
+      <span class="row"><span class="avatar">AL</span><span><strong>Ada Lovelace</strong><div class="muted small">Assistant Professor · Stanford University</div></span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn primary">🔖 Save</button></span>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="chip">Machine Learning</span><span class="chip">Robotics</span><span class="badge">High confidence</span></div>
+  </article>
+  <article class="card" style="margin-top:12px">
+    <div class="row between">
+      <span class="row"><span class="avatar">GH</span><span><strong>Grace Hopper</strong><div class="muted small">Professor · Stanford University</div></span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn">🔖 Saved</button></span>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="chip">Compilers</span><span class="chip">Systems</span><span class="badge">High confidence</span></div>
+  </article>
+  <div class="card" style="text-align:center;margin-top:18px" aria-label="Not found state">
+    <h3>Department not found.</h3>
+    <p class="muted">It may not be indexed yet. You can request it for import.</p>
+    <span class="row" style="justify-content:center"><button class="btn">Back to university</button><button class="btn primary">Request a department</button></span>
+  </div>
+</section>
+
+</main>
+</body>
+</html>
