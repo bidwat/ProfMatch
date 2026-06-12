@@ -1,8 +1,10 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getCurrentUser, getScanStatus, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications } from '@/lib/api';
+import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getAdminMetrics, getCurrentUser, getScanStatus, listAdminReports, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications, updateAdminReport } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
 
@@ -21,12 +23,20 @@ export default function AdminDashboardPage() {
   const [publicationRefreshGroup, setPublicationRefreshGroup] = useState<IndexedDepartment | null>(null);
   const [enrichGroup, setEnrichGroup] = useState<IndexedDepartment | null>(null);
   const [activeProgress, setActiveProgress] = useState<any | null>(null);
+  const [reports, setReports] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<{ total_events: number; events: { name: string; count: number }[] } | null>(null);
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
     listAgenticJobGroups().then(setJobs).catch(() => undefined);
     listRecommendationRequests().then(r => setRequests(r.requests)).catch(() => undefined);
     getScanStatus().then(setJobStatus).catch(() => undefined);
+    listAdminReports('new').then(r => setReports(r.reports)).catch(() => undefined);
+    getAdminMetrics().then(setMetrics).catch(() => undefined);
+  };
+
+  const resolveReport = (id: number, status: 'resolved' | 'rejected') => {
+    updateAdminReport(id, { status }).then(() => setReports(current => current.filter(r => r.id !== id))).catch(() => undefined);
   };
 
   useEffect(() => {
@@ -148,7 +158,7 @@ export default function AdminDashboardPage() {
           <p className="muted">Manage indexed universities, user requests, and QA-gated agentic workflows. Existing data is only replaced after a staged workflow is published.</p>
         </div>
         <div className="row">
-          <button className="button secondary" onClick={load}>Refresh</button>
+          <Button variant="secondary" onPress={load}>Refresh</Button>
           <Link className="button primary" href="/admin/onboarding">New agentic scan</Link>
         </div>
       </div>
@@ -169,7 +179,7 @@ export default function AdminDashboardPage() {
               <strong>{activeProgress.status === 'completed' ? 'Complete' : activeProgress.status === 'error' ? 'Error' : 'Working'}:</strong> {activeProgress.message}
               {activeProgress.total > 0 && <p className="muted small-text">{activeProgress.current} of {activeProgress.total} professors · {Math.round(activeProgress.percent || 0)}%</p>}
             </div>
-            {activeProgress.status === 'completed' && <button className="button secondary" onClick={() => setActiveProgress(null)}>Dismiss</button>}
+            {activeProgress.status === 'completed' && <Button variant="secondary" onPress={() => setActiveProgress(null)}>Dismiss</Button>}
           </div>
           <div className="progress" style={{ marginTop: 12 }}><span style={{ width: `${activeProgress.percent || 0}%` }} /></div>
           {activeProgress.summary && <p className="muted small-text" style={{ marginTop: 10 }}>{JSON.stringify(activeProgress.summary)}</p>}
@@ -190,10 +200,10 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
                   <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
                   <td style={{ padding: 10 }} align="right">
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</button>{' '}
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => setEnrichGroup(group)}>Enrich profiles</button>{' '}
-                    <button className="button secondary" disabled={refreshing === key} onClick={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</button>{' '}
-                    <button className="button secondary danger-button" onClick={() => setDeleteGroup(group)}>Delete</button>
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</Button>{' '}
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setEnrichGroup(group)}>Enrich profiles</Button>{' '}
+                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</Button>{' '}
+                    <Button variant="danger-soft" onPress={() => setDeleteGroup(group)}>Delete</Button>
                   </td>
                 </tr>
               );
@@ -218,6 +228,39 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="card">
+          <div className="row between">
+            <h3>Data reports queue</h3>
+            <span className="home-count-chip">{reports.length} new</span>
+          </div>
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {reports.length === 0 ? <p className="muted">No open reports. User-submitted corrections will appear here.</p> : reports.slice(0, 8).map(report => (
+              <div className="card soft" key={report.id}>
+                <div className="row between">
+                  <strong>{String(report.reason || '').replace(/_/g, ' ')}</strong>
+                  {report.target_id && <Link className="accent small-text" href={`/professors/${report.target_id}`}>professor #{report.target_id}</Link>}
+                </div>
+                <p className="muted small-text" style={{ margin: '4px 0' }}>{report.description}</p>
+                {report.source_url && <a className="accent small-text" href={report.source_url} target="_blank" rel="noreferrer">{report.source_url}</a>}
+                <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                  <Button size="sm" variant="secondary" onPress={() => resolveReport(report.id, 'resolved')}>Mark resolved</Button>
+                  <Button size="sm" variant="ghost" onPress={() => resolveReport(report.id, 'rejected')}>Reject</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {metrics && (
+            <div style={{ marginTop: 18, borderTop: '1px solid var(--divider)', paddingTop: 12 }}>
+              <div className="row between"><strong>Product events · last {metrics ? 30 : 0} days</strong><span className="muted small-text">{metrics.total_events} total</span></div>
+              <div className="row" style={{ gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {metrics.events.length === 0 ? <span className="muted small-text">No events recorded yet.</span> : metrics.events.map(e => (
+                  <span className="signal" key={e.name}><i />{e.name.replace(/_/g, ' ')} · {e.count}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="card">

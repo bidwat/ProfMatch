@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Button, Input, Label, TextField } from '@heroui/react';
 import { findMatches, getCurrentUser, getUserState, loginUser, patchUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import type { LocalUser } from '@/lib/types';
@@ -60,10 +61,16 @@ export default function SigninPage() {
         <h2>Welcome back</h2>
         <p className="muted" style={{ marginBottom: 20 }}>Sign in to continue building your professor shortlist.</p>
         <form className="form" onSubmit={submit} style={{ marginTop: 16 }}>
-          <label className="label">Email<input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@university.edu" /></label>
-          <label className="label">Password<input className="input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Password" /></label>
+          <TextField type="email">
+            <Label>Email</Label>
+            <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@university.edu" />
+          </TextField>
+          <TextField type="password">
+            <Label>Password</Label>
+            <Input value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Password" />
+          </TextField>
           {error && <div className="error">{error}</div>}
-          <button className="button primary" type="submit" disabled={submitting}>{submitting ? 'Signing in and refreshing matches…' : 'Sign in →'}</button>
+          <Button type="submit" isDisabled={submitting} isPending={submitting}>{submitting ? 'Signing in and refreshing matches…' : 'Sign in →'}</Button>
         </form>
         <p className="muted small-text" style={{ marginTop: 18 }}>Need an account? <Link className="accent" href="/signup">Create one</Link></p>
       </div>

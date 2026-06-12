@@ -125,7 +125,9 @@ class AgenticOnboardingService:
 
     async def _crawl_url(self, url: str) -> str:
         from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
-        browser_config = BrowserConfig(headless=True)
+
+        from apps.backend.app.services.crawl_policy import crawler_user_agent
+        browser_config = BrowserConfig(headless=True, user_agent=crawler_user_agent())
         crawler_config = CrawlerRunConfig(cache_mode=0)
         async with AsyncWebCrawler(config=browser_config) as crawler:
             result = await crawler.arun(url=url, config=crawler_config)
@@ -414,7 +416,7 @@ class AgenticOnboardingService:
         try:
             state["status"] = "running"
             state["step"] = "publish"
-            state["message"] = "Publishing to SQLite database..."
+            state["message"] = "Publishing to the database..."
             self._save_state(job_id, state)
             
             from apps.backend.app.models.professor import Professor, Publication

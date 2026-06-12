@@ -1,5 +1,8 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 export default function GlobalError({
@@ -21,12 +24,12 @@ export default function GlobalError({
         We experienced an unexpected error. Please try again, or navigate back to the home page.
       </p>
       <div className="tags" style={{ justifyContent: 'center' }}>
-        <button className="button primary" onClick={() => reset()}>
+        <Button onPress={() => reset()}>
           Try again
-        </button>
-        <a href="/" className="button secondary">
+        </Button>
+        <Link href="/" className="button secondary">
           Go Home
-        </a>
+        </Link>
       </div>
     </div>
   );

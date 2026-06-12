@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
@@ -22,8 +23,13 @@ from apps.backend.app.api.admin import router as admin_router
 from apps.backend.app.api.scrape_runs import router as scrape_runs_router
 from apps.backend.app.api.recommendations import router as recommendations_router
 from apps.backend.app.api.student_profiles import router as student_profiles_router
+from apps.backend.app.api.reports import router as reports_router
+from apps.backend.app.api.outreach import router as outreach_router
+from apps.backend.app.api.events import router as events_router
 from apps.backend.app.models import auth as auth_models  # noqa: F401 - ensure auth tables are registered
 from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - ensure durable scan tables are registered
+from apps.backend.app.models import report as report_models  # noqa: F401 - ensure report table is registered
+from apps.backend.app.models import analytics as analytics_models  # noqa: F401 - ensure analytics table is registered
 
 # --- Structured Logging Setup ---
 class JsonFormatter(logging.Formatter):
@@ -68,8 +74,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Simple In-Memory Rate Limiting ---
-# (For a production system, use Redis or a proper rate limiting library)
+# --- In-Memory Rate Limiting ---
+# The deployment runs a single backend process behind Caddy, so per-process
+# buckets are the actual global limit. Revisit with Redis if instances scale.
 rate_limits = defaultdict(list)
 
 RATE_LIMIT_EXEMPT_READ_PREFIXES = (
@@ -82,8 +89,17 @@ RATE_LIMIT_EXEMPT_READ_PREFIXES = (
 )
 
 
+def _client_ip(request: Request) -> str:
+    # Behind the Caddy reverse proxy every connection comes from localhost;
+    # use the first hop in X-Forwarded-For so limits apply per real client.
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def _rate_limit_key(request: Request) -> str:
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = _client_ip(request)
     path = request.url.path
     if path in {"/api/auth/login", "/api/auth/register"}:
         return f"{client_ip}:auth-write:{path}"
@@ -103,6 +119,28 @@ def _rate_limit_for(request: Request) -> int | None:
     if request.method in {"POST", "PATCH", "DELETE"}:
         return max(120, settings.rate_limit_per_minute)
     return settings.rate_limit_per_minute
+
+
+@app.middleware("http")
+async def request_observability_middleware(request: Request, call_next):
+    """Tag every request with an id and emit a structured access log line."""
+    request_id = request.headers.get("x-request-id", "").strip() or uuid.uuid4().hex[:16]
+    request.state.request_id = request_id
+    started = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = round((time.perf_counter() - started) * 1000, 1)
+    response.headers["X-Request-ID"] = request_id
+    if request.url.path.startswith("/api") or request.url.path == "/health":
+        logger.info(json.dumps({
+            "event": "request",
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration_ms": duration_ms,
+            "client_ip": _client_ip(request),
+        }))
+    return response
 
 
 @app.middleware("http")
@@ -126,12 +164,16 @@ async def rate_limit_middleware(request: Request, call_next):
 
 # --- Structured JSON Errors ---
 
+def _request_id(request: Request) -> str | None:
+    return getattr(request.state, "request_id", None)
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.error(f"HTTP Exception: {exc.detail} (status {exc.status_code})")
     return JSONResponse(
         status_code=exc.status_code,
-        content={"error": {"code": "http_error", "message": str(exc.detail)}},
+        content={"error": {"code": "http_error", "message": str(exc.detail), "request_id": _request_id(request)}},
     )
 
 @app.exception_handler(RequestValidationError)
@@ -148,7 +190,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled Exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"error": {"code": "internal_error", "message": "An unexpected error occurred. Please try again later."}},
+        content={"error": {"code": "internal_error", "message": "An unexpected error occurred. Please try again later.", "request_id": _request_id(request)}},
     )
 
 
@@ -165,4 +207,7 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(scrape_runs_router, prefix="/api")
 app.include_router(recommendations_router, prefix="/api")
 app.include_router(student_profiles_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(outreach_router, prefix="/api")
+app.include_router(events_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")

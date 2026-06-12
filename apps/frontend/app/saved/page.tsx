@@ -79,7 +79,11 @@ export default function SavedPage() {
       <div className="topbar filter-bar">
         <div className="row between">
           <div><h2 style={{ margin: 0 }}>Saved</h2><p className="muted">{ids.length} saved professors · {visibleRows.length} visible</p></div>
-          <Link className="button primary" href="/professors"><Icon name="compass" size={14} />Discover more</Link>
+          <div className="row" style={{ gap: 8 }}>
+            <Link className="button secondary" href="/compare">Compare</Link>
+            <Link className="button secondary" href="/board">Open board</Link>
+            <Link className="button primary" href="/professors"><Icon name="compass" size={14} />Discover more</Link>
+          </div>
         </div>
         <FilterSortBar
           activeFilters={[

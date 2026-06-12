@@ -27,7 +27,9 @@ class DurableAgenticScanService:
 
     async def _crawl_url(self, url: str) -> str:
         from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
-        browser_config = BrowserConfig(headless=True)
+
+        from apps.backend.app.services.crawl_policy import crawler_user_agent
+        browser_config = BrowserConfig(headless=True, user_agent=crawler_user_agent())
         crawler_config = CrawlerRunConfig(cache_mode=0)
         async with AsyncWebCrawler(config=browser_config) as crawler:
             result = await crawler.arun(url=url, config=crawler_config)

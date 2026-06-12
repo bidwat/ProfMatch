@@ -1,0 +1,20 @@
+name: Uptime check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health endpoints
+        env:
+          # Set the BACKEND_HEALTH_URL repository variable to override
+          # (e.g. https://api.profmatch.example after the TLS cutover).
+          HEALTH_URL: ${{ vars.BACKEND_HEALTH_URL || 'http://137.184.16.45' }}
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 "$HEALTH_URL/health"
+          curl -fsS --max-time 20 "$HEALTH_URL/api/health/db"

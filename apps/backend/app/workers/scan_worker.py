@@ -4,6 +4,7 @@ import asyncio
 import os
 import signal
 import socket
+import time
 from uuid import uuid4
 
 from sqlmodel import Session
@@ -12,8 +13,11 @@ from apps.backend.app.db import engine
 from apps.backend.app.models import auth as auth_models  # noqa: F401 - register FK targets for worker sessions
 from apps.backend.app.models import professor as professor_models  # noqa: F401 - register import targets for worker sessions
 from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - register durable scan tables
+from apps.backend.app.services.auth_service import AuthService
 from apps.backend.app.services.scan_job_service import ScanJobService
 from apps.backend.app.services.scan_task_runner import run_department_scan_task
+
+ACCOUNT_PURGE_INTERVAL_SECONDS = 3600
 
 
 class ScanWorker:
@@ -25,6 +29,7 @@ class ScanWorker:
         self.heartbeat_seconds = int(os.getenv("SCAN_TASK_HEARTBEAT_SECONDS", "60"))
         self.stop_event = asyncio.Event()
         self.active: set[asyncio.Task] = set()
+        self._last_purge = 0.0
 
     def request_stop(self) -> None:
         self.stop_event.set()
@@ -32,6 +37,7 @@ class ScanWorker:
     async def run(self) -> None:
         print(f"scan worker {self.worker_id} starting with concurrency={self.concurrency}", flush=True)
         while not self.stop_event.is_set():
+            self.maybe_purge_accounts()
             self.active = {task for task in self.active if not task.done()}
             while len(self.active) < self.concurrency and not self.stop_event.is_set():
                 claimed_task_id = self.claim_one()
@@ -51,6 +57,21 @@ class ScanWorker:
         print("scan worker stopping; waiting for active tasks", flush=True)
         if self.active:
             await asyncio.wait(self.active, timeout=10)
+
+    def maybe_purge_accounts(self) -> None:
+        """Deletion policy (spec §26.4): permanently remove accounts that have
+        been deactivated for more than 30 days. Runs hourly in this worker."""
+        now = time.monotonic()
+        if now - self._last_purge < ACCOUNT_PURGE_INTERVAL_SECONDS:
+            return
+        self._last_purge = now
+        try:
+            with Session(engine) as session:
+                purged = AuthService(session).purge_deactivated_accounts(older_than_days=30)
+            if purged:
+                print(f"account purge removed {purged} account(s) past the 30-day window", flush=True)
+        except Exception as exc:
+            print(f"account purge failed: {exc}", flush=True)
 
     def claim_one(self) -> int | None:
         with Session(engine) as session:

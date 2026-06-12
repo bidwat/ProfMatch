@@ -122,3 +122,27 @@ class AuthService:
             session.revoked_at = datetime.now(timezone.utc).replace(tzinfo=None)
             self.db.add(session)
             self.db.commit()
+
+    def purge_deactivated_accounts(self, older_than_days: int = 30) -> int:
+        """Permanently delete accounts deactivated more than N days ago.
+
+        Implements the deletion policy (spec §26.4): account deletion
+        deactivates immediately; personal data is removed permanently after
+        the 30-day recovery window. updated_at records the deactivation time.
+        """
+        from apps.backend.app.models.auth import UserState
+
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=older_than_days)
+        users = self.db.exec(
+            select(User).where(User.is_active == False, User.updated_at <= cutoff)  # noqa: E712
+        ).all()
+        for user in users:
+            for auth_session in self.db.exec(select(AuthSession).where(AuthSession.user_id == user.id)).all():
+                self.db.delete(auth_session)
+            state = self.db.exec(select(UserState).where(UserState.user_id == user.id)).first()
+            if state:
+                self.db.delete(state)
+            self.db.delete(user)
+        if users:
+            self.db.commit()
+        return len(users)

@@ -1,7 +1,10 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useEffect, useMemo, useState } from 'react';
 import { getProfessorFacets, getUserState, listProfessors, patchUserState } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { localStore } from '@/lib/local-store';
 import type { ProfessorSummary } from '@/lib/types';
 import { ProfessorCard } from '@/components/ProfessorCard';
@@ -39,6 +42,17 @@ export default function ProfessorsPage() {
   const limit = 24;
 
   useEffect(() => {
+    // Seed search/filters from URL params (landing search, university and
+    // department page cross-links, shared URLs).
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQ = urlParams.get('q');
+    if (initialQ) setQ(initialQ);
+    const initialUniversity = urlParams.get('university');
+    if (initialUniversity) setUniversities([initialUniversity]);
+    const initialDepartment = urlParams.get('department');
+    if (initialDepartment) setDepartments([initialDepartment]);
+    const initialTag = urlParams.get('tag');
+    if (initialTag) setTags([initialTag]);
     getProfessorFacets().then(setFacets).catch(() => {});
     setSaved(localStore.getSaved());
     setIsLoggedIn(!!localStore.getUser());
@@ -58,6 +72,9 @@ export default function ProfessorsPage() {
         setProfessors(current => cursorToLoad ? [...current, ...r.professors] : r.professors);
         setTotal(r.total);
         setNextCursor(r.next_cursor || null);
+        if (!cursorToLoad && debouncedQ) {
+          track('search_performed', { query_length: debouncedQ.length, results_count: r.total, filters_count: universities.length + tags.length + departments.length + (recruiting ? 1 : 0) });
+        }
       })
       .catch(e => setError(e.message || 'Could not load professors'))
       .finally(() => setLoading(false));
@@ -66,6 +83,7 @@ export default function ProfessorsPage() {
   const toggleSave = (id: number) => {
     if (!isLoggedIn) { setShowLoginModal(true); return; }
     const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id];
+    if (!saved.includes(id)) track('professor_saved', { professor_id: id, surface: 'discover' });
     setSaved(next); localStore.setSaved(next); patchUserState({ saved_professor_ids: next }).catch(() => undefined);
   };
 
@@ -105,10 +123,10 @@ export default function ProfessorsPage() {
           <div className="card soft">
             <h3>No professors match these filters.</h3>
             <p className="muted">Try clearing filters or searching for a broader research area.</p>
-            <button className="button secondary" style={{ marginTop: 12 }} onClick={() => { setQ(''); setUniversities([]); setTags([]); setDepartments([]); setRecruiting(''); }}>Clear filters</button>
+            <Button variant="secondary" style={{ marginTop: 12 }} onPress={() => { setQ(''); setUniversities([]); setTags([]); setDepartments([]); setRecruiting(''); }}>Clear filters</Button>
           </div>
         )}
-        {!loading && nextCursor && <button className="button secondary" onClick={() => setCursorToLoad(nextCursor)}>Load more professors</button>}
+        {!loading && nextCursor && <Button variant="secondary" onPress={() => setCursorToLoad(nextCursor)}>Load more professors</Button>}
       </div>
 
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} message="Log in to save professors to your account and build a shortlist." />

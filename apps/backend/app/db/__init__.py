@@ -5,7 +5,6 @@ from urllib.parse import quote_plus
 from sqlmodel import Session, create_engine
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_DB_PATH = PROJECT_ROOT / "db" / "professor_match_publications.sqlite"
 
 
 def _normalize_database_url(raw_url: str) -> str:
@@ -35,7 +34,12 @@ def is_production_mode() -> bool:
 
 
 def _database_url() -> str:
-    """Return production DATABASE_URL/Supabase URL when set, otherwise SQLite."""
+    """Return the Supabase/Postgres URL. There is no file-based database.
+
+    Without DATABASE_URL or Supabase component vars, non-production processes
+    get a private in-memory engine so imports and tests work; production
+    refuses to start.
+    """
     raw_url = os.environ.get("DATABASE_URL", "").strip()
     if raw_url:
         return _normalize_database_url(raw_url)
@@ -45,16 +49,26 @@ def _database_url() -> str:
         return supabase_url
 
     if is_production_mode():
-        raise RuntimeError("APP_ENV=production requires DATABASE_URL or Supabase Postgres variables; refusing SQLite fallback")
+        raise RuntimeError("APP_ENV=production requires DATABASE_URL or Supabase Postgres variables")
 
-    db_path = Path(os.environ.get("PROFESSOR_MATCH_DB_PATH", DEFAULT_DB_PATH)).expanduser().resolve()
-    return f"sqlite:///{db_path}"
+    return "sqlite://"  # in-memory placeholder; tests override `engine`
 
 
 DATABASE_URL = _database_url()
-DB_PATH = Path(DATABASE_URL.replace("sqlite:///", "")).resolve() if DATABASE_URL.startswith("sqlite:///") else None
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args, pool_pre_ping=True)
+DB_PATH = None
+if DATABASE_URL.startswith("sqlite"):
+    # In-memory placeholder needs one shared connection so startup
+    # create_all() is visible to request sessions.
+    from sqlalchemy.pool import StaticPool
+
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+else:
+    engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 
 
 def get_session():

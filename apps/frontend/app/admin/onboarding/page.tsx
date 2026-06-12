@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createScanJob, getAgenticJob, enrichAgenticHomepage, fetchAgenticPublications, generateAgenticSummary, publishAgenticJob, listAgenticJobs, stopAgenticJob, deleteAgenticJob } from '@/lib/api';
@@ -120,9 +122,9 @@ export default function AgenticOnboardingPage() {
           </div>
           <div className="row" style={{ gap: 8 }}>
             {isRunning && (
-              <button className="button secondary" onClick={handleStop}>Stop Job</button>
+              <Button variant="secondary" onPress={handleStop}>Stop Job</Button>
             )}
-            <button className="button secondary" onClick={() => setDeleteTarget({ id: jobId, redirect: true })}>Delete</button>
+            <Button variant="secondary" onPress={() => setDeleteTarget({ id: jobId, redirect: true })}>Delete</Button>
             <a className="button primary" href="/admin/scans">Open Scan Dashboard</a>
             <a className="button secondary" href="/admin/onboarding">Start New Durable Job</a>
           </div>
@@ -168,9 +170,9 @@ export default function AgenticOnboardingPage() {
               <h3>Extracted Professors ({job.professors.length})</h3>
               <div className="row" style={{ gap: 8 }}>
                 <a className="button primary" href="/admin/scans">Review durable copy</a>
-                <button className="button secondary" disabled title="Deprecated: use the durable Scan Dashboard instead.">
+                <Button variant="secondary" isDisabled aria-label="Deprecated: use the durable Scan Dashboard instead.">
                   Legacy enrichment disabled
-                </button>
+                </Button>
               </div>
             </div>
             
@@ -234,7 +236,7 @@ export default function AgenticOnboardingPage() {
           open={!!deleteTarget}
           variant="danger"
           title="Delete agentic job?"
-          message="This removes the staged local job artifact. Published SQLite data is not changed."
+          message="This removes the staged local job artifact. Published database data is not changed."
           confirmLabel="Delete job"
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
@@ -275,14 +277,14 @@ export default function AgenticOnboardingPage() {
                 </div>
               </div>
             ))}
-            <button className="button secondary" type="button" onClick={() => setItems(rows => [...rows, { url: '', university: '', department: 'Computer Science' }])} style={{ alignSelf: 'flex-start' }}>Add another department</button>
+            <Button variant="secondary" type="button" onPress={() => setItems(rows => [...rows, { url: '', university: '', department: 'Computer Science' }])} style={{ alignSelf: 'flex-start' }}>Add another department</Button>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="muted small-text">
               <input type="checkbox" checked={automatic} onChange={e => setAutomatic(e.target.checked)} />
               Automatic Mode (extracts, enriches, and summarizes without waiting)
             </label>
-            <button className="button primary" type="submit" disabled={triggering} style={{ alignSelf: 'flex-start' }}>
+            <Button type="submit" isDisabled={triggering} style={{ alignSelf: 'flex-start' }}>
               {triggering ? 'Starting...' : 'Start Agentic Extraction'}
-            </button>
+            </Button>
           </form>
           {message && <p className="error" style={{ marginTop: '12px' }}>{message}</p>}
         </div>
@@ -314,7 +316,7 @@ export default function AgenticOnboardingPage() {
                     </td>
                     <td style={{ padding: '10px 0' }}>{j.professor_count || 0}</td>
                     <td style={{ padding: '10px 0', textAlign: 'right' }}>
-                      <button className="button secondary" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => setDeleteTarget({ id: j.id, redirect: false })}>Delete</button>
+                      <Button variant="secondary" style={{ padding: '4px 8px', fontSize: '12px' }} onPress={() => setDeleteTarget({ id: j.id, redirect: false })}>Delete</Button>
                     </td>
                   </tr>
                 ))}
@@ -327,7 +329,7 @@ export default function AgenticOnboardingPage() {
         open={!!deleteTarget}
         variant="danger"
         title="Delete agentic job?"
-        message="This removes the staged local job artifact. Published SQLite data is not changed."
+        message="This removes the staged local job artifact. Published database data is not changed."
         confirmLabel="Delete job"
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}

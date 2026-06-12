@@ -39,3 +39,33 @@ def test_delete_account_soft_deletes_user_revokes_sessions_and_clears_cookie(tmp
             assert all(s.revoked_at is not None for s in sessions)
     finally:
         db.engine = original_engine
+
+
+def test_purge_removes_accounts_past_thirty_day_window(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    from apps.backend.app.services.auth_service import AuthService
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'purge.sqlite'}", echo=False)
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        service = AuthService(session)
+        old = service.register("old-deleted@example.edu", "strongpass123", "Old Deleted")
+        recent = service.register("recent-deleted@example.edu", "strongpass123", "Recent Deleted")
+        active = service.register("active@example.edu", "strongpass123", "Still Active")
+        service.create_session(old)
+
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        old.is_active = False
+        old.updated_at = now - timedelta(days=31)
+        recent.is_active = False
+        recent.updated_at = now - timedelta(days=5)
+        session.add(old)
+        session.add(recent)
+        session.commit()
+
+        purged = service.purge_deactivated_accounts(older_than_days=30)
+        assert purged == 1
+        remaining = {u.email for u in session.exec(select(User)).all()}
+        assert remaining == {"recent-deleted@example.edu", "active@example.edu"}
+        assert session.exec(select(AuthSession)).all() == []
+        assert active.is_active is True

@@ -1,18 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProfessor, patchUserState } from '@/lib/api';
-import { TagList, Signal, cleanTitle, Avatar } from '@/components/ProfessorCard';
+import { Button, Tabs } from '@heroui/react';
+import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
 import { LoginModal } from '@/components/LoginModal';
+import { ReportIssueModal } from '@/components/ReportIssueModal';
+import { OutreachDraftModal } from '@/components/OutreachDraftModal';
 import { DetailSkeleton } from '@/components/Skeleton';
 import { localStore } from '@/lib/local-store';
+import { track } from '@/lib/analytics';
 import type { GetProfessorResponse, MatchResponse, MatchScore } from '@/lib/types';
 
-export default function ProfessorDetailPage({ params }: { params: { id: string } }) {
+export default function ProfessorDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
   const searchParams = useSearchParams();
   const from = searchParams.get('from') || '/professors';
   const [data, setData] = useState<GetProfessorResponse | null>(null);
@@ -25,11 +30,17 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
   const [matchData, setMatchData] = useState<MatchScore | null>(null);
   const [compact, setCompact] = useState(false);
   const [toast, setToast] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showOutreachModal, setShowOutreachModal] = useState(false);
   const compactRef = useRef(false);
 
-  useEffect(() => { 
-    getProfessor(params.id).then(setData).catch(e => setError(e.message || 'Could not load professor')); 
-    
+  useEffect(() => {
+    getProfessor(params.id).then(response => {
+      setData(response);
+      document.title = `${response.professor.name} – ${response.professor.university} | ProfMatch`;
+    }).catch(e => setError(e.message || 'Could not load professor'));
+    track('profile_opened', { professor_id: Number(params.id) });
+
     // Load state
     const s = localStore.getSaved();
     setSaved(s);
@@ -65,8 +76,9 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
       return;
     }
     const id = Number(params.id);
-    const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id]; 
-    setSaved(next); 
+    const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id];
+    if (!saved.includes(id)) track('professor_saved', { professor_id: id, surface: 'detail' });
+    setSaved(next);
     localStore.setSaved(next); 
     setToast(saved.includes(id) ? 'Professor removed from saved.' : 'Professor saved.');
     patchUserState({ saved_professor_ids: next }).catch(() => undefined); 
@@ -87,9 +99,17 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
       <div className={`card sticky-professor-card ${compact ? 'compact' : ''}`}>
         <div className="professor-sticky-toolbar">
           <Link className="accent" href={from}>← Back</Link>
-          <button className={`button ${isSaved ? 'saved' : 'secondary'}`} onClick={toggleSave}>
-            <Icon name="save" size={13} /> {isSaved ? 'Saved' : 'Save'}
-          </button>
+          <div className="row" style={{ gap: 8 }}>
+            <Button variant="secondary" onPress={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowOutreachModal(true); }}>
+              <Icon name="paper" size={13} /> Draft email
+            </Button>
+            <Button variant="secondary" onPress={() => { if (!isLoggedIn) { setShowLoginModal(true); return; } setShowReportModal(true); }}>
+              Report issue
+            </Button>
+            <button className={`button ${isSaved ? 'saved' : 'secondary'}`} onClick={toggleSave}>
+              <Icon name="save" size={13} /> {isSaved ? 'Saved' : 'Save'}
+            </button>
+          </div>
         </div>
 
         <div className="professor-sticky-main">
@@ -110,7 +130,7 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
           <TagList tags={tags} max={12} />
           <div className="signals" style={{ marginTop: 24 }}>
             <Signal status={p.recruiting_signal} />
-            <span className="signal"><i />source confidence {Math.round(p.source_confidence * 100)}%</span>
+            <ConfidenceChip confidence={p.source_confidence} />
           </div>
           <div className="actions">{links.map(([label, url]) => <a key={label} className="button secondary" href={url as string} target="_blank" rel="noreferrer">{label}</a>)}</div>
         </div>
@@ -143,25 +163,47 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
         </div>
       ) : null}
 
-      <div className="tabs">{(['overview', 'papers'] as const).map(t => <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>)}</div>
-      
+      <Tabs selectedKey={tab} onSelectionChange={key => setTab(key as 'overview' | 'papers')} style={{ marginTop: 16 }}>
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="Professor detail sections">
+            <Tabs.Tab id="overview">Overview<Tabs.Indicator /></Tabs.Tab>
+            <Tabs.Tab id="papers">Papers<Tabs.Indicator /></Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
+
       {tab === 'overview' && (
         <div className="card">
-          <h3>Research Summary</h3>
+          <div className="row between" style={{ alignItems: 'baseline' }}>
+            <h3>Research summary</h3>
+            <span className="t-label">AI summary · generated from public sources</span>
+          </div>
           <p className="summary" style={{ display: 'block', WebkitLineClamp: 'unset', marginTop: 10, lineHeight: 1.6 }}>{p.research_summary || p.research_text || 'Research summary unavailable.'}</p>
+          <p className="muted small-text" style={{ marginTop: 10 }}>
+            Summarized from the public faculty profile, personal/lab pages, and recent publications. It can lag behind the professor&apos;s newest work — verify against the source links above before outreach.
+          </p>
           <div className="signals" style={{ marginTop: 18 }}>
             <span className="signal"><i />Updated {new Date(p.updated_at).toLocaleDateString()}</span>
+            {(p.extra?.research_source_url || p.extra?.bio_source_url) && (
+              <a className="signal" href={(p.extra?.research_source_url || p.extra?.bio_source_url) as string} target="_blank" rel="noreferrer"><i />Profile text source</a>
+            )}
             {p.photo_source_url && <span className="signal"><i />Photo source-backed</span>}
           </div>
         </div>
       )}
-      
+
       {tab === 'papers' && (
         <div className="card">
           <h3>Recent publications</h3>
+          {data.publications.length === 0 && (
+            <p className="muted" style={{ marginTop: 10 }}>No reliably matched publications yet. Check the homepage or Google Scholar links above for the professor&apos;s own list.</p>
+          )}
           {data.publications.map(pub => (
             <div key={pub.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
-              <b>{pub.url ? <a className="accent" href={pub.url} target="_blank" rel="noreferrer">{pub.title}</a> : pub.title}</b>
+              <div className="row between" style={{ gap: 12, alignItems: 'baseline', flexWrap: 'nowrap' }}>
+                <b>{pub.url ? <a className="accent" href={pub.url} target="_blank" rel="noreferrer">{pub.title}</a> : pub.title}</b>
+                <ConfidenceChip confidence={pub.match_confidence} kind="Author-match" />
+              </div>
               <p className="muted small-text" style={{ marginTop: 4 }}>{pub.venue || 'Unknown venue'} · {pub.year || 'n.d.'} · {pub.source}</p>
               {pub.abstract && <p className="muted" style={{ marginTop: 8, lineHeight: 1.5 }}>{pub.abstract}</p>}
             </div>
@@ -170,7 +212,9 @@ export default function ProfessorDetailPage({ params }: { params: { id: string }
       )}
 
       <Toast message={toast} onClose={() => setToast('')} />
-      <LoginModal 
+      <ReportIssueModal isOpen={showReportModal} onClose={() => setShowReportModal(false)} professorId={Number(params.id)} onSubmitted={setToast} />
+      <OutreachDraftModal isOpen={showOutreachModal} onClose={() => setShowOutreachModal(false)} professorId={Number(params.id)} professorName={p.name} onToast={setToast} />
+      <LoginModal
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
         message="Log in to save this professor and track your outreach progress." 

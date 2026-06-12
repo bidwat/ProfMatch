@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, List, Optional
 
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlmodel import select
 
@@ -88,7 +87,7 @@ class MatchService:
     def find_matches_with_metadata(self, student: StudentProfile) -> dict[str, Any]:
         query_text = self._student_query_text(student)
         shortlist_limit = max(student.shortlist_limit, 30)
-        candidates = self._fts_shortlist(query_text, shortlist_limit=shortlist_limit)
+        candidates = self._text_shortlist(query_text, shortlist_limit=shortlist_limit)
 
         if not candidates:
             candidates = self._fallback_shortlist(shortlist_limit)
@@ -148,47 +147,11 @@ class MatchService:
             "metadata": metadata,
         }
 
-    def _fts_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
-        if self._dialect_name() != "sqlite":
-            return self._portable_text_shortlist(query_text, shortlist_limit)
+    def _text_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
+        """Deterministic in-process lexical shortlist.
 
-        self._ensure_fts_index()
-        safe_query = self._fts_query(query_text)
-        if not safe_query:
-            return self._fallback_shortlist(shortlist_limit)
-
-        sql = text(
-            """
-            SELECT professor_id, bm25(professor_match_fts, 8.0, 3.0, 2.0, 2.0, 6.0, 10.0, 5.0, 4.0, 7.0) AS rank
-            FROM professor_match_fts
-            WHERE professor_match_fts MATCH :query
-            ORDER BY rank
-            LIMIT :limit
-            """
-        )
-        rows = self.db.execute(sql, {"query": safe_query, "limit": shortlist_limit}).fetchall()
-        ranked_ids = [(int(r[0]), float(r[1])) for r in rows]
-        if not ranked_ids:
-            return []
-
-        raw_scores = [rank for _, rank in ranked_ids]
-        best = min(raw_scores)
-        worst = max(raw_scores)
-        spread = max(worst - best, 1e-9)
-        normalized = {prof_id: max(0.0, min(1.0, 1.0 - ((rank - best) / spread))) for prof_id, rank in ranked_ids}
-
-        return self._hydrate_candidates([prof_id for prof_id, _ in ranked_ids], normalized)
-
-    def _dialect_name(self) -> str:
-        bind = self.db.get_bind()
-        return bind.dialect.name if bind is not None else "sqlite"
-
-    def _portable_text_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
-        """Database-portable shortlist for Postgres free-tier deployment.
-
-        SQLite local dev uses FTS5. Production Postgres initially uses this
-        deterministic in-process lexical shortlist so we can migrate without
-        adding pg_trgm/tsvector migrations yet.
+        Works on any SQLAlchemy backend; production Postgres uses this until
+        pg_trgm/tsvector search lands (see checklist).
         """
         query_terms = self._extract_keywords(query_text)
         if not query_terms:
@@ -249,53 +212,6 @@ class MatchService:
             if prof:
                 candidates.append(Candidate(professor=prof, fts_score=fts_scores.get(prof_id, 0.0), tags=self._extract_tags(prof), publications=pubs_by_prof.get(prof_id, [])[:20]))
         return candidates
-
-    def _ensure_fts_index(self) -> None:
-        self.db.execute(text(
-            """
-            CREATE VIRTUAL TABLE IF NOT EXISTS professor_match_fts USING fts5(
-                professor_id UNINDEXED,
-                name,
-                title,
-                department,
-                university,
-                research_text,
-                research_summary,
-                tags,
-                recruiting_evidence_text
-            )
-            """
-        ))
-        # The local enrichment scripts update research_summary/tags directly in SQLite.
-        # Rebuilding this small MVP index on each match request keeps FTS current without
-        # requiring triggers or a migration framework yet.
-        self.db.execute(text("DELETE FROM professor_match_fts"))
-        rows = self.db.exec(select(Professor)).all()
-        for prof in rows:
-            tags = ", ".join(self._extract_tags(prof))
-            self.db.execute(
-                text(
-                    """
-                    INSERT INTO professor_match_fts(
-                        professor_id, name, title, department, university, research_text,
-                        research_summary, tags, recruiting_evidence_text
-                    ) VALUES (:id, :name, :title, :department, :university, :research_text,
-                        :research_summary, :tags, :recruiting_evidence_text)
-                    """
-                ),
-                {
-                    "id": prof.id,
-                    "name": prof.name or "",
-                    "title": prof.title or "",
-                    "department": prof.department or "",
-                    "university": prof.university or "",
-                    "research_text": prof.research_text or "",
-                    "research_summary": prof.research_summary if self._has_meaningful_text(prof.research_summary) else "",
-                    "tags": tags,
-                    "recruiting_evidence_text": prof.recruiting_evidence_text or "",
-                },
-            )
-        self.db.commit()
 
     def _score_candidate(self, student: StudentProfile, candidate: Candidate) -> MatchScore:
         prof = candidate.professor
@@ -532,10 +448,6 @@ Return at most 5 matches in best-to-worst order."""
                 extra = {}
         tags = extra.get("tags", []) if isinstance(extra, dict) else []
         return [str(t).strip() for t in tags if str(t).strip()]
-
-    def _fts_query(self, text_value: str) -> str:
-        terms = self._extract_keywords(text_value)
-        return " OR ".join(f'"{term}"' for term in sorted(terms)[:24])
 
     def _extract_keywords(self, text_value: str) -> set[str]:
         words = re.findall(r"[A-Za-z][A-Za-z0-9_+-]{2,}", (text_value or "").lower())

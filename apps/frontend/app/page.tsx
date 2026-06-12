@@ -1,7 +1,10 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getStats } from '@/lib/api';
 import type { ExplorerStatsResponse } from '@/lib/types';
@@ -39,6 +42,15 @@ const studentFeatures = [
   ['Saved professors', 'Keep promising faculty in a personal shortlist so you can return to them while preparing applications.'],
 ];
 
+const exampleTopics = ['Artificial Intelligence', 'Computational Biology', 'Public Health', 'Robotics', 'Psychology', 'Climate Science'];
+
+const faqEntries = [
+  ['Is ProfMatch free?', 'Browsing professor profiles, keyword search, and filters are free and do not require an account. An account adds saved shortlists and personalized matching.'],
+  ['What does the match percentage mean?', 'It is a research-fit score: how strongly a professor’s recent papers, summary, and tags overlap with your stated interests. It is not an admission chance and never a guarantee of a reply.'],
+  ['Where does professor data come from?', 'Public faculty pages, personal and lab websites, and publication databases like OpenAlex — each profile keeps its source links and a confidence label.'],
+  ['Can I report incorrect data?', 'Yes. Every profile has a report path, and reports go to an admin review queue before the database changes.'],
+];
+
 const researchChecks = [
   ['Recent work first', 'Profiles emphasize current publications and research summaries, not only static department bios.'],
   ['Clear uncertainty', 'Recruiting status is shown cautiously; unknown means unknown, not a hidden negative.'],
@@ -46,8 +58,15 @@ const researchChecks = [
 ];
 
 export default function LandingPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<ExplorerStatsResponse | null>(null);
+  const [query, setQuery] = useState('');
   useEffect(() => { getStats().then(setStats).catch(() => {}); }, []);
+
+  const searchProfessors = (term: string) => {
+    const trimmed = term.trim();
+    router.push(trimmed ? `/professors?q=${encodeURIComponent(trimmed)}` : '/professors');
+  };
 
   return (
     <div className="landing-page landing-page-expanded">
@@ -56,9 +75,12 @@ export default function LandingPage() {
           <span className="brand-mark">PM</span><span>ProfMatch</span>
         </Link>
         <nav className="landing-nav-links" aria-label="Landing navigation">
-          <a href="#discover">Discover</a>
+          <Link href="/professors" prefetch={false}>Browse professors</Link>
+          <Link href="/universities" prefetch={false}>Universities</Link>
           <a href="#workflow">How it works</a>
           <a href="#features">Features</a>
+          <Link href="/pricing" prefetch={false}>Pricing</Link>
+          <a href="#faq">FAQ</a>
         </nav>
         <div className="row">
           <Link className="ghost small" href="/signin" prefetch={false}>Sign in</Link>
@@ -73,9 +95,28 @@ export default function LandingPage() {
             <h1>Find professors whose recent work matches your research story.</h1>
             <div className="landing-accent-line" />
             <p className="lead">ProfMatch turns your academic background, interests, degree goals, and preferences into an explainable shortlist of potential MS/PhD advisors — with recent paper context, profile summaries, and clear reasons for every recommendation.</p>
+            <form
+              className="landing-search-form"
+              role="search"
+              onSubmit={(event) => { event.preventDefault(); searchProfessors(query); }}
+            >
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by professor, university, department, or research topic"
+                aria-label="Search professors"
+              />
+              <Button type="submit">Search professors</Button>
+            </form>
+            <div className="landing-search-chips" aria-label="Example research topics">
+              {exampleTopics.map(topic => (
+                <button key={topic} type="button" className="landing-topic-chip" onClick={() => searchProfessors(topic)}>{topic}</button>
+              ))}
+            </div>
             <div className="row landing-actions">
-              <Link className="button primary landing-cta" href="/signup" prefetch={false}>Start matching →</Link>
-              <Link className="button secondary landing-cta" href="/signin" prefetch={false}>Sign in</Link>
+              <Link className="button secondary landing-cta" href="/professors" prefetch={false}>Browse all professors</Link>
+              <Link className="button primary landing-cta" href="/signup" prefetch={false}>Create your research profile →</Link>
             </div>
             <div className="landing-stats landing-stats-cards" aria-label="Dataset statistics">
               <div className="landing-stat"><strong>{formatStat(stats?.professor_count)}</strong><span>Professors indexed</span></div>
@@ -140,6 +181,33 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="landing-section">
+          <div className="landing-section-heading compact">
+            <span className="t-label">The problem</span>
+            <h2>Finding an advisor should not require dozens of tabs and a spreadsheet.</h2>
+          </div>
+          <div className="landing-compare-grid">
+            <div className="landing-compare-col without">
+              <h3>Without ProfMatch</h3>
+              <ul>
+                <li>Search department faculty pages one university at a time</li>
+                <li>Read bios that may be years out of date</li>
+                <li>Guess whether a professor&apos;s current work fits your interests</li>
+                <li>Track candidates in a spreadsheet you maintain by hand</li>
+              </ul>
+            </div>
+            <div className="landing-compare-col with">
+              <h3>With ProfMatch</h3>
+              <ul>
+                <li>Search professor profiles across universities in one place</li>
+                <li>See AI summaries informed by recent publications, with sources</li>
+                <li>Get explainable research-fit scores with paper evidence</li>
+                <li>Save a shortlist tied to your account</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
         <section id="workflow" className="landing-section landing-workflow-section">
           <div className="landing-section-heading compact">
             <span className="t-label">How it works</span>
@@ -166,6 +234,31 @@ export default function LandingPage() {
             <div className="landing-list-grid">
               {researchChecks.map(([title, body]) => <div className="landing-list-item" key={title}><strong>{title}</strong><p>{body}</p></div>)}
             </div>
+          </div>
+        </section>
+
+        <section className="landing-section">
+          <div className="landing-request-banner">
+            <div>
+              <strong>Don&apos;t see your university or department?</strong>
+              <p>Request it with the faculty page URL and our admins will review it for import.</p>
+            </div>
+            <Link className="button secondary" href="/recommend" prefetch={false}>Request a department →</Link>
+          </div>
+        </section>
+
+        <section id="faq" className="landing-section landing-faq-section">
+          <div className="landing-section-heading compact">
+            <span className="t-label">FAQ</span>
+            <h2>Common questions, answered plainly.</h2>
+          </div>
+          <div className="landing-faq-grid">
+            {faqEntries.map(([question, answer]) => (
+              <div className="landing-faq-item" key={question}>
+                <strong>{question}</strong>
+                <p>{answer}</p>
+              </div>
+            ))}
           </div>
         </section>
 

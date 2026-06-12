@@ -11,7 +11,6 @@ services:
     ports:
       - "80:8000"
     volumes:
-      - profmatch_backend_db:/app/db
       - profmatch_backend_jobs:/app/data/qa/onboarding
       - profmatch_backend_raw:/app/data/raw
       - profmatch_backend_processed:/app/data/processed
@@ -44,7 +43,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  profmatch_backend_db:
   profmatch_backend_jobs:
   profmatch_backend_raw:
   profmatch_backend_processed:

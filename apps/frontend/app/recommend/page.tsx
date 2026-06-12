@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
+
 import { useState } from 'react';
 import { submitRecommendation } from '@/lib/api';
 
@@ -49,7 +51,7 @@ export default function RecommendPage() {
           <div className="badge">Submitted</div>
           <h2>Thanks for the recommendation.</h2>
           <p className="muted">The university and department will be reviewed before any new scan is published.</p>
-          <button className="button primary" style={{ marginTop: 18 }} onClick={() => { setForm(emptyForm); setSubmitted(false); }}>Make another request</button>
+          <Button style={{ marginTop: 18 }} onPress={() => { setForm(emptyForm); setSubmitted(false); }}>Make another request</Button>
         </div>
       </div>
     );
@@ -66,7 +68,7 @@ export default function RecommendPage() {
         <label className="label">Department<input className="input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} placeholder="Computer Science" required /></label>
         <label className="label">Faculty Page URL<input className="input" type="url" value={form.faculty_page_url} onChange={e => setForm(f => ({ ...f, faculty_page_url: e.target.value }))} placeholder="https://example.edu/cs/faculty" required /></label>
         {error && <div className="error">{error}</div>}
-        <button className="button primary" type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Submit recommendation →'}</button>
+        <Button type="submit" isDisabled={submitting}>{submitting ? 'Submitting…' : 'Submit recommendation →'}</Button>
       </form>
     </div>
   );

@@ -30,3 +30,6 @@ jobs:
             docker compose -f docker-compose.backend-full.yml up -d --build --remove-orphans
             docker image prune -f
             docker compose -f docker-compose.backend-full.yml ps
+            sleep 15
+            curl -fsS --max-time 20 http://localhost/health
+            curl -fsS --max-time 20 http://localhost/api/health/db

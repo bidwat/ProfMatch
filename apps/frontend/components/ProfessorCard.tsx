@@ -30,6 +30,23 @@ export function Signal({ status }: { status: string }) {
   return <span className={`signal ${cls}`}><i />{label}</span>;
 }
 
+export function confidenceBand(confidence?: number | null) {
+  if (typeof confidence !== 'number') return null;
+  if (confidence >= 0.85) return { label: 'High confidence', tone: 'olive' };
+  if (confidence >= 0.65) return { label: 'Medium confidence', tone: 'gold' };
+  return { label: 'Low confidence', tone: 'peach' };
+}
+
+export function ConfidenceChip({ confidence, kind = 'Source' }: { confidence?: number | null; kind?: string }) {
+  const band = confidenceBand(confidence);
+  if (!band) return null;
+  return (
+    <span className={`confidence-chip tone-${band.tone}`} title={`${kind} confidence ${Math.round((confidence as number) * 100)}%`}>
+      {band.label}
+    </span>
+  );
+}
+
 interface ProfessorCardProps {
   professor: {
     id: number | string;
@@ -119,7 +136,7 @@ export function ProfessorCard({ professor, matchData, saved, onSave, from }: Pro
           ) : professor.recruiting_signal ? (
             <>
               <Signal status={professor.recruiting_signal} />
-              {professor.source_confidence ? <span className="signal"><i />confidence {Math.round(professor.source_confidence * 100)}%</span> : null}
+              <ConfidenceChip confidence={professor.source_confidence} />
             </>
           ) : null}
         </div>

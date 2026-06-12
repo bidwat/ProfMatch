@@ -503,7 +503,7 @@ def agentic_publish(job_id: str, background_tasks: BackgroundTasks, session: Ses
             service.run_publish(job_id, s)
             
     background_tasks.add_task(bg_publish)
-    return {"status": "started", "message": "Publishing to SQLite in background..."}
+    return {"status": "started", "message": "Publishing to the database in background..."}
 
 
 @router.get("/indexed-departments", response_model=IndexedDepartmentsResponse)
