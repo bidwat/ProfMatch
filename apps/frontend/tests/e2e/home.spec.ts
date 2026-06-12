@@ -12,8 +12,8 @@ test('homepage shows Univya landing', async ({ page }) => {
 
   await expect(page).toHaveTitle(/Univya/)
   await expect(page.locator('h1')).toContainText('Find professors whose recent work matches')
-  await expect(page.getByPlaceholder(/Search by professor, university, department/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Search professors' })).toBeVisible()
+  await expect(page.getByPlaceholder(/Professor, university, department/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Get started →' }).first()).toBeVisible()
   await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
 })
@@ -26,8 +26,8 @@ test('anonymous visitors can browse professors from the landing search', async (
   await page.route('**/api/professors?**', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 1, page: 1, limit: 24, next_cursor: null, professors: [{ id: 1, name: 'Grace Hopper', title: 'Professor', university: 'Example University', department: 'Computer Science', research_summary: 'Compilers and systems.', recruiting_signal: 'unknown', source_confidence: 0.9, publication_count: 4, tags: ['Robotics'], photo_url: null }] }) }))
 
   await page.goto('/')
-  await page.getByPlaceholder(/Search by professor, university, department/).fill('robotics')
-  await page.getByRole('button', { name: 'Search professors' }).click()
+  await page.getByPlaceholder(/Professor, university, department/).fill('robotics')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
 
   await expect(page).toHaveURL(/\/professors\?q=robotics/)
   await expect(page.getByRole('heading', { name: 'Discover' })).toBeVisible()

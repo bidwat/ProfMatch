@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button, Input, Label, TextField } from '@heroui/react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { findMatches, getCurrentUser, getUserState, loginUser, patchUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import type { LocalUser } from '@/lib/types';
@@ -55,9 +56,12 @@ export default function SigninPage() {
 
   return (
     <div className="page narrow">
-      <div className="card" style={{ maxWidth: 430, margin: '60px auto' }}>
-        <Link className="accent small-text" href="/">← Back to home</Link>
-        <div className="brand" style={{ padding: 0, marginTop: 14 }}><span>Univya<span className="brand-dot">.</span></span></div>
+      <div className="row between" style={{ maxWidth: 430, margin: '20px auto 0' }}>
+        <Link className="muted small-text" href="/">← Back to home</Link>
+        <ThemeToggle />
+      </div>
+      <div className="card" style={{ maxWidth: 430, margin: '18px auto 60px', borderRadius: 20, padding: 36 }}>
+        <div className="brand" style={{ padding: 0, fontSize: 21 }}><span>Univya<span className="brand-dot">.</span></span></div>
         <h2>Welcome back</h2>
         <p className="muted" style={{ marginBottom: 20 }}>Sign in to continue building your professor shortlist.</p>
         <form className="form" onSubmit={submit} style={{ marginTop: 16 }}>

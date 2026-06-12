@@ -38,10 +38,10 @@ describe('Home', () => {
     render(<Home />)
 
     expect(screen.getByText(/Find professors whose recent work matches/)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/Search by professor, university, department/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Search professors' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Professor, university, department/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Robotics' })).toBeInTheDocument()
-    expect(screen.getByText('Browse all professors')).toBeInTheDocument()
+    expect(screen.getAllByText('Browse professors').length).toBeGreaterThan(0)
     expect(screen.getByText('Match preview')).toBeInTheDocument()
     expect(screen.getByText(/What does the match percentage mean/)).toBeInTheDocument()
     expect(await screen.findByText('890')).toBeInTheDocument()
@@ -52,8 +52,8 @@ describe('Home', () => {
     const { fireEvent } = await import('@testing-library/react')
     render(<Home />)
 
-    fireEvent.change(screen.getByPlaceholderText(/Search by professor/), { target: { value: 'climate modeling' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Search professors' }))
+    fireEvent.change(screen.getByPlaceholderText(/Professor, university/), { target: { value: 'climate modeling' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     expect(pushMock).toHaveBeenCalledWith('/professors?q=climate%20modeling')
 
     fireEvent.click(screen.getByRole('button', { name: 'Robotics' }))

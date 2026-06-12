@@ -1,7 +1,5 @@
 'use client';
 
-import { Button } from '@heroui/react';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,46 +14,25 @@ function formatStat(value?: number) {
 }
 
 const productShots = [
-  {
-    src: '/landing/discover.png',
-    label: 'Discover',
-    title: 'Browse professors without opening dozens of tabs',
-    body: 'Search by name, university, department, research area, publication coverage, and recruiting signal from one focused directory.',
-  },
-  {
-    src: '/landing/matches.png',
-    label: 'Matches',
-    title: 'See why each professor fits your profile',
-    body: 'Ranked results explain the overlap between your interests and a professor’s recent work, including relevant paper evidence and caveats.',
-  },
-  {
-    src: '/landing/profile.png',
-    label: 'Profiles',
-    title: 'Review the details before you shortlist',
-    body: 'Open a profile to scan research summaries, tags, recent publications, contact links, and source confidence in one place.',
-  },
+  { src: '/landing/discover.png', title: 'Browse professors without opening dozens of tabs', body: 'Search by name, university, department, research area, and recruiting signal from one directory.' },
+  { src: '/landing/matches.png', title: 'See why each professor fits your profile', body: 'Ranked results explain the overlap with paper evidence and honest caveats.' },
+  { src: '/landing/profile.png', title: 'Review the details before you shortlist', body: 'Summaries, tags, publications, contact links, and source confidence in one place.' },
 ];
 
-const studentFeatures = [
-  ['Academic profile', 'Describe your research interests, background, target degree, and university or location preferences once.'],
-  ['Smart ranked recommendations', 'Get a focused list of professors ordered by research fit, publication overlap, and profile completeness.'],
-  ['Evidence-backed explanations', 'Understand what matched, which papers support the match, and where the system is uncertain.'],
-  ['Saved professors', 'Keep promising faculty in a personal shortlist so you can return to them while preparing applications.'],
-];
+const exampleTopics = ['Artificial Intelligence', 'Computational Biology', 'Public Health', 'Robotics', 'Climate Science'];
 
-const exampleTopics = ['Artificial Intelligence', 'Computational Biology', 'Public Health', 'Robotics', 'Psychology', 'Climate Science'];
+const steps = [
+  ['01', 'Describe your research goals', 'Interests, background, target degree, and preferences — once.'],
+  ['02', 'Browse matching faculty records', 'A ranked shortlist drawn from source-backed profiles.'],
+  ['03', 'Review paper-backed reasons', 'What matched, which papers, and where the system is uncertain.'],
+  ['04', 'Save professors for later', 'Shortlist, compare, and track outreach on your board.'],
+];
 
 const faqEntries = [
-  ['Is Univya free?', 'Browsing professor profiles, keyword search, and filters are free and do not require an account. An account adds saved shortlists and personalized matching.'],
-  ['What does the match percentage mean?', 'It is a research-fit score: how strongly a professor’s recent papers, summary, and tags overlap with your stated interests. It is not an admission chance and never a guarantee of a reply.'],
-  ['Where does professor data come from?', 'Public faculty pages, personal and lab websites, and publication databases like OpenAlex — each profile keeps its source links and a confidence label.'],
-  ['Can I report incorrect data?', 'Yes. Every profile has a report path, and reports go to an admin review queue before the database changes.'],
-];
-
-const researchChecks = [
-  ['Recent work first', 'Profiles emphasize current publications and research summaries, not only static department bios.'],
-  ['Clear uncertainty', 'Recruiting status is shown cautiously; unknown means unknown, not a hidden negative.'],
-  ['Less manual scanning', 'Compare faculty across universities from the same interface instead of maintaining a spreadsheet from scratch.'],
+  ['Is Univya free?', 'Browsing, keyword search, and filters are free without an account. An account adds saved shortlists and personalized matching.'],
+  ['What does the match percentage mean?', 'A research-fit score — overlap between your interests and a professor’s recent, source-backed work. Not an admission chance.'],
+  ['Where does professor data come from?', 'Public faculty pages, personal and lab websites, and OpenAlex — each profile keeps source links and a confidence label.'],
+  ['Can I report incorrect data?', 'Yes. Every profile has a report path reviewed by admins before public data changes.'],
 ];
 
 export default function LandingPage() {
@@ -70,209 +47,201 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="landing-page landing-page-expanded">
-      <header className="landing-public-nav landing-nav-sticky">
-        <Link className="brand" href="/">
-          <span>Univya<span className="brand-dot">.</span></span>
-        </Link>
-        <nav className="landing-nav-links" aria-label="Landing navigation">
-          <Link href="/professors" prefetch={false}>Browse professors</Link>
-          <Link href="/universities" prefetch={false}>Universities</Link>
-          <a href="#workflow">How it works</a>
-          <a href="#features">Features</a>
-          <Link href="/pricing" prefetch={false}>Pricing</Link>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <div className="row">
-          <ThemeToggle />
-          <Link className="ghost small" href="/signin" prefetch={false}>Sign in</Link>
-          <Link className="button primary" href="/signup" prefetch={false}>Get started →</Link>
+    <div style={{ minHeight: '100vh', background: 'var(--uv-bg)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'color-mix(in oklab, var(--uv-bg) 86%, transparent)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--uv-border)' }}>
+        <div className="uv-wrap" style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
+          <Link className="brand" href="/" style={{ fontSize: 20 }}><span>Univya<span className="brand-dot">.</span></span></Link>
+          <nav className="row" style={{ gap: 26, fontSize: 14, fontWeight: 500 }} aria-label="Landing navigation">
+            <Link className="muted" href="/professors" prefetch={false}>Browse professors</Link>
+            <Link className="muted" href="/universities" prefetch={false}>Universities</Link>
+            <a className="muted" href="#how">How it works</a>
+            <Link className="muted" href="/pricing" prefetch={false}>Pricing</Link>
+            <a className="muted" href="#faq">FAQ</a>
+          </nav>
+          <div className="row" style={{ gap: 10 }}>
+            <ThemeToggle />
+            <Link className="button secondary" href="/signin" prefetch={false}>Sign in</Link>
+            <Link className="button primary" href="/signup" prefetch={false}>Get started →</Link>
+          </div>
         </div>
       </header>
 
-      <main>
-        <section className="landing-hero landing-hero-expanded">
-          <div className="landing-copy">
-            <div className="badge">✦ Research-fit professor discovery</div>
-            <h1>Find professors whose recent work matches your research story.</h1>
-            <div className="landing-accent-line" />
-            <p className="lead">Univya turns your academic background, interests, degree goals, and preferences into an explainable shortlist of potential MS/PhD advisors — with recent paper context, profile summaries, and clear reasons for every recommendation.</p>
-            <form
-              className="landing-search-form"
-              role="search"
-              onSubmit={(event) => { event.preventDefault(); searchProfessors(query); }}
-            >
+      <main className="uv-wrap">
+        <section aria-label="Hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.05fr) minmax(0,.95fr)', gap: 64, alignItems: 'center', padding: '80px 0 72px' }}>
+          <div style={{ display: 'grid', gap: 22, justifyItems: 'start' }}>
+            <span className="uv-pill"><i />Research-fit advisor discovery</span>
+            <h1 style={{ margin: 0, fontSize: 'clamp(36px, 4.6vw, 52px)', lineHeight: 1.06, letterSpacing: '-0.025em' }}>Find professors whose recent work matches your research story.</h1>
+            <p className="muted" style={{ margin: 0, fontSize: 17, lineHeight: 1.6, maxWidth: 520 }}>Univya turns your background, interests, and degree goals into an explainable shortlist of potential MS/PhD advisors — with recent-paper evidence and clear reasons for every match.</p>
+            <form role="search" style={{ display: 'flex', gap: 10, width: '100%', maxWidth: 540, marginTop: 4 }} onSubmit={e => { e.preventDefault(); searchProfessors(query); }}>
               <input
                 type="search"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by professor, university, department, or research topic"
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Professor, university, department, or topic…"
                 aria-label="Search professors"
+                style={{ flex: 1, minWidth: 0, padding: '14px 18px', border: '1px solid var(--uv-border)', borderRadius: 12, fontSize: 15, background: 'var(--uv-surface)', color: 'var(--uv-text)', boxShadow: 'var(--uv-shadow)' }}
               />
-              <Button type="submit">Search professors</Button>
+              <button className="button primary" type="submit" style={{ padding: '14px 22px', fontSize: 15 }}>Search</button>
             </form>
-            <div className="landing-search-chips" aria-label="Example research topics">
+            <div className="row" style={{ gap: 8 }} aria-label="Example topics">
               {exampleTopics.map(topic => (
-                <button key={topic} type="button" className="landing-topic-chip" onClick={() => searchProfessors(topic)}>{topic}</button>
+                <button key={topic} type="button" className="uv-chip-outline" onClick={() => searchProfessors(topic)}>{topic}</button>
               ))}
             </div>
-            <div className="row landing-actions">
-              <Link className="button secondary landing-cta" href="/professors" prefetch={false}>Browse all professors</Link>
-              <Link className="button primary landing-cta" href="/signup" prefetch={false}>Create your research profile →</Link>
-            </div>
-            <div className="landing-stats landing-stats-cards" aria-label="Dataset statistics">
-              <div className="landing-stat"><strong>{formatStat(stats?.professor_count)}</strong><span>Professors indexed</span></div>
-              <div className="landing-stat olive"><strong>{formatStat(stats?.publication_count)}</strong><span>Papers indexed</span></div>
-              <div className="landing-stat peach"><strong>{formatStat(stats?.professors_with_publications)}</strong><span>Profiles with papers</span></div>
+            <div className="uv-stats" aria-label="Dataset stats">
+              <div><strong>{formatStat(stats?.professor_count)}</strong><span>Professors indexed</span></div>
+              <div><strong>{formatStat(stats?.publication_count)}</strong><span>Papers indexed</span></div>
+              <div><strong>{formatStat(stats?.professors_with_publications)}</strong><span>Profiles with papers</span></div>
             </div>
           </div>
 
-          <div className="landing-preview-stack" aria-label="Match preview">
-            <div className="landing-preview-card landing-preview-card-main">
-              <div className="t-label">Match preview</div>
-              <svg className="landing-match-svg" viewBox="0 0 360 160" role="img" aria-label="Research fit overlap illustration">
-                <defs>
-                  <radialGradient id="gYou" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#F5E2BC" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#F5E2BC" stopOpacity="0" />
-                  </radialGradient>
-                  <radialGradient id="gLab" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#DDE3A8" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#DDE3A8" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-                <circle cx="110" cy="80" r="62" fill="url(#gYou)" stroke="#E8B860" strokeWidth="1" strokeDasharray="4 3" />
-                <circle cx="250" cy="80" r="52" fill="url(#gLab)" stroke="#B8C265" strokeWidth="1" strokeDasharray="4 3" />
-                <path d="M158 50Q180 30 202 50Q218 65 218 80Q218 95 202 110Q180 130 158 110Q142 95 142 80Q142 65 158 50Z" fill="#FBF4E4" opacity=".7" />
-                <path d="M110 80Q180 20 250 80" fill="none" stroke="#C9973A" strokeWidth="1.5" strokeDasharray="5 3" />
-                <circle cx="110" cy="80" r="28" fill="#FBF4E4" stroke="#E8B860" strokeWidth="1.5" />
-                <text x="110" y="76" textAnchor="middle" fontSize="10" fontWeight="600" fill="#6E4F18">You</text>
-                <text x="110" y="89" textAnchor="middle" fontSize="8" fill="#A07528">HCI · ML · AR</text>
-                <circle cx="250" cy="80" r="24" fill="#F2F5E3" stroke="#B8C265" strokeWidth="1.5" />
-                <text x="250" y="76" textAnchor="middle" fontSize="10" fontWeight="600" fill="#454A1C">Lab</text>
-                <text x="250" y="89" textAnchor="middle" fontSize="8" fill="#6A722E">Prof. Davis</text>
-                <rect x="153" y="58" width="54" height="44" rx="4" fill="#fff" stroke="rgba(37,34,28,.10)" />
-                <text x="180" y="80" textAnchor="middle" fontSize="18" fontWeight="800" fill="#A07528">92%</text>
-                <text x="180" y="94" textAnchor="middle" fontSize="8" fill="rgba(37,34,28,.65)">research fit</text>
-              </svg>
-              <div className="landing-preview-result">
-                <div>
-                  <strong>Randall Davis · MIT</strong>
-                  <p>Recent papers align with HCI, machine learning, and mixed-reality systems.</p>
-                </div>
-                <span>74%</span>
+          <div aria-label="Match preview" style={{ background: 'var(--uv-navy-soft)', borderRadius: 24, padding: '36px 32px', display: 'grid', gap: 14 }}>
+            <div className="t-label" style={{ letterSpacing: '.1em' }}>Match preview</div>
+            <div className="uv-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div className="uv-score-ring" style={{ background: 'conic-gradient(var(--uv-accent) 78%, var(--uv-surface2) 0)' }}><div>78%</div></div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 15.5 }}>Ada Lovelace · Stanford</div>
+                <div className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>Recent papers align with robot learning, computer vision, and sim-to-real transfer.</div>
               </div>
             </div>
-            <div className="landing-mini-panel"><strong>Know why someone matched</strong><span>Topics · recent papers · fit reasons · uncertainty notes</span></div>
+            <div className="uv-card" style={{ padding: '18px 20px' }}>
+              <div className="uv-eyebrow" style={{ marginBottom: 8 }}>Why matched</div>
+              <div className="row" style={{ gap: 7 }}>
+                <span className="tag">robot learning</span>
+                <span className="tag">vision foundation models</span>
+                <span className="tag">3 relevant papers</span>
+              </div>
+            </div>
+            <div className="uv-deep" style={{ padding: '18px 20px' }}>
+              <div style={{ fontWeight: 700, fontSize: 14.5 }}>Know why someone matched</div>
+              <div className="uv-deep-muted" style={{ fontSize: 12.5, marginTop: 3 }}>Topics · recent papers · fit reasons · uncertainty notes</div>
+            </div>
           </div>
         </section>
 
-        <section id="discover" className="landing-section landing-showcase-section">
-          <div className="landing-section-heading">
-            <span className="t-label">Product preview</span>
-            <h2>Everything you need to evaluate professor fit in one workflow.</h2>
-            <p>Move from broad discovery to ranked matches to individual professor review without losing the evidence behind each recommendation.</p>
-          </div>
-          <div className="landing-shot-grid">
-            {productShots.map((shot) => (
-              <article className="landing-shot-card" key={shot.src}>
-                <div className="landing-shot-frame"><Image src={shot.src} alt={`${shot.label} screen`} fill sizes="(max-width: 900px) 100vw, 33vw" /></div>
-                <div className="landing-shot-copy"><span>{shot.label}</span><h3>{shot.title}</h3><p>{shot.body}</p></div>
+        <section className="uv-section" aria-label="Product preview">
+          <div className="uv-eyebrow">Product preview</div>
+          <h2 className="uv-h2" style={{ maxWidth: 640 }}>Everything you need to evaluate professor fit, in one workflow.</h2>
+          <div className="uv-grid3">
+            {productShots.map(shot => (
+              <article className="uv-card" key={shot.src} style={{ padding: 16, display: 'grid', gap: 14 }}>
+                <div style={{ position: 'relative', height: 150, borderRadius: 10, border: '1px solid var(--uv-border)', overflow: 'hidden', background: 'var(--uv-surface2)' }}>
+                  <Image src={shot.src} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" style={{ objectFit: 'cover', objectPosition: 'top center' }} />
+                </div>
+                <div style={{ padding: '0 6px 8px' }}>
+                  <div style={{ fontWeight: 700, fontSize: 15.5, lineHeight: 1.35 }}>{shot.title}</div>
+                  <p className="muted" style={{ margin: '6px 0 0', fontSize: 13.5, lineHeight: 1.55 }}>{shot.body}</p>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="landing-section">
-          <div className="landing-section-heading compact">
-            <span className="t-label">The problem</span>
-            <h2>Finding an advisor should not require dozens of tabs and a spreadsheet.</h2>
-          </div>
-          <div className="landing-compare-grid">
-            <div className="landing-compare-col without">
-              <h3>Without Univya</h3>
-              <ul>
-                <li>Search department faculty pages one university at a time</li>
-                <li>Read bios that may be years out of date</li>
-                <li>Guess whether a professor&apos;s current work fits your interests</li>
-                <li>Track candidates in a spreadsheet you maintain by hand</li>
-              </ul>
+        <section className="uv-section" aria-label="Problem comparison">
+          <div className="uv-eyebrow">The problem</div>
+          <h2 className="uv-h2">Finding an advisor shouldn’t require dozens of tabs and a spreadsheet.</h2>
+          <div className="uv-grid2">
+            <div style={{ background: 'var(--uv-surface2)', border: '1px solid var(--uv-border)', borderRadius: 16, padding: 30 }}>
+              <h3 className="muted" style={{ margin: '0 0 18px', fontSize: 17, fontWeight: 700 }}>The old way</h3>
+              <div className="muted" style={{ display: 'grid', gap: 14, fontSize: 14.5, lineHeight: 1.5 }}>
+                {['Search department faculty pages one university at a time', 'Read bios that may be years out of date', 'Guess whether a professor’s current work fits your interests', 'Track candidates in a spreadsheet you maintain by hand'].map(line => (
+                  <div key={line} style={{ display: 'flex', gap: 12 }}><span style={{ color: 'var(--uv-bad)', fontWeight: 700 }}>✕</span><span>{line}</span></div>
+                ))}
+              </div>
             </div>
-            <div className="landing-compare-col with">
-              <h3>With Univya</h3>
-              <ul>
-                <li>Search professor profiles across universities in one place</li>
-                <li>See AI summaries informed by recent publications, with sources</li>
-                <li>Get explainable research-fit scores with paper evidence</li>
-                <li>Save a shortlist tied to your account</li>
-              </ul>
+            <div className="uv-deep" style={{ padding: 30 }}>
+              <h3 style={{ margin: '0 0 18px', fontSize: 17, fontWeight: 700 }}>With Univya</h3>
+              <div style={{ display: 'grid', gap: 14, fontSize: 14.5, lineHeight: 1.5 }}>
+                {['Search professor profiles across universities in one place', 'AI summaries informed by recent publications, with sources', 'Explainable research-fit scores with paper evidence', 'Save a shortlist tied to your account'].map(line => (
+                  <div key={line} style={{ display: 'flex', gap: 12 }}><span style={{ color: 'var(--uv-accent)', fontWeight: 700 }}>✓</span><span>{line}</span></div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="workflow" className="landing-section landing-workflow-section">
-          <div className="landing-section-heading compact">
-            <span className="t-label">How it works</span>
-            <h2>From your interests to a focused advisor shortlist.</h2>
-          </div>
-          <div className="landing-workflow-grid">
-            {['Describe your research goals', 'Browse matching faculty records', 'Review paper-backed reasons', 'Save professors for later'].map((step, index) => (
-              <div className="landing-step-card" key={step}><span>0{index + 1}</span><strong>{step}</strong></div>
-            ))}
-          </div>
-        </section>
-
-        <section id="features" className="landing-section landing-two-column user-facing">
-          <div className="landing-feature-panel">
-            <span className="t-label">For applicants</span>
-            <h2>Built around the decisions students actually make.</h2>
-            <div className="landing-list-grid">
-              {studentFeatures.map(([title, body]) => <div className="landing-list-item" key={title}><strong>{title}</strong><p>{body}</p></div>)}
-            </div>
-          </div>
-          <div className="landing-feature-panel olive-panel">
-            <span className="t-label">Why it helps</span>
-            <h2>Spend more time evaluating fit, less time collecting links.</h2>
-            <div className="landing-list-grid">
-              {researchChecks.map(([title, body]) => <div className="landing-list-item" key={title}><strong>{title}</strong><p>{body}</p></div>)}
-            </div>
-          </div>
-        </section>
-
-        <section className="landing-section">
-          <div className="landing-request-banner">
-            <div>
-              <strong>Don&apos;t see your university or department?</strong>
-              <p>Request it with the faculty page URL and our admins will review it for import.</p>
-            </div>
-            <Link className="button secondary" href="/recommend" prefetch={false}>Request a department →</Link>
-          </div>
-        </section>
-
-        <section id="faq" className="landing-section landing-faq-section">
-          <div className="landing-section-heading compact">
-            <span className="t-label">FAQ</span>
-            <h2>Common questions, answered plainly.</h2>
-          </div>
-          <div className="landing-faq-grid">
-            {faqEntries.map(([question, answer]) => (
-              <div className="landing-faq-item" key={question}>
-                <strong>{question}</strong>
-                <p>{answer}</p>
+        <section id="how" className="uv-section" aria-label="How it works">
+          <div className="uv-eyebrow">How it works</div>
+          <h2 className="uv-h2" style={{ maxWidth: 640 }}>From your interests to a focused advisor shortlist.</h2>
+          <div className="uv-grid4">
+            {steps.map(([num, title, body]) => (
+              <div className="uv-card" key={num} style={{ display: 'grid', gap: 10, alignContent: 'start', padding: 24, boxShadow: 'none' }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--uv-accent-text)' }}>{num}</div>
+                <div style={{ fontWeight: 700, fontSize: 15.5, lineHeight: 1.35 }}>{title}</div>
+                <p className="muted" style={{ margin: 0, fontSize: 13, lineHeight: 1.55 }}>{body}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="landing-final-cta">
-          <div>
-            <span className="badge">Ready to make your professor search more focused?</span>
-            <h2>Build a shortlist backed by recent research evidence.</h2>
-            <p>Create your profile, review explainable matches, and save the professors you want to revisit.</p>
+        <section className="uv-section uv-grid2" aria-label="Audience features">
+          <div className="uv-card" style={{ padding: 30 }}>
+            <div className="uv-eyebrow">For applicants</div>
+            <h2 style={{ margin: '10px 0 18px', fontSize: 22, letterSpacing: '-0.015em' }}>Built around the decisions students actually make.</h2>
+            <div className="muted" style={{ display: 'grid', gap: 13, fontSize: 14, lineHeight: 1.55 }}>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Academic profile</strong> — interests, background, degree, preferences, once.</div>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Ranked recommendations</strong> — ordered by research fit and evidence.</div>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Evidence-backed explanations</strong> — what matched and where the system is uncertain.</div>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Saved professors</strong> — a shortlist you can return to anytime.</div>
+            </div>
           </div>
-          <Link className="button primary landing-cta" href="/signup" prefetch={false}>Get started →</Link>
+          <div className="uv-card" style={{ padding: 30 }}>
+            <div className="uv-eyebrow">Why it helps</div>
+            <h2 style={{ margin: '10px 0 18px', fontSize: 22, letterSpacing: '-0.015em' }}>Spend time evaluating fit, not collecting links.</h2>
+            <div className="muted" style={{ display: 'grid', gap: 13, fontSize: 14, lineHeight: 1.55 }}>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Recent work first</strong> — current publications, not stale bios.</div>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Clear uncertainty</strong> — unknown means unknown, never glossed over.</div>
+              <div><strong style={{ color: 'var(--uv-text)' }}>Less manual scanning</strong> — compare faculty across universities at once.</div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Department request" style={{ padding: '0 0 64px' }}>
+          <div className="uv-card" style={{ padding: '24px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', boxShadow: 'none' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>Don’t see your university or department?</div>
+              <div className="muted" style={{ fontSize: 13.5, marginTop: 3 }}>Request it with the faculty page URL and our admins will review it for import.</div>
+            </div>
+            <Link className="button secondary" href="/recommend" prefetch={false}>Request a department →</Link>
+          </div>
+        </section>
+
+        <section id="faq" className="uv-section" aria-label="FAQ">
+          <div className="uv-eyebrow">FAQ</div>
+          <h2 className="uv-h2" style={{ marginBottom: 32 }}>Common questions, answered plainly.</h2>
+          <div className="uv-grid2" style={{ gap: 16, alignItems: 'start' }}>
+            {faqEntries.map(([question, answer]) => (
+              <details className="uv-faq" key={question}>
+                <summary>{question}</summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section aria-label="Final CTA" style={{ padding: '0 0 80px' }}>
+          <div className="uv-deep" style={{ borderRadius: 24, padding: '64px 48px', textAlign: 'center' }}>
+            <h2 style={{ margin: '0 auto', fontSize: 34, maxWidth: 560 }}>Build a shortlist backed by recent research evidence.</h2>
+            <p className="uv-deep-muted" style={{ margin: '14px auto 28px', fontSize: 15.5, lineHeight: 1.6, maxWidth: 480 }}>Create your profile, review explainable matches, and save the professors you want to revisit.</p>
+            <div className="row center" style={{ gap: 12 }}>
+              <Link className="uv-btn-accent" href="/signup" prefetch={false}>Get started →</Link>
+              <Link className="uv-btn-deepline" href="/professors" prefetch={false}>Browse professors</Link>
+            </div>
+          </div>
         </section>
       </main>
+
+      <footer className="uv-footer">
+        <div className="uv-wrap" style={{ padding: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+          <span className="brand" style={{ fontSize: 16 }}><span>Univya<span className="brand-dot">.</span></span></span>
+          <nav className="row" style={{ gap: 22, fontSize: 13 }}>
+            <Link className="muted" href="/professors" prefetch={false}>Browse professors</Link>
+            <Link className="muted" href="/universities" prefetch={false}>Universities</Link>
+            <Link className="muted" href="/pricing" prefetch={false}>Pricing</Link>
+          </nav>
+          <span style={{ fontSize: 12.5, color: 'var(--uv-faint)' }}>© 2026 Univya</span>
+        </div>
+      </footer>
     </div>
   );
 }
