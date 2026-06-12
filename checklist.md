@@ -65,8 +65,8 @@ remains Supabase Postgres; only SQLite was removed.
 - [x] Pricing page /pricing (spec §23 + design §8.4) — public, trust copy, HeroUI cards/chips (583895a)
 - [x] Report incorrect data (spec §14.6): reports table, POST /api/reports, admin list/resolve endpoints, ReportIssueModal on professor detail (583895a). Remaining: admin queue UI panel
 - [x] Outreach email drafts (spec §17): POST /api/outreach-drafts (LLM-grounded, draft-only, never auto-send, personalization checklist) + modal on professor detail (583895a)
-- [ ] Application board with stages (spec §16): board page on tracker_rows state, stage select (accessible alternative to drag)
-- [ ] Compare professors (spec §15.6): compare view from saved professors
+- [x] Application board with stages (spec §16): /board on tracker_rows, accessible stage select, notes, add-from-saved (582acf8)
+- [x] Compare professors (spec §15.6): /compare side-by-side table from saved shortlist with research-fit, evidence, signals (588eb5c)
 - GATED (per docs, owner decision needed): Stripe billing (pricing undecided), CV/SOP uploads (privacy gates), public reviews (trust/legal gates), professor claims (verification design)
 
 ## Phase 2 — Production hardening (launch gates from doc.md §7.5)
@@ -141,3 +141,4 @@ remains Supabase Postgres; only SQLite was removed.
 - 2026-06-12: Checklist created. Phase 0 started: Firebase data layer + SQLite cleanup on branch `feat/firebase-migration`. Found no Firebase credentials in either repo — code reads creds from env; cutover blocked on console env vars (see 0.4).
 - 2026-06-12 (cont.): Phase 0.1–0.3 complete (commit 93cfc0b, 41 backend tests). Phase 1 started: public professor browsing + search-first landing with FAQ (commit bb849da; 9 jest + 5 playwright green, build clean).
 - 2026-06-12 (course correction): Owner decision — keep Supabase Postgres; Firebase only ever for Google login. Firestore migration reverted (e6fa463) and SQLite-only cleanup re-applied on the SQLModel layer (5480736). All tests green. Production needs no env changes. Next: remaining Phase 1 landing sections + professor detail page.
+- 2026-06-12 (system plan + design + HeroUI): Reviewed docs/new/{system_plan,design}.md; deviations recorded in Phase 1R. Platform upgraded to Next 15/React 19/Tailwind 4; HeroUI v3.1 adopted with the Univya navy/teal/amber + Rubik/DM Sans rebrand (d9f8a08, dd2babc). Shipped: /pricing, report-incorrect-data (backend + modal), outreach drafts (backend + modal), /board with spec stages, /compare (583895a–588eb5c). 43 backend + 9 jest + 5 playwright + build green. Remaining: HeroUI page-by-page button/filter sweep, admin reports queue UI, gated features pending owner decisions (pricing/Stripe, uploads, reviews, claims).
