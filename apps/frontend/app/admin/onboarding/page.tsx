@@ -234,7 +234,7 @@ export default function AgenticOnboardingPage() {
           open={!!deleteTarget}
           variant="danger"
           title="Delete agentic job?"
-          message="This removes the staged local job artifact. Published SQLite data is not changed."
+          message="This removes the staged local job artifact. Published database data is not changed."
           confirmLabel="Delete job"
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
@@ -327,7 +327,7 @@ export default function AgenticOnboardingPage() {
         open={!!deleteTarget}
         variant="danger"
         title="Delete agentic job?"
-        message="This removes the staged local job artifact. Published SQLite data is not changed."
+        message="This removes the staged local job artifact. Published database data is not changed."
         confirmLabel="Delete job"
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}

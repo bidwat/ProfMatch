@@ -414,7 +414,7 @@ class AgenticOnboardingService:
         try:
             state["status"] = "running"
             state["step"] = "publish"
-            state["message"] = "Publishing to SQLite database..."
+            state["message"] = "Publishing to the database..."
             self._save_state(job_id, state)
             
             from apps.backend.app.models.professor import Professor, Publication
