@@ -1,15 +1,18 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: setup scrape-seed backend backend-setup worker frontend frontend-setup frontend-test frontend-e2e test qa env-check
+.PHONY: setup db-init scrape-seed backend backend-setup worker frontend frontend-setup frontend-test frontend-e2e test qa env-check
 
 setup:
 	@echo "Python scraper package is ready; install optional extras (beautifulsoup4, pytest) if desired."
+
+db-init:
+	@echo "TODO: initialize SQLite schema at db/professor_match.sqlite"
 
 scrape-seed:
 	@python -m packages.scraper --adapter stanford --fixture packages/scraper/tests/fixtures/stanford_faculty_roster.html --output-root .
 
 env-check: backend-setup
-	@apps/backend/venv/bin/python -c "from dotenv import dotenv_values; c=dotenv_values('.env'); print('Firebase credentials found; backend will use Firestore.' if (c.get('FIREBASE_SERVICE_ACCOUNT_JSON') or c.get('GOOGLE_APPLICATION_CREDENTIALS') or '').strip() else 'No Firebase credentials found; backend will use the in-memory store (data resets on restart).')"
+	@apps/backend/venv/bin/python -c "from dotenv import dotenv_values; c=dotenv_values('.env'); print('DATABASE_URL is set; backend will use Postgres/Supabase.' if (c.get('DATABASE_URL') or '').strip() else ('Supabase component vars are set; backend will build a Postgres URL.' if c.get('SUPABASE_DB_PASSWORD') and (c.get('SUPABASE_POOLER_HOST') or c.get('SUPABASE_DB_HOST')) else 'No Supabase/Postgres env found; backend will fall back to SQLite.'))"
 
 backend-setup: apps/backend/requirements.txt
 	@if [[ ! -x apps/backend/venv/bin/python ]]; then \

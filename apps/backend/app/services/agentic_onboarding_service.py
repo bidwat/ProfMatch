@@ -406,36 +406,32 @@ class AgenticOnboardingService:
             state["status"] = "error"
             state["message"] = f"Automatic pipeline failed: {str(e)}"
             self._save_state(job_id, state)
-    def run_publish(self, job_id: str, db):
+    def run_publish(self, job_id: str, db_session):
         state = self.get_job(job_id)
         if not state or state["status"] not in {"completed", "error"}:
             return
-
+            
         try:
             state["status"] = "running"
             state["step"] = "publish"
-            state["message"] = "Publishing to database..."
+            state["message"] = "Publishing to SQLite database..."
             self._save_state(job_id, state)
-
-            from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication
+            
+            from apps.backend.app.models.professor import Professor, Publication
             from packages.scraper.sources.identifiers import slugify
-
-            professors_col = db.collection(PROFESSORS)
-            publications_col = db.collection(PUBLICATIONS)
+            from sqlmodel import select
+            
             professors = state.get("professors", [])
             inserted_profs = 0
             inserted_pubs = 0
-
+            
             for prof in professors:
                 if self._is_stopped(job_id):
                     return
                 # Upsert Professor
                 norm_name = slugify(prof.get("name", ""))
-                existing = next(
-                    (doc for doc in professors_col.find(normalized_name=norm_name) if doc.get("university") == state["university"]),
-                    None,
-                )
-                if not existing:
+                db_prof = db_session.exec(select(Professor).where(Professor.normalized_name == norm_name, Professor.university == state["university"])).first()
+                if not db_prof:
                     db_prof = Professor(
                         name=prof.get("name"),
                         normalized_name=norm_name,
@@ -450,23 +446,24 @@ class AgenticOnboardingService:
                         source_confidence=0.9,
                         extra={"image_url": prof.get("photo")} if prof.get("photo") else {}
                     )
-                    professor_id = professors_col.add(db_prof.to_doc())
+                    db_session.add(db_prof)
                     inserted_profs += 1
                 else:
-                    professor_id = existing["id"]
-                    patch = {"research_summary": prof.get("ai_summary") or existing.get("research_summary")}
+                    db_prof.research_summary = prof.get("ai_summary") or db_prof.research_summary
                     if prof.get("photo"):
-                        extra = dict(existing.get("extra") or {})
+                        extra = dict(db_prof.extra or {})
                         extra["image_url"] = prof.get("photo")
-                        patch["extra"] = extra
-                    professors_col.update(professor_id, patch)
-
+                        db_prof.extra = extra
+                
+                db_session.commit()
+                db_session.refresh(db_prof)
+                
                 # Upsert Publications
                 for p in prof.get("publications", []):
-                    existing_pub = publications_col.find_one(professor_id=professor_id, title=p.get("title"))
-                    if not existing_pub:
+                    db_pub = db_session.exec(select(Publication).where(Publication.professor_id == db_prof.id, Publication.title == p.get("title"))).first()
+                    if not db_pub:
                         db_pub = Publication(
-                            professor_id=professor_id,
+                            professor_id=db_prof.id,
                             title=p.get("title"),
                             year=p.get("year") or 0,
                             venue=p.get("venue") or "Unknown",
@@ -475,8 +472,10 @@ class AgenticOnboardingService:
                             source="agentic_onboarding",
                             match_confidence=0.9
                         )
-                        publications_col.add(db_pub.to_doc())
+                        db_session.add(db_pub)
                         inserted_pubs += 1
+                
+                db_session.commit()
 
             state["status"] = "completed"
             state["message"] = f"Published! Inserted {inserted_profs} professors and {inserted_pubs} publications."

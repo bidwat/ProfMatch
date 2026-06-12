@@ -9,9 +9,10 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlmodel import SQLModel
 
 from apps.backend.app.config import settings
-from apps.backend.app.db import database_kind, get_db
+from apps.backend.app.db import engine
 from apps.backend.app.api.professors import router as professors_router
 from apps.backend.app.api.universities import router as universities_router
 from apps.backend.app.api.stats import router as stats_router
@@ -21,6 +22,8 @@ from apps.backend.app.api.admin import router as admin_router
 from apps.backend.app.api.scrape_runs import router as scrape_runs_router
 from apps.backend.app.api.recommendations import router as recommendations_router
 from apps.backend.app.api.student_profiles import router as student_profiles_router
+from apps.backend.app.models import auth as auth_models  # noqa: F401 - ensure auth tables are registered
+from apps.backend.app.models import scan_job as scan_job_models  # noqa: F401 - ensure durable scan tables are registered
 
 # --- Structured Logging Setup ---
 class JsonFormatter(logging.Formatter):
@@ -42,10 +45,14 @@ handler.setFormatter(JsonFormatter())
 logger.addHandler(handler)
 
 
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    get_db()  # fail fast on missing/misconfigured Firebase credentials
-    logger.info(f"Starting up Professor Match Backend (database: {database_kind()})")
+    logger.info("Starting up Professor Match Backend")
+    create_db_and_tables()
     yield
     logger.info("Shutting down Professor Match Backend")
 

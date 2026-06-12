@@ -2,26 +2,15 @@ import base64
 import json
 from typing import Optional
 
-from apps.backend.app.db import Database
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor
+from sqlalchemy import func
+from sqlmodel import Session, select
 
-
-def _contains(haystack: Optional[str], needle: str) -> bool:
-    return needle.lower() in (haystack or "").lower()
+from apps.backend.app.models.professor import Professor, Publication
 
 
 class ProfessorService:
-    """Professor queries over the document store.
-
-    The dataset is admin-curated and small (hundreds of professors), so list
-    endpoints load the collection and filter/sort in process. Revisit with
-    server-side Firestore queries if the dataset grows past that scale.
-    """
-
-    def __init__(self, db: Database):
-        self.db = db
-        self.professors = db.collection(PROFESSORS)
-        self.publications = db.collection(PUBLICATIONS)
+    def __init__(self, session: Session):
+        self.session = session
 
     def list_professors(
         self,
@@ -36,60 +25,69 @@ class ProfessorService:
         page: int = 1,
         limit: int = 20,
     ) -> dict:
-        professors = [Professor.from_doc(doc) for doc in self.professors.all()]
+        filters = []
 
         if q:
-            needle = q.strip()
-            professors = [
-                p for p in professors
-                if any(
-                    _contains(value, needle)
-                    for value in (p.name, p.title, p.department, p.university, p.research_text, p.research_summary)
-                )
-            ]
+            search = f"%{q}%"
+            filters.append(
+                (Professor.name.ilike(search))
+                | (Professor.title.ilike(search))
+                | (Professor.department.ilike(search))
+                | (Professor.university.ilike(search))
+                | (Professor.research_text.ilike(search))
+                | (Professor.research_summary.ilike(search))
+            )
 
         if university:
             universities = [university] if isinstance(university, str) else [u for u in university if u]
             if universities:
-                professors = [p for p in professors if p.university in universities]
+                filters.append(Professor.university.in_(universities))
 
         if department:
             departments = [department] if isinstance(department, str) else [d for d in department if d]
             if departments:
-                professors = [p for p in professors if p.department in departments]
+                filters.append(Professor.department.in_(departments))
 
         if title:
-            professors = [p for p in professors if _contains(p.title, title)]
+            filters.append(Professor.title.ilike(f"%{title}%"))
 
         if recruiting_signal:
-            professors = [p for p in professors if p.recruiting_signal == recruiting_signal]
+            filters.append(Professor.recruiting_signal == recruiting_signal)
 
+        total_query = select(func.count(Professor.id)).where(*filters)
+        total = int(self.session.exec(total_query).one() or 0)
+
+        sort_columns = {
+            "name": Professor.name,
+            "university": Professor.university,
+            "recruiting": Professor.recruiting_signal,
+        }
+        sort_key, _, sort_dir = sort.partition("-")
+        sort_column = sort_columns.get(sort_key, Professor.name)
+        order_by = sort_column.desc() if sort_dir == "desc" else sort_column.asc()
+
+        offset = self._decode_cursor(cursor) if cursor else (page - 1) * limit
         if tag:
             tag_norms = [tag.strip().lower()] if isinstance(tag, str) else [t.strip().lower() for t in tag if t.strip()]
-            professors = [
-                p for p in professors
-                if all(t in [existing.lower() for existing in self._tags_for(p)] for t in tag_norms)
-            ]
+            all_for_tag = self.session.exec(select(Professor).where(*filters).order_by(order_by, Professor.id.asc())).all()
+            tagged = [p for p in all_for_tag if all(t in [existing.lower() for existing in self._tags_for(p)] for t in tag_norms)]
+            total = len(tagged)
+            professors = tagged[offset:offset + limit]
+        else:
+            query = select(Professor).where(*filters).order_by(order_by, Professor.id.asc()).offset(offset).limit(limit)
+            professors = self.session.exec(query).all()
 
-        sort_key, _, sort_dir = sort.partition("-")
-        key_funcs = {
-            "name": lambda p: (p.name or "").lower(),
-            "university": lambda p: (p.university or "").lower(),
-            "recruiting": lambda p: p.recruiting_signal or "",
-        }
-        key_func = key_funcs.get(sort_key, key_funcs["name"])
-        professors.sort(key=lambda p: (key_func(p), p.id or 0), reverse=(sort_dir == "desc"))
-
-        total = len(professors)
-        offset = self._decode_cursor(cursor) if cursor else (page - 1) * limit
-        page_items = professors[offset:offset + limit]
-
-        pub_counts = self._publication_counts()
+        # Convert to summary
         professor_summaries = []
-        for p in page_items:
-            extra = p.extra if isinstance(p.extra, dict) else {}
+        for p in professors:
+            extra = self._extra_for(p)
             tags = extra.get("tags", []) if isinstance(extra, dict) else []
             photo = self._extract_photo(extra, p.faculty_profile_url or p.homepage_url)
+            publication_count = int(
+                self.session.exec(
+                    select(func.count(Publication.id)).where(Publication.professor_id == p.id)
+                ).one() or 0
+            )
             professor_summaries.append(
                 {
                     "id": p.id,
@@ -98,9 +96,9 @@ class ProfessorService:
                     "university": p.university,
                     "department": p.department,
                     "research_summary": p.research_summary,
-                    "recruiting_signal": p.recruiting_signal,
+                    "recruiting_signal": p.recruiting_signal.value,
                     "source_confidence": p.source_confidence,
-                    "publication_count": pub_counts.get(p.id, 0),
+                    "publication_count": publication_count,
                     "tags": [str(t).strip() for t in tags if str(t).strip()],
                     "profile_display_status": extra.get("profile_display_status"),
                     "profile_text_source_url": extra.get("research_source_url") or extra.get("bio_source_url"),
@@ -116,11 +114,11 @@ class ProfessorService:
             "total": total,
             "page": page,
             "limit": limit,
-            "next_cursor": self._encode_cursor(offset + len(page_items)) if offset + len(page_items) < total else None,
+            "next_cursor": self._encode_cursor(offset + len(professors)) if offset + len(professors) < total else None,
         }
 
     def list_facets(self) -> dict:
-        professors = [Professor.from_doc(doc) for doc in self.professors.all()]
+        professors = self.session.exec(select(Professor)).all()
         tags: set[str] = set()
         universities: set[str] = set()
         departments: set[str] = set()
@@ -134,7 +132,7 @@ class ProfessorService:
             if p.title:
                 titles.add(p.title)
             if p.recruiting_signal:
-                recruiting_signals.add(p.recruiting_signal)
+                recruiting_signals.add(p.recruiting_signal.value)
             tags.update(self._tags_for(p))
         return {
             "tags": sorted(tags),
@@ -145,51 +143,67 @@ class ProfessorService:
         }
 
     def list_indexed_groups(self) -> list[dict]:
-        pub_counts = self._publication_counts()
-        groups: dict[tuple[str, str], dict] = {}
-        for doc in self.professors.all():
-            key = (doc.get("university") or "", doc.get("department") or "")
-            group = groups.setdefault(key, {"university": key[0], "department": key[1], "professor_count": 0, "publication_count": 0})
-            group["professor_count"] += 1
-            group["publication_count"] += pub_counts.get(doc.get("id"), 0)
-        return [groups[key] for key in sorted(groups)]
+        rows = self.session.exec(
+            select(Professor.university, Professor.department, func.count(Professor.id))
+            .group_by(Professor.university, Professor.department)
+            .order_by(Professor.university, Professor.department)
+        ).all()
+        groups = []
+        for university, department, professor_count in rows:
+            publication_count = int(
+                self.session.exec(
+                    select(func.count(Publication.id))
+                    .join(Professor, Publication.professor_id == Professor.id)
+                    .where(Professor.university == university, Professor.department == department)
+                ).one() or 0
+            )
+            groups.append({
+                "university": university,
+                "department": department,
+                "professor_count": int(professor_count or 0),
+                "publication_count": publication_count,
+            })
+        return groups
 
     def delete_indexed_group(self, university: str, department: str) -> dict:
-        ids = [
-            doc["id"] for doc in self.professors.all()
-            if doc.get("university") == university and doc.get("department") == department and doc.get("id") is not None
-        ]
+        professors = self.session.exec(
+            select(Professor).where(Professor.university == university, Professor.department == department)
+        ).all()
+        ids = [p.id for p in professors if p.id is not None]
         deleted_publications = 0
         if ids:
-            id_set = set(ids)
-            for pub in self.publications.all():
-                if pub.get("professor_id") in id_set:
-                    self.publications.delete(pub["id"])
-                    deleted_publications += 1
-            for prof_id in ids:
-                self.professors.delete(prof_id)
+            publications = self.session.exec(select(Publication).where(Publication.professor_id.in_(ids))).all()
+            deleted_publications = len(publications)
+            for pub in publications:
+                self.session.delete(pub)
+            for professor in professors:
+                self.session.delete(professor)
+            self.session.commit()
         return {"status": "deleted", "professors_deleted": len(ids), "publications_deleted": deleted_publications}
 
     def get_professor_by_id(self, professor_id: int) -> Optional[dict]:
-        doc = self.professors.get(professor_id)
-        if not doc:
+        professor = self.session.get(Professor, professor_id)
+        if not professor:
             return None
-        professor = Professor.from_doc(doc)
 
-        publications = [pub for pub in self.publications.find(professor_id=professor_id)]
-        publications.sort(key=lambda p: (-(p.get("year") or 0), p.get("title") or ""))
+        publications_query = (
+            select(Publication)
+            .where(Publication.professor_id == professor_id)
+            .order_by(Publication.year.desc(), Publication.title)
+        )
+        publications = self.session.exec(publications_query).all()
 
         publication_dicts = [
             {
-                "id": p.get("id"),
-                "title": p.get("title"),
-                "year": p.get("year"),
-                "venue": p.get("venue"),
-                "abstract": p.get("abstract"),
-                "url": p.get("url"),
-                "source": p.get("source"),
-                "source_author_id": p.get("source_author_id"),
-                "match_confidence": p.get("match_confidence"),
+                "id": p.id,
+                "title": p.title,
+                "year": p.year,
+                "venue": p.venue,
+                "abstract": p.abstract,
+                "url": p.url,
+                "source": p.source,
+                "source_author_id": p.source_author_id,
+                "match_confidence": p.match_confidence,
             }
             for p in publications
         ]
@@ -218,7 +232,7 @@ class ProfessorService:
             "semantic_scholar_id": professor.semantic_scholar_id,
             "research_text": professor.research_text,
             "research_summary": professor.research_summary,
-            "recruiting_signal": professor.recruiting_signal,
+            "recruiting_signal": professor.recruiting_signal.value,
             "recruiting_evidence_url": professor.recruiting_evidence_url,
             "recruiting_evidence_text": professor.recruiting_evidence_text,
             "source_confidence": professor.source_confidence,
@@ -235,14 +249,6 @@ class ProfessorService:
             "professor": professor_dict,
             "publications": publication_dicts,
         }
-
-    def _publication_counts(self) -> dict[int, int]:
-        counts: dict[int, int] = {}
-        for pub in self.publications.all():
-            prof_id = pub.get("professor_id")
-            if prof_id is not None:
-                counts[prof_id] = counts.get(prof_id, 0) + 1
-        return counts
 
     def _extract_photo(self, extra: dict, default_source_url: Optional[str]) -> dict:
         if not isinstance(extra, dict):
@@ -271,9 +277,17 @@ class ProfessorService:
             "photo_license_note": extra.get("photo_license_note") or ("Public faculty/profile page image; verify reuse terms before redistribution." if photo_url else None),
         }
 
+    def _extra_for(self, professor: Professor) -> dict:
+        extra = professor.extra or {}
+        if isinstance(extra, str):
+            try:
+                extra = json.loads(extra)
+            except json.JSONDecodeError:
+                extra = {}
+        return extra if isinstance(extra, dict) else {}
+
     def _tags_for(self, professor: Professor) -> list[str]:
-        extra = professor.extra if isinstance(professor.extra, dict) else {}
-        tags = extra.get("tags", [])
+        tags = self._extra_for(professor).get("tags", [])
         return [str(t).strip() for t in tags if str(t).strip()]
 
     def _encode_cursor(self, offset: int) -> str:

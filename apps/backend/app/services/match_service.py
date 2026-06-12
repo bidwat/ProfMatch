@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Iterable, List, Optional
 
-from apps.backend.app.db import Database
-from apps.backend.app.models.match import MatchEvidence, MatchScore, PublicationEvidence, StudentProfile
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from sqlmodel import select
+
+from ..models.match import MatchEvidence, MatchScore, PublicationEvidence, StudentProfile
+from ..models.professor import Professor, Publication
 
 DEFAULT_MATCH_THRESHOLD_PERCENT = 40.0
 DEFAULT_MINIMUM_MATCH_RESULTS = 10
@@ -74,10 +78,8 @@ def select_matches_by_threshold(
 
 
 class MatchService:
-    def __init__(self, db: Database):
+    def __init__(self, db: Session):
         self.db = db
-        self.professors = db.collection(PROFESSORS)
-        self.publications = db.collection(PUBLICATIONS)
 
     def find_matches(self, student: StudentProfile) -> List[MatchScore]:
         response = self.find_matches_with_metadata(student)
@@ -86,7 +88,7 @@ class MatchService:
     def find_matches_with_metadata(self, student: StudentProfile) -> dict[str, Any]:
         query_text = self._student_query_text(student)
         shortlist_limit = max(student.shortlist_limit, 30)
-        candidates = self._text_shortlist(query_text, shortlist_limit=shortlist_limit)
+        candidates = self._fts_shortlist(query_text, shortlist_limit=shortlist_limit)
 
         if not candidates:
             candidates = self._fallback_shortlist(shortlist_limit)
@@ -130,7 +132,7 @@ class MatchService:
                     ordered.extend([m for m in scores if m.professor_id not in seen])
                     scores = ordered
                 else:
-                    notes.append("LLM rerank skipped or unavailable; returned deterministic lexical + metadata ranking.")
+                    notes.append("LLM rerank skipped or unavailable; returned deterministic FTS + metadata ranking.")
 
         selected_matches, metadata = select_matches_by_threshold(
             scores,
@@ -146,15 +148,52 @@ class MatchService:
             "metadata": metadata,
         }
 
-    def _all_professors(self) -> list[Professor]:
-        return [Professor.from_doc(doc) for doc in self.professors.all()]
+    def _fts_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
+        if self._dialect_name() != "sqlite":
+            return self._portable_text_shortlist(query_text, shortlist_limit)
 
-    def _text_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
-        """Deterministic in-process lexical shortlist over the document store."""
+        self._ensure_fts_index()
+        safe_query = self._fts_query(query_text)
+        if not safe_query:
+            return self._fallback_shortlist(shortlist_limit)
+
+        sql = text(
+            """
+            SELECT professor_id, bm25(professor_match_fts, 8.0, 3.0, 2.0, 2.0, 6.0, 10.0, 5.0, 4.0, 7.0) AS rank
+            FROM professor_match_fts
+            WHERE professor_match_fts MATCH :query
+            ORDER BY rank
+            LIMIT :limit
+            """
+        )
+        rows = self.db.execute(sql, {"query": safe_query, "limit": shortlist_limit}).fetchall()
+        ranked_ids = [(int(r[0]), float(r[1])) for r in rows]
+        if not ranked_ids:
+            return []
+
+        raw_scores = [rank for _, rank in ranked_ids]
+        best = min(raw_scores)
+        worst = max(raw_scores)
+        spread = max(worst - best, 1e-9)
+        normalized = {prof_id: max(0.0, min(1.0, 1.0 - ((rank - best) / spread))) for prof_id, rank in ranked_ids}
+
+        return self._hydrate_candidates([prof_id for prof_id, _ in ranked_ids], normalized)
+
+    def _dialect_name(self) -> str:
+        bind = self.db.get_bind()
+        return bind.dialect.name if bind is not None else "sqlite"
+
+    def _portable_text_shortlist(self, query_text: str, shortlist_limit: int) -> list[Candidate]:
+        """Database-portable shortlist for Postgres free-tier deployment.
+
+        SQLite local dev uses FTS5. Production Postgres initially uses this
+        deterministic in-process lexical shortlist so we can migrate without
+        adding pg_trgm/tsvector migrations yet.
+        """
         query_terms = self._extract_keywords(query_text)
         if not query_terms:
             return self._fallback_shortlist(shortlist_limit)
-        professors = self._all_professors()
+        professors = self.db.exec(select(Professor)).all()
         scored: list[tuple[int, float]] = []
         for prof in professors:
             if prof.id is None:
@@ -185,22 +224,24 @@ class MatchService:
         return self._hydrate_candidates([prof_id for prof_id, _ in ranked], dict(ranked))
 
     def _fallback_shortlist(self, shortlist_limit: int) -> list[Candidate]:
-        professors = self._all_professors()[:shortlist_limit]
+        professors = self.db.exec(select(Professor).limit(shortlist_limit)).all()
         return self._hydrate_candidates([p.id for p in professors if p.id is not None], {})
 
     def _hydrate_candidates(self, professor_ids: list[int], fts_scores: dict[int, float]) -> list[Candidate]:
         if not professor_ids:
             return []
-        id_set = set(professor_ids)
-        by_id = {p.id: p for p in self._all_professors() if p.id in id_set}
-
+        professors = self.db.exec(select(Professor).where(Professor.id.in_(professor_ids))).all()
+        by_id = {int(p.id): p for p in professors if p.id is not None}
+        publications = (
+            self.db.exec(
+                select(Publication)
+                .where(Publication.professor_id.in_(professor_ids))
+                .order_by(Publication.year.desc(), Publication.title)
+            ).all()
+        )
         pubs_by_prof: dict[int, list[Publication]] = {pid: [] for pid in professor_ids}
-        for doc in self.publications.all():
-            prof_id = doc.get("professor_id")
-            if prof_id in id_set:
-                pubs_by_prof.setdefault(prof_id, []).append(Publication.from_doc(doc))
-        for pubs in pubs_by_prof.values():
-            pubs.sort(key=lambda p: (-(p.year or 0), p.title or ""))
+        for pub in publications:
+            pubs_by_prof.setdefault(pub.professor_id, []).append(pub)
 
         candidates: list[Candidate] = []
         for prof_id in professor_ids:
@@ -208,6 +249,53 @@ class MatchService:
             if prof:
                 candidates.append(Candidate(professor=prof, fts_score=fts_scores.get(prof_id, 0.0), tags=self._extract_tags(prof), publications=pubs_by_prof.get(prof_id, [])[:20]))
         return candidates
+
+    def _ensure_fts_index(self) -> None:
+        self.db.execute(text(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS professor_match_fts USING fts5(
+                professor_id UNINDEXED,
+                name,
+                title,
+                department,
+                university,
+                research_text,
+                research_summary,
+                tags,
+                recruiting_evidence_text
+            )
+            """
+        ))
+        # The local enrichment scripts update research_summary/tags directly in SQLite.
+        # Rebuilding this small MVP index on each match request keeps FTS current without
+        # requiring triggers or a migration framework yet.
+        self.db.execute(text("DELETE FROM professor_match_fts"))
+        rows = self.db.exec(select(Professor)).all()
+        for prof in rows:
+            tags = ", ".join(self._extract_tags(prof))
+            self.db.execute(
+                text(
+                    """
+                    INSERT INTO professor_match_fts(
+                        professor_id, name, title, department, university, research_text,
+                        research_summary, tags, recruiting_evidence_text
+                    ) VALUES (:id, :name, :title, :department, :university, :research_text,
+                        :research_summary, :tags, :recruiting_evidence_text)
+                    """
+                ),
+                {
+                    "id": prof.id,
+                    "name": prof.name or "",
+                    "title": prof.title or "",
+                    "department": prof.department or "",
+                    "university": prof.university or "",
+                    "research_text": prof.research_text or "",
+                    "research_summary": prof.research_summary if self._has_meaningful_text(prof.research_summary) else "",
+                    "tags": tags,
+                    "recruiting_evidence_text": prof.recruiting_evidence_text or "",
+                },
+            )
+        self.db.commit()
 
     def _score_candidate(self, student: StudentProfile, candidate: Candidate) -> MatchScore:
         prof = candidate.professor
@@ -268,7 +356,7 @@ class MatchService:
             matched_terms=matched_terms,
             tags=candidate.tags,
             publications=evidence_publications,
-            recruiting_status=str(prof.recruiting_signal or "unknown"),
+            recruiting_status=str(getattr(prof.recruiting_signal, "value", prof.recruiting_signal) or "unknown"),
             recruiting_evidence_url=prof.recruiting_evidence_url,
             recruiting_evidence_text=prof.recruiting_evidence_text,
             risks=self._risks(prof, candidate),
@@ -387,7 +475,7 @@ class MatchService:
                 "department": p.department,
                 "research_summary": ((p.research_summary if self._has_meaningful_text(p.research_summary) else None) or p.research_text or "")[:1400],
                 "tags": c.tags,
-                "recruiting_signal": str(p.recruiting_signal or "unknown"),
+                "recruiting_signal": str(getattr(p.recruiting_signal, "value", p.recruiting_signal) or "unknown"),
                 "recruiting_evidence": (p.recruiting_evidence_text or "")[:500],
                 "deterministic_score": m.total_score,
                 "recent_publications": [{"title": pub.title, "year": pub.year, "abstract": (pub.abstract or "")[:500]} for pub in c.publications[:10]],
@@ -445,6 +533,10 @@ Return at most 5 matches in best-to-worst order."""
         tags = extra.get("tags", []) if isinstance(extra, dict) else []
         return [str(t).strip() for t in tags if str(t).strip()]
 
+    def _fts_query(self, text_value: str) -> str:
+        terms = self._extract_keywords(text_value)
+        return " OR ".join(f'"{term}"' for term in sorted(terms)[:24])
+
     def _extract_keywords(self, text_value: str) -> set[str]:
         words = re.findall(r"[A-Za-z][A-Za-z0-9_+-]{2,}", (text_value or "").lower())
         return {w for w in words if w not in STOP_WORDS and len(w) > 2}
@@ -460,7 +552,7 @@ Return at most 5 matches in best-to-worst order."""
         return max(0.0, min(1.0, (a_weight * a) + ((1 - a_weight) * b)))
 
     def _recruiting_score(self, prof: Professor) -> float:
-        signal = str(prof.recruiting_signal or "unknown")
+        signal = str(getattr(prof.recruiting_signal, "value", prof.recruiting_signal) or "unknown")
         has_evidence = bool((prof.recruiting_evidence_text or "").strip() or (prof.recruiting_evidence_url or "").strip())
         if signal == "positive" and has_evidence:
             return 1.0
@@ -534,7 +626,7 @@ Return at most 5 matches in best-to-worst order."""
             risks.append("No synthesized research summary available.")
         if not candidate.publications:
             risks.append("No recent publication evidence available in the local database.")
-        if str(prof.recruiting_signal or "unknown") == "unknown":
+        if str(getattr(prof.recruiting_signal, "value", prof.recruiting_signal) or "unknown") == "unknown":
             risks.append("Recruiting status is unknown.")
         if (prof.source_confidence or 0.0) < 0.5:
             risks.append("Source confidence is weak.")
@@ -553,7 +645,7 @@ Return at most 5 matches in best-to-worst order."""
             parts.append("There is explicit positive recruiting evidence.")
         elif evidence.recruiting_status == "unknown":
             parts.append("Recruiting status is unknown, so verify before outreach.")
-        return " ".join(parts) or "Candidate was selected by lexical search and metadata scoring."
+        return " ".join(parts) or "Candidate was selected by local FTS search and metadata scoring."
 
     def _safe_int(self, value: Any) -> int | None:
         try:

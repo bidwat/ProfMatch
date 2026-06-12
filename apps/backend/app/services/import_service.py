@@ -1,27 +1,17 @@
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from apps.backend.app.db import Database
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication
+from sqlmodel import Session, select
+
+from apps.backend.app.models.professor import Professor, Publication
 from apps.backend.app.services.admin_scan_service import AdminScanService
-
-PROFESSOR_UPDATE_FIELDS = [
-    "name", "title", "department", "email", "faculty_profile_url", "homepage_url",
-    "google_scholar_url", "openalex_id", "dblp_url", "semantic_scholar_id",
-    "research_text", "research_summary", "recruiting_signal", "recruiting_evidence_url",
-    "recruiting_evidence_text", "source_confidence", "extra",
-]
-
-PUBLICATION_UPDATE_FIELDS = ["venue", "url", "abstract", "source_author_id", "match_confidence"]
 
 
 class ImportService:
-    def __init__(self, db: Database, admin_service: AdminScanService):
-        self.db = db
+    def __init__(self, session: Session, admin_service: AdminScanService):
+        self.session = session
         self.admin_service = admin_service
-        self.professors = db.collection(PROFESSORS)
-        self.publications = db.collection(PUBLICATIONS)
 
     def import_scan(self, scan_id: str) -> dict[str, Any]:
         scan_detail = self.admin_service.get_scan(scan_id)
@@ -56,24 +46,27 @@ class ImportService:
             "errors": []
         }
 
-        # map (normalized_name, university) -> professor id
-        prof_map: dict[tuple, int] = {}
+        # map (normalized_name, university) -> Professor.id
+        prof_map = {}
 
+        # 1. Upsert Professors
         for p_data in professors_data:
             try:
-                prof_id = self._upsert_professor(p_data, stats)
-                if prof_id:
+                prof = self._upsert_professor(p_data, stats)
+                if prof and prof.id:
                     key = (p_data.get("normalized_name"), p_data.get("university"))
-                    prof_map[key] = prof_id
+                    prof_map[key] = prof.id
             except Exception as e:
                 stats["errors"].append(f"Error importing professor {p_data.get('name')}: {str(e)}")
 
+        # 2. Upsert Publications
         for pub_data in publications_data:
             try:
                 self._upsert_publication(pub_data, prof_map, stats)
             except Exception as e:
                 stats["errors"].append(f"Error importing publication {pub_data.get('title')}: {str(e)}")
 
+        # 3. Write import report
         report_path = self.admin_service.qa_dir / f"{scan_id}_import_report.json"
         report_path.write_text(json.dumps(stats, indent=2))
 
@@ -83,58 +76,63 @@ class ImportService:
         lines = path.read_text(encoding="utf-8").strip().split("\n")
         return [json.loads(line) for line in lines if line.strip()]
 
-    def _find_professor(self, norm_name: Any, university: Any, faculty_url: Any) -> Optional[dict]:
-        existing = next(
-            (doc for doc in self.professors.find(normalized_name=norm_name) if doc.get("university") == university),
-            None,
-        )
-        if not existing and faculty_url:
-            existing = self.professors.find_one(faculty_profile_url=faculty_url)
-        return existing
-
-    def _upsert_professor(self, data: dict[str, Any], stats: dict[str, Any]) -> int:
+    def _upsert_professor(self, data: dict[str, Any], stats: dict[str, Any]) -> Professor:
         faculty_url = data.get("faculty_profile_url")
         norm_name = data.get("normalized_name")
         uni = data.get("university")
 
-        existing = self._find_professor(norm_name, uni, faculty_url)
+        stmt = select(Professor).where(Professor.normalized_name == norm_name, Professor.university == uni)
+        existing = self.session.exec(stmt).first()
+        if not existing and faculty_url:
+            stmt2 = select(Professor).where(Professor.faculty_profile_url == faculty_url)
+            existing = self.session.exec(stmt2).first()
 
         if existing:
-            patch = {key: data[key] for key in PROFESSOR_UPDATE_FIELDS if key in data}
-            self.professors.update(existing["id"], patch)
+            # Update fields
+            for key in ["name", "title", "department", "email", "faculty_profile_url", "homepage_url", 
+                        "google_scholar_url", "openalex_id", "dblp_url", "semantic_scholar_id", 
+                        "research_text", "research_summary", "recruiting_signal", "recruiting_evidence_url", 
+                        "recruiting_evidence_text", "source_confidence", "extra"]:
+                if key in data:
+                    setattr(existing, key, data[key])
             stats["professors_updated"] += 1
-            return existing["id"]
+            prof = existing
+        else:
+            # Insert
+            prof = Professor(
+                name=data.get("name"),
+                normalized_name=norm_name,
+                title=data.get("title"),
+                university=uni,
+                department=data.get("department", ""),
+                email=data.get("email"),
+                faculty_profile_url=faculty_url,
+                homepage_url=data.get("homepage_url"),
+                google_scholar_url=data.get("google_scholar_url"),
+                openalex_id=data.get("openalex_id"),
+                dblp_url=data.get("dblp_url"),
+                semantic_scholar_id=data.get("semantic_scholar_id"),
+                research_text=data.get("research_text"),
+                research_summary=data.get("research_summary"),
+                recruiting_signal=data.get("recruiting_signal", "unknown"),
+                recruiting_evidence_url=data.get("recruiting_evidence_url"),
+                recruiting_evidence_text=data.get("recruiting_evidence_text"),
+                source_confidence=data.get("source_confidence", 0.0),
+                extra=data.get("extra", {})
+            )
+            self.session.add(prof)
+            stats["professors_inserted"] += 1
 
-        prof = Professor(
-            name=data.get("name"),
-            normalized_name=norm_name,
-            title=data.get("title"),
-            university=uni,
-            department=data.get("department", ""),
-            email=data.get("email"),
-            faculty_profile_url=faculty_url,
-            homepage_url=data.get("homepage_url"),
-            google_scholar_url=data.get("google_scholar_url"),
-            openalex_id=data.get("openalex_id"),
-            dblp_url=data.get("dblp_url"),
-            semantic_scholar_id=data.get("semantic_scholar_id"),
-            research_text=data.get("research_text"),
-            research_summary=data.get("research_summary"),
-            recruiting_signal=data.get("recruiting_signal", "unknown"),
-            recruiting_evidence_url=data.get("recruiting_evidence_url"),
-            recruiting_evidence_text=data.get("recruiting_evidence_text"),
-            source_confidence=data.get("source_confidence", 0.0),
-            extra=data.get("extra", {})
-        )
-        stats["professors_inserted"] += 1
-        return self.professors.add(prof.to_doc())
+        self.session.commit()
+        self.session.refresh(prof)
+        return prof
 
     def _upsert_publication(self, data: dict[str, Any], prof_map: dict, stats: dict[str, Any]) -> None:
         extra = data.get("extra", {})
         norm_name = extra.get("professor_normalized_name")
         uni = extra.get("professor_university")
         key = (norm_name, uni)
-
+        
         prof_id = prof_map.get(key)
         if not prof_id:
             stats["errors"].append(f"Could not link publication '{data.get('title')}' to professor {norm_name} at {uni}")
@@ -144,30 +142,33 @@ class ImportService:
         year = data.get("year", 0)
         source = data.get("source", "unknown")
 
-        existing = next(
-            (
-                doc for doc in self.publications.find(professor_id=prof_id, title=title)
-                if doc.get("year") == year and doc.get("source") == source
-            ),
-            None,
+        stmt = select(Publication).where(
+            Publication.professor_id == prof_id,
+            Publication.title == title,
+            Publication.year == year,
+            Publication.source == source
         )
+        existing = self.session.exec(stmt).first()
 
         if existing:
-            patch = {field: data[field] for field in PUBLICATION_UPDATE_FIELDS if field in data}
-            self.publications.update(existing["id"], patch)
+            for field in ["venue", "url", "abstract", "source_author_id", "match_confidence"]:
+                if field in data:
+                    setattr(existing, field, data[field])
             stats["publications_updated"] += 1
-            return
+            pub = existing
+        else:
+            pub = Publication(
+                professor_id=prof_id,
+                title=title,
+                year=year,
+                venue=data.get("venue", ""),
+                abstract=data.get("abstract"),
+                url=data.get("url"),
+                source=source,
+                source_author_id=data.get("source_author_id"),
+                match_confidence=data.get("match_confidence", 0.0)
+            )
+            self.session.add(pub)
+            stats["publications_inserted"] += 1
 
-        pub = Publication(
-            professor_id=prof_id,
-            title=title,
-            year=year,
-            venue=data.get("venue", ""),
-            abstract=data.get("abstract"),
-            url=data.get("url"),
-            source=source,
-            source_author_id=data.get("source_author_id"),
-            match_confidence=data.get("match_confidence", 0.0)
-        )
-        self.publications.add(pub.to_doc())
-        stats["publications_inserted"] += 1
+        self.session.commit()

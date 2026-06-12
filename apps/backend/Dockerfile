@@ -15,6 +15,7 @@ RUN python -m playwright install --with-deps chromium \
 COPY apps /app/apps
 COPY packages /app/packages
 COPY scripts /app/scripts
+COPY db/professor_match_publications.sqlite /app/seed-db/professor_match_publications.sqlite
 
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn apps.backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "mkdir -p /app/db && if [ ! -f /app/db/professor_match_publications.sqlite ]; then cp /app/seed-db/professor_match_publications.sqlite /app/db/professor_match_publications.sqlite; fi && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -1,12 +1,11 @@
 import pytest
+from sqlmodel import Session, SQLModel, create_engine
 
-from apps.backend.app.db import MemoryDatabase, set_db
 
-
-@pytest.fixture(autouse=True)
-def memory_db():
-    """Give every test a fresh in-memory database."""
-    database = MemoryDatabase()
-    set_db(database)
-    yield database
-    set_db(None)
+@pytest.fixture()
+def db_session(tmp_path):
+    db_path = tmp_path / "test_match.sqlite"
+    engine = create_engine(f"sqlite:///{db_path}", echo=False)
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session

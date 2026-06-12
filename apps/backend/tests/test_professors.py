@@ -1,20 +1,47 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
+from sqlmodel import Session, SQLModel, create_engine
 
-from apps.backend.app.db import MemoryDatabase
 from apps.backend.app.main import app
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication, RecruitingSignal
+from apps.backend.app.models.professor import Professor, Publication, RecruitingSignal
 
 
-@pytest.fixture()
+TEST_DATABASE_URL = "sqlite:///./test_professor_match.sqlite"
+test_engine = create_engine(TEST_DATABASE_URL, echo=False)
+
+
+@pytest.fixture(scope="module")
 def test_client():
-    return TestClient(app)
+    SQLModel.metadata.create_all(test_engine)
+
+    from apps.backend.app import db
+    original_engine = db.engine
+    db.engine = test_engine
+
+    client = TestClient(app)
+    yield client
+
+    db.engine = original_engine
+    import os
+    if os.path.exists("./test_professor_match.sqlite"):
+        os.remove("./test_professor_match.sqlite")
 
 
-@pytest.fixture()
-def sample_data(memory_db: MemoryDatabase):
-    professors = memory_db.collection(PROFESSORS)
-    publications = memory_db.collection(PUBLICATIONS)
+@pytest.fixture(scope="function")
+def session():
+    with Session(test_engine) as sess:
+        sess.exec(delete(Publication))
+        sess.exec(delete(Professor))
+        sess.commit()
+        yield sess
+        sess.exec(delete(Publication))
+        sess.exec(delete(Professor))
+        sess.commit()
+
+
+@pytest.fixture(scope="function")
+def sample_data(session: Session):
     prof1 = Professor(
         name="John Doe",
         normalized_name="john doe",
@@ -39,25 +66,29 @@ def sample_data(memory_db: MemoryDatabase):
         recruiting_signal=RecruitingSignal.unknown,
         source_confidence=0.8,
     )
-    prof1.id = professors.add(prof1.to_doc())
-    prof2.id = professors.add(prof2.to_doc())
+    session.add(prof1)
+    session.add(prof2)
+    session.commit()
 
-    publications.add(Publication(
+    pub1 = Publication(
         professor_id=prof1.id,
         title="AI Paper",
         year=2023,
         venue="AI Journal",
         source="Scholar",
         match_confidence=0.95,
-    ).to_doc())
-    publications.add(Publication(
+    )
+    pub2 = Publication(
         professor_id=prof1.id,
         title="ML Paper",
         year=2022,
         venue="ML Conf",
         source="Scholar",
         match_confidence=0.9,
-    ).to_doc())
+    )
+    session.add(pub1)
+    session.add(pub2)
+    session.commit()
 
     return {"prof1": prof1, "prof2": prof2}
 

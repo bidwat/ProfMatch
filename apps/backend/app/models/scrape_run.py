@@ -1,22 +1,18 @@
-from datetime import datetime
+from sqlmodel import SQLModel, Field
 from typing import Optional
-
-from pydantic import Field
-
-from apps.backend.app.models.base import DocModel, utcnow
-
-SCRAPE_RUNS = "scrape_runs"
+from datetime import datetime, timezone
 
 
-class ScrapeRun(DocModel):
+class ScrapeRun(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     university: str
     department: Optional[str] = None
     adapter_name: str
-    started_at: datetime = Field(default_factory=utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     completed_at: Optional[datetime] = None
-    status: str = "running"  # running, completed, failed
-    pages_attempted: int = 0
-    pages_successful: int = 0
-    records_created: int = 0
-    records_updated: int = 0
-    errors_json: Optional[str] = None
+    status: str  # e.g., "running", "completed", "failed"
+    pages_attempted: int = Field(default=0)
+    pages_successful: int = Field(default=0)
+    records_created: int = Field(default=0)
+    records_updated: int = Field(default=0)
+    errors_json: Optional[str] = None  # JSON string of errors

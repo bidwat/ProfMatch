@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
-from apps.backend.app.db import Database, database_kind, get_session, is_production_mode
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS
+from sqlmodel import Session, select
+from sqlalchemy import func, distinct
+from apps.backend.app.db import get_session, DATABASE_URL, DB_PATH, is_production_mode
+from apps.backend.app.models.professor import Professor, Publication
 
 
 class UniversityStat(BaseModel):
@@ -25,23 +26,33 @@ class ExplorerStatsResponse(BaseModel):
 router = APIRouter()
 
 
+def _db_kind() -> str:
+    if DATABASE_URL.startswith("sqlite"):
+        return "sqlite"
+    if DATABASE_URL.startswith("postgresql+psycopg"):
+        return "postgres"
+    return "other"
+
+
 @router.get("/health")
 def api_health():
     return {"status": "healthy"}
 
 
 @router.get("/health/db")
-def api_health_db(db: Database = Depends(get_session)):
+def api_health_db(session: Session = Depends(get_session)):
     try:
-        db_kind = database_kind()
-        if is_production_mode() and db_kind != "firestore":
-            raise HTTPException(status_code=500, detail="Production is not using Firestore; check Firebase credentials")
+        professor_count = int(session.exec(select(func.count(Professor.id))).one() or 0)
+        publication_count = int(session.exec(select(func.count(Publication.id))).one() or 0)
+        db_kind = _db_kind()
+        if is_production_mode() and db_kind == "sqlite":
+            raise HTTPException(status_code=500, detail="Production is using SQLite; expected Postgres")
         return {
             "status": "healthy",
             "database": db_kind,
             "production": is_production_mode(),
-            "professor_count": db.collection(PROFESSORS).count(),
-            "publication_count": db.collection(PUBLICATIONS).count(),
+            "professor_count": professor_count,
+            "publication_count": publication_count,
         }
     except HTTPException:
         raise
@@ -50,33 +61,50 @@ def api_health_db(db: Database = Depends(get_session)):
 
 
 @router.get("/stats", response_model=ExplorerStatsResponse)
-def explorer_stats(db: Database = Depends(get_session)):
+def explorer_stats(session: Session = Depends(get_session)):
     try:
-        professors = db.collection(PROFESSORS).all()
-        publications = db.collection(PUBLICATIONS).all()
+        professor_count = session.exec(select(func.count(Professor.id))).one()
+        publication_count = session.exec(select(func.count(Publication.id))).one()
+        university_count = session.exec(select(func.count(distinct(Professor.university)))).one()
+        professors_with_email = session.exec(
+            select(func.count(Professor.id)).where(Professor.email.is_not(None), Professor.email != "")
+        ).one()
+        professors_with_homepage = session.exec(
+            select(func.count(Professor.id)).where(Professor.homepage_url.is_not(None), Professor.homepage_url != "")
+        ).one()
+        professors_with_publications = session.exec(
+            select(func.count(distinct(Publication.professor_id)))
+        ).one()
 
-        pub_counts: dict[int, int] = {}
-        for pub in publications:
-            prof_id = pub.get("professor_id")
-            if prof_id is not None:
-                pub_counts[prof_id] = pub_counts.get(prof_id, 0) + 1
+        university_rows = session.exec(
+            select(
+                Professor.university,
+                func.count(distinct(Professor.id)),
+                func.count(Publication.id),
+            )
+            .outerjoin(Publication, Publication.professor_id == Professor.id)
+            .group_by(Professor.university)
+            .order_by(Professor.university)
+        ).all()
 
-        university_stats: dict[str, dict] = {}
-        for prof in professors:
-            university = prof.get("university") or ""
-            stat = university_stats.setdefault(university, {"university": university, "professor_count": 0, "publication_count": 0})
-            stat["professor_count"] += 1
-            stat["publication_count"] += pub_counts.get(prof.get("id"), 0)
+        universities = [
+            UniversityStat(
+                university=row[0],
+                professor_count=int(row[1] or 0),
+                publication_count=int(row[2] or 0),
+            )
+            for row in university_rows
+        ]
 
         return ExplorerStatsResponse(
-            database_path=database_kind(),
-            professor_count=len(professors),
-            publication_count=len(publications),
-            university_count=len({p.get("university") for p in professors if p.get("university")}),
-            professors_with_email=sum(1 for p in professors if (p.get("email") or "").strip()),
-            professors_with_homepage=sum(1 for p in professors if (p.get("homepage_url") or "").strip()),
-            professors_with_publications=len(pub_counts),
-            universities=[UniversityStat(**university_stats[k]) for k in sorted(university_stats)],
+            database_path=str(DB_PATH) if DB_PATH else DATABASE_URL.split('@')[-1],
+            professor_count=int(professor_count or 0),
+            publication_count=int(publication_count or 0),
+            university_count=int(university_count or 0),
+            professors_with_email=int(professors_with_email or 0),
+            professors_with_homepage=int(professors_with_homepage or 0),
+            professors_with_publications=int(professors_with_publications or 0),
+            universities=universities,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

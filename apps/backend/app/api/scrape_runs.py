@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from apps.backend.app.db import Database, get_session
+from sqlmodel import Session
+from apps.backend.app.db import get_session
 from apps.backend.app.services.scrape_run_service import ScrapeRunService
 from pydantic import BaseModel
 from typing import List, Optional
@@ -28,8 +29,8 @@ router = APIRouter()
 
 
 @router.get("/scrape-runs", response_model=ListScrapeRunsResponse)
-def list_scrape_runs(db: Database = Depends(get_session)):
-    service = ScrapeRunService(db)
+def list_scrape_runs(session: Session = Depends(get_session)):
+    service = ScrapeRunService(session)
     try:
         runs = service.list_scrape_runs()
         return {"scrape_runs": runs}

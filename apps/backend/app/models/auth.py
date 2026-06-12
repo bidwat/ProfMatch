@@ -1,42 +1,46 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import Field
-
-from apps.backend.app.models.base import DocModel, utcnow
-
-USERS = "users"
-USER_STATES = "user_states"
-AUTH_SESSIONS = "auth_sessions"
+from sqlalchemy import JSON
+from sqlmodel import Field, SQLModel
 
 
-class User(DocModel):
-    email: str
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True, unique=True)
     password_hash: str
     display_name: str
-    role: str = "student"
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=utcnow)
-    updated_at: datetime = Field(default_factory=utcnow)
+    role: str = Field(default="student")
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     last_login_at: Optional[datetime] = None
 
 
-class UserState(DocModel):
-    user_id: int
-    student_profile: Optional[dict] = None
-    last_match_response: Optional[dict] = None
-    saved_professor_ids: list[int] = Field(default_factory=list)
-    tracker_rows: list[dict] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=utcnow)
-    updated_at: datetime = Field(default_factory=utcnow)
+class UserState(SQLModel, table=True):
+    __tablename__ = "user_states"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True, unique=True)
+    student_profile: Optional[dict] = Field(default=None, sa_type=JSON)
+    last_match_response: Optional[dict] = Field(default=None, sa_type=JSON)
+    saved_professor_ids: list[int] = Field(default_factory=list, sa_type=JSON)
+    tracker_rows: list[dict] = Field(default_factory=list, sa_type=JSON)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
 
-class AuthSession(DocModel):
-    user_id: int
-    session_token_hash: str
-    created_at: datetime = Field(default_factory=utcnow)
+class AuthSession(SQLModel, table=True):
+    __tablename__ = "auth_sessions"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True)
+    session_token_hash: str = Field(index=True, unique=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     expires_at: datetime
-    last_seen_at: datetime = Field(default_factory=utcnow)
+    last_seen_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     revoked_at: Optional[datetime] = None
     user_agent: Optional[str] = None
     ip_address: Optional[str] = None

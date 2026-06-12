@@ -1,11 +1,13 @@
 import hashlib
 import hmac
+import os
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from apps.backend.app.db import Database
-from apps.backend.app.models.auth import AUTH_SESSIONS, USERS, AuthSession, User
+from sqlmodel import Session, select
+
+from apps.backend.app.models.auth import AuthSession, User
 
 PASSWORD_ALGORITHM = "pbkdf2_sha256"
 PASSWORD_ITERATIONS = 210_000
@@ -47,19 +49,12 @@ def hash_session_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def _now() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
 class AuthService:
-    def __init__(self, db: Database):
+    def __init__(self, db: Session):
         self.db = db
-        self.users = db.collection(USERS)
-        self.sessions = db.collection(AUTH_SESSIONS)
 
     def get_user_by_email(self, email: str) -> Optional[User]:
-        doc = self.users.find_one(email=normalize_email(email))
-        return User.from_doc(doc) if doc else None
+        return self.db.exec(select(User).where(User.email == normalize_email(email))).first()
 
     def register(self, email: str, password: str, display_name: str) -> User:
         normalized = normalize_email(email)
@@ -70,7 +65,9 @@ class AuthService:
             password_hash=hash_password(password),
             display_name=display_name.strip(),
         )
-        user.id = self.users.add(user.to_doc())
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user
 
     def authenticate(self, email: str, password: str) -> Optional[User]:
@@ -79,10 +76,11 @@ class AuthService:
             return None
         if not verify_password(password, user.password_hash):
             return None
-        now = _now()
-        user.last_login_at = now
-        user.updated_at = now
-        self.users.update(user.id, {"last_login_at": now, "updated_at": now})
+        user.last_login_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user
 
     def create_session(self, user: User, user_agent: Optional[str] = None, ip_address: Optional[str] = None) -> tuple[str, AuthSession]:
@@ -90,44 +88,37 @@ class AuthService:
         session = AuthSession(
             user_id=user.id,
             session_token_hash=hash_session_token(token),
-            expires_at=_now() + timedelta(days=SESSION_DAYS),
+            expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=SESSION_DAYS),
             user_agent=user_agent,
             ip_address=ip_address,
         )
-        session.id = self.sessions.add(session.to_doc())
+        self.db.add(session)
+        self.db.commit()
+        self.db.refresh(session)
         return token, session
 
     def get_user_for_token(self, token: str) -> Optional[User]:
         if not token:
             return None
-        now = _now()
-        doc = self.sessions.find_one(session_token_hash=hash_session_token(token))
-        if not doc:
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        session = self.db.exec(
+            select(AuthSession).where(AuthSession.session_token_hash == hash_session_token(token))
+        ).first()
+        if not session or session.revoked_at is not None or session.expires_at <= now:
             return None
-        session = AuthSession.from_doc(doc)
-        if session.revoked_at is not None or session.expires_at <= now:
+        user = self.db.get(User, session.user_id)
+        if not user or not user.is_active:
             return None
-        user_doc = self.users.get(session.user_id)
-        if not user_doc:
-            return None
-        user = User.from_doc(user_doc)
-        if not user.is_active:
-            return None
-        self.sessions.update(session.id, {"last_seen_at": now})
+        session.last_seen_at = now
+        self.db.add(session)
+        self.db.commit()
         return user
 
     def revoke_token(self, token: str) -> None:
-        doc = self.sessions.find_one(session_token_hash=hash_session_token(token))
-        if doc and doc.get("revoked_at") is None:
-            self.sessions.update(doc["id"], {"revoked_at": _now()})
-
-    def revoke_user_sessions(self, user_id: int) -> None:
-        now = _now()
-        for doc in self.sessions.find(user_id=user_id):
-            if doc.get("revoked_at") is None:
-                self.sessions.update(doc["id"], {"revoked_at": now})
-
-    def deactivate_user(self, user: User) -> None:
-        now = _now()
-        self.users.update(user.id, {"is_active": False, "updated_at": now})
-        self.revoke_user_sessions(user.id)
+        session = self.db.exec(
+            select(AuthSession).where(AuthSession.session_token_hash == hash_session_token(token))
+        ).first()
+        if session and session.revoked_at is None:
+            session.revoked_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            self.db.add(session)
+            self.db.commit()

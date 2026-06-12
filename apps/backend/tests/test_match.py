@@ -1,18 +1,14 @@
 import pytest
 from pydantic import ValidationError
+from sqlmodel import Session
 
-from apps.backend.app.db import MemoryDatabase
 from apps.backend.app.models.match import StudentProfile
-from apps.backend.app.models.professor import PROFESSORS, PUBLICATIONS, Professor, Publication, RecruitingSignal
+from apps.backend.app.models.professor import Professor, Publication, RecruitingSignal
 from apps.backend.app.services.match_service import MatchService
 
 
-def _add_professor(db: MemoryDatabase, professor: Professor) -> int:
-    return db.collection(PROFESSORS).add(professor.to_doc())
-
-
-def test_two_stage_local_shortlist_scores_with_metadata(memory_db: MemoryDatabase):
-    service = MatchService(memory_db)
+def test_two_stage_local_shortlist_scores_with_metadata(db_session: Session):
+    service = MatchService(db_session)
 
     strong = Professor(
         name="Robotics ML Professor",
@@ -40,18 +36,22 @@ def test_two_stage_local_shortlist_scores_with_metadata(memory_db: MemoryDatabas
         source_confidence=0.8,
         extra={"tags": ["Databases", "Distributed Systems"]},
     )
-    strong_id = _add_professor(memory_db, strong)
-    _add_professor(memory_db, weak)
+    db_session.add(strong)
+    db_session.add(weak)
+    db_session.commit()
+    db_session.refresh(strong)
+    db_session.refresh(weak)
 
-    memory_db.collection(PUBLICATIONS).add(Publication(
-        professor_id=strong_id,
+    db_session.add(Publication(
+        professor_id=strong.id,
         title="Robot Learning with Vision Foundation Models",
         year=2024,
         venue="Robotics Conference",
         abstract="Machine learning for robotics and computer vision.",
         source="test",
         match_confidence=0.95,
-    ).to_doc())
+    ))
+    db_session.commit()
 
     student = StudentProfile(
         name="Test Student",
@@ -67,7 +67,7 @@ def test_two_stage_local_shortlist_scores_with_metadata(memory_db: MemoryDatabas
     matches = result["matches"]
 
     assert result["shortlist_size"] >= 1
-    assert matches[0].professor_id == strong_id
+    assert matches[0].professor_id == strong.id
     assert matches[0].total_score > matches[-1].total_score
     assert matches[0].recruiting_signal_score == 1.0
     assert matches[0].location_preference_fit == 1.0
@@ -86,8 +86,8 @@ def test_research_interests_rejects_whitespace_only():
         StudentProfile(research_interests="   ")
 
 
-def test_recruiting_positive_requires_evidence(memory_db: MemoryDatabase):
-    service = MatchService(memory_db)
+def test_recruiting_positive_requires_evidence(db_session: Session):
+    service = MatchService(db_session)
     professor = Professor(
         name="No Evidence Professor",
         normalized_name="no evidence professor",
@@ -99,13 +99,14 @@ def test_recruiting_positive_requires_evidence(memory_db: MemoryDatabase):
         title="Assistant Professor",
         source_confidence=0.9,
     )
-    _add_professor(memory_db, professor)
+    db_session.add(professor)
+    db_session.commit()
 
     assert service._recruiting_score(professor) == 0.35
 
 
-def test_jaccard_similarity(memory_db: MemoryDatabase):
-    service = MatchService(memory_db)
+def test_jaccard_similarity():
+    service = MatchService(None)  # No db needed for this test
     assert service._jaccard_similarity({"a", "b"}, {"a", "c"}) == 1 / 3
     assert service._jaccard_similarity({"a", "b"}, {"a", "b"}) == 1.0
     assert service._jaccard_similarity(set(), set()) == 1.0

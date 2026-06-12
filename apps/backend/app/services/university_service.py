@@ -1,13 +1,13 @@
+from sqlmodel import Session, select, distinct
 from typing import List
-
-from apps.backend.app.db import Database
-from apps.backend.app.models.professor import PROFESSORS
+from apps.backend.app.models.professor import Professor
 
 
 class UniversityService:
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, session: Session):
+        self.session = session
 
     def list_universities(self) -> List[str]:
-        universities = {doc.get("university") for doc in self.db.collection(PROFESSORS).all() if doc.get("university")}
-        return sorted(universities)
+        query = select(distinct(Professor.university)).order_by(Professor.university)
+        universities = self.session.exec(query).all()
+        return universities
