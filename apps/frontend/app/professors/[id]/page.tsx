@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { use, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProfessor, patchUserState } from '@/lib/api';
+import { Tabs } from '@heroui/react';
 import { TagList, Signal, ConfidenceChip, cleanTitle, Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
@@ -159,8 +160,15 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
         </div>
       ) : null}
 
-      <div className="tabs">{(['overview', 'papers'] as const).map(t => <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>)}</div>
-      
+      <Tabs selectedKey={tab} onSelectionChange={key => setTab(key as 'overview' | 'papers')} style={{ marginTop: 16 }}>
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="Professor detail sections">
+            <Tabs.Tab id="overview">Overview<Tabs.Indicator /></Tabs.Tab>
+            <Tabs.Tab id="papers">Papers<Tabs.Indicator /></Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
+
       {tab === 'overview' && (
         <div className="card">
           <div className="row between" style={{ alignItems: 'baseline' }}>

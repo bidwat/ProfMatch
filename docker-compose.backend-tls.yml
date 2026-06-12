@@ -1,3 +1,6 @@
+# Droplet backend with automatic HTTPS via Caddy.
+# Requires DOMAIN to resolve to this droplet before starting (Let's Encrypt).
+# See docs/deployment/BACKEND_TLS.md for the cutover runbook.
 services:
   backend:
     build:
@@ -8,8 +11,8 @@ services:
     environment:
       PORT: 8000
       APP_ENV: ${APP_ENV:-production}
-    ports:
-      - "80:8000"
+    expose:
+      - "8000"
     volumes:
       - profmatch_backend_jobs:/app/data/qa/onboarding
       - profmatch_backend_raw:/app/data/raw
@@ -42,8 +45,26 @@ services:
       - profmatch_backend_scan_results:/app/data/qa/scan_results
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN to the backend hostname, e.g. api.profmatch.example}
+    command: |
+      sh -c 'printf "%s {\n  encode gzip\n  reverse_proxy backend:8000\n}\n" "$$DOMAIN" > /etc/caddy/Caddyfile && caddy run --config /etc/caddy/Caddyfile'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   profmatch_backend_jobs:
   profmatch_backend_raw:
   profmatch_backend_processed:
   profmatch_backend_scan_results:
+  caddy_data:
+  caddy_config:
