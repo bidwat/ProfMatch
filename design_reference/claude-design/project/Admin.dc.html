@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <!-- ============ NAV (admin shell) ============ -->
+  <header style="position:sticky; top:0; z-index:50; background:color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--border)">
+    <div style="max-width:1160px; margin:0 auto; padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <div style="display:flex; align-items:center; gap:32px">
+        <a href="Landing.dc.html" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text)">
+          <span style="font-weight:800; font-size:19px; letter-spacing:-0.02em">Univya<span style="color:var(--accent)">.</span></span>
+          <span style="padding:3px 10px; border-radius:7px; background:var(--navy-soft); color:var(--primary); font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase">Admin</span>
+        </a>
+        <nav style="display:flex; align-items:center; gap:22px; font-size:14px; font-weight:500">
+          <a href="#dashboard" style="color:var(--text); font-weight:700; text-decoration:none">Dashboard</a>
+          <a href="#scans" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Scans</a>
+          <a href="#onboarding" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Onboarding</a>
+        </nav>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px">
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:14px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+        <span style="width:30px; height:30px; border-radius:9px; background:var(--navy-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:11px">JL</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1160px; margin:0 auto; padding:32px; display:grid; gap:18px">
+
+    <!-- ============ PAGE 1: /admin ============ -->
+    <section id="dashboard" data-screen-label="Admin dashboard" aria-label="Admin dashboard" style="display:grid; gap:18px">
+      <div style="display:flex; align-items:end; justify-content:space-between; gap:16px; flex-wrap:wrap">
+        <div>
+          <div style="font-size:11.5px; font-weight:700; letter-spacing:0.08em; color:var(--faint); text-transform:uppercase">Local admin</div>
+          <h1 style="margin:4px 0 2px; font-size:26px; font-weight:800; letter-spacing:-0.02em">Admin dashboard</h1>
+          <span style="font-size:13px; color:var(--muted)">Manage indexed universities, user requests, and QA-gated agentic workflows.</span>
+        </div>
+        <div style="display:flex; gap:9px">
+          <button style="padding:10px 17px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Refresh</button>
+          <button style="padding:10px 19px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">New agentic scan</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px">
+          <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em">11</div>
+          <div style="font-size:12.5px; color:var(--muted)">indexed departments</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px">
+          <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em">1,037</div>
+          <div style="font-size:12.5px; color:var(--muted)">indexed professors</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px">
+          <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em; color:var(--accent-text)">2</div>
+          <div style="font-size:12.5px; color:var(--muted)">ongoing workflows</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px">
+          <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em; color:var(--warn)">4</div>
+          <div style="font-size:12.5px; color:var(--muted)">requested items</div>
+        </div>
+      </div>
+
+      <!-- Departments table -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Indexed departments table">
+        <h3 style="margin:0 0 14px; font-size:16px; font-weight:800; letter-spacing:-0.01em">Indexed universities and departments</h3>
+        <table style="border-collapse:collapse; width:100%; font-size:13.5px">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px 12px 10px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">University</th>
+              <th style="text-align:left; padding:8px 12px 10px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Department</th>
+              <th style="text-align:right; padding:8px 12px 10px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Professors</th>
+              <th style="text-align:right; padding:8px 24px 10px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Publications</th>
+              <th style="text-align:left; padding:8px 0 10px; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:13px 12px 13px 0; border-bottom:1px solid var(--border); font-weight:600">Stanford University</td>
+              <td style="padding:13px 12px 13px 0; border-bottom:1px solid var(--border); color:var(--muted)">Computer Science</td>
+              <td style="padding:13px 12px 13px 0; border-bottom:1px solid var(--border); text-align:right; font-weight:600">96</td>
+              <td style="padding:13px 24px 13px 0; border-bottom:1px solid var(--border); text-align:right; font-weight:600">612</td>
+              <td style="padding:13px 0; border-bottom:1px solid var(--border)">
+                <div style="display:flex; gap:7px; flex-wrap:wrap">
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Fetch 10 pubs</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Enrich profiles</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Rescan faculty</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid transparent; background:var(--bad-soft); color:var(--bad); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--bad)">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:13px 12px 13px 0; font-weight:600">MIT</td>
+              <td style="padding:13px 12px 13px 0; color:var(--muted)">EECS</td>
+              <td style="padding:13px 12px 13px 0; text-align:right; font-weight:600">88</td>
+              <td style="padding:13px 24px 13px 0; text-align:right; font-weight:600">540</td>
+              <td style="padding:13px 0">
+                <div style="display:flex; gap:7px; flex-wrap:wrap">
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Fetch 10 pubs</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Enrich profiles</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Rescan faculty</button>
+                  <button style="padding:6px 12px; border-radius:8px; border:1px solid transparent; background:var(--bad-soft); color:var(--bad); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--bad)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="display:flex; align-items:center; gap:12px; margin-top:16px">
+          <div style="width:140px; height:7px; border-radius:99px; background:var(--surface2); overflow:hidden"><div style="width:62%; height:100%; background:var(--accent); border-radius:99px"></div></div>
+          <span style="font-size:12.5px; color:var(--muted)">Fetching OpenAlex publications for Grace Hopper… 62%</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start">
+        <!-- Requested departments -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Requested departments">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px">
+            <h3 style="margin:0; font-size:16px; font-weight:800; letter-spacing:-0.01em">Requested departments</h3>
+            <a href="#" style="font-size:12.5px; font-weight:600; color:var(--accent-text); text-decoration:none" style-hover="text-decoration:underline">Recommend page →</a>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:12px; padding:16px 18px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+              <strong style="font-size:14.5px">University of Toronto</strong>
+              <span style="padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11.5px; font-weight:700">submitted</span>
+            </div>
+            <div style="font-size:12.5px; color:var(--muted); margin-top:4px">Psychology · jordan@uni.edu</div>
+            <a href="#" style="font-size:12.5px; color:var(--accent-text); text-decoration:none; display:inline-block; margin-top:6px" style-hover="text-decoration:underline">psych.utoronto.ca/faculty</a>
+          </div>
+        </div>
+
+        <!-- Reports queue + metrics -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Reports queue and metrics">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px">
+            <h3 style="margin:0; font-size:16px; font-weight:800; letter-spacing:-0.01em">Data reports queue</h3>
+            <span style="padding:2px 10px; border-radius:999px; background:var(--warn-soft); color:var(--warn); font-size:11.5px; font-weight:700">2 new</span>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:12px; padding:16px 18px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+              <strong style="font-size:14.5px">Wrong email</strong>
+              <a href="#" style="font-size:12.5px; color:var(--accent-text); text-decoration:none" style-hover="text-decoration:underline">professor #214</a>
+            </div>
+            <p style="margin:6px 0 12px; font-size:13px; line-height:1.55; color:var(--muted)">The listed email bounces; the faculty page shows j.smith@stanford.edu now.</p>
+            <div style="display:flex; gap:8px">
+              <button style="padding:7px 14px; border-radius:9px; border:0; background:var(--good-soft); color:var(--good); font-size:12.5px; font-weight:700; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Mark resolved</button>
+              <button style="padding:7px 14px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Reject</button>
+            </div>
+          </div>
+          <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border)">
+            <div style="display:flex; align-items:center; justify-content:space-between">
+              <strong style="font-size:13.5px">Product events · last 30 days</strong>
+              <span style="font-size:12.5px; color:var(--muted)">1,284 total</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:12.5px; color:var(--muted)">
+              <span style="display:inline-flex; align-items:center; gap:6px"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent)"></span>search performed · 512</span>
+              <span style="display:inline-flex; align-items:center; gap:6px"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent)"></span>profile opened · 387</span>
+              <span style="display:inline-flex; align-items:center; gap:6px"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent)"></span>professor saved · 121</span>
+              <span style="display:inline-flex; align-items:center; gap:6px"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent)"></span>outreach drafts · 44</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agentic jobs -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Agentic jobs">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <h3 style="margin:0; font-size:16px; font-weight:800; letter-spacing:-0.01em">Agentic scan dashboard</h3>
+          <a href="#onboarding" style="font-size:12.5px; font-weight:600; color:var(--accent-text); text-decoration:none" style-hover="text-decoration:underline">Open wizard →</a>
+        </div>
+        <div style="display:flex; gap:4px; border-bottom:1px solid var(--border); margin:14px 0 16px">
+          <button style="padding:9px 16px; border:0; border-bottom:2px solid var(--accent); background:none; color:var(--text); font-size:13px; font-weight:700; font-family:inherit; cursor:pointer">Ongoing (2)</button>
+          <button style="padding:9px 16px; border:0; border-bottom:2px solid transparent; background:none; color:var(--muted); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="color:var(--text)">Ready (1)</button>
+          <button style="padding:9px 16px; border:0; border-bottom:2px solid transparent; background:none; color:var(--muted); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="color:var(--text)">Completed (8)</button>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:12px; padding:16px 18px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+            <strong style="font-size:14.5px">University of Toronto — Psychology</strong>
+            <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11.5px; font-weight:700"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary)"></span>running</span>
+          </div>
+          <div style="font-size:12.5px; color:var(--muted); margin-top:5px">Crawling profile 14/38: Dr. Maya Patel…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 2: /admin/scans ============ -->
+    <section id="scans" data-screen-label="Scan dashboard" aria-label="Scan dashboard" style="display:grid; gap:18px; margin-top:48px; padding-top:40px; border-top:1px solid var(--border)">
+      <div style="display:flex; align-items:end; justify-content:space-between; gap:16px; flex-wrap:wrap">
+        <div>
+          <div style="font-size:11.5px; font-weight:700; letter-spacing:0.08em; color:var(--faint); text-transform:uppercase">Local admin · QA-gated ingestion</div>
+          <h2 style="margin:4px 0 0; font-size:24px; font-weight:800; letter-spacing:-0.02em">University scan dashboard</h2>
+        </div>
+        <button style="padding:10px 17px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Browse indexed professors</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <div style="font-size:24px; font-weight:800">6</div>
+          <div style="font-size:12.5px; color:var(--muted)">durable jobs</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <div style="font-size:24px; font-weight:800; color:var(--accent-text)">1</div>
+          <div style="font-size:12.5px; color:var(--muted)">running tasks</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <div style="font-size:24px; font-weight:800; color:var(--good)">0</div>
+          <div style="font-size:12.5px; color:var(--muted)">failed tasks</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <div style="font-size:24px; font-weight:800">2</div>
+          <div style="font-size:12.5px; color:var(--muted)">legacy imports ready</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:18px; align-items:start">
+        <!-- Jobs table -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Jobs table">
+          <h3 style="margin:0 0 12px; font-size:16px; font-weight:800; letter-spacing:-0.01em">Durable scan jobs</h3>
+          <div style="border:1px solid var(--border); border-radius:12px; padding:15px 17px; margin-bottom:10px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+              <div>
+                <strong style="font-size:14px">#42</strong>
+                <div style="font-size:12px; color:var(--muted)">refresh_existing_department · 6/12</div>
+              </div>
+              <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11.5px; font-weight:700"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary)"></span>running</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+              <div style="flex:1; height:7px; border-radius:99px; background:var(--surface2); overflow:hidden"><div style="width:45%; height:100%; background:var(--accent); border-radius:99px"></div></div>
+              <span style="font-size:12px; color:var(--muted); font-weight:600">45%</span>
+            </div>
+            <div style="font-size:12px; color:var(--faint); margin-top:8px">0 ok · 1 running · 0 queued · 0 failed</div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:12px; padding:15px 17px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+              <div>
+                <strong style="font-size:14px">#41</strong>
+                <div style="font-size:12px; color:var(--muted)">agentic_onboarding · 6/10</div>
+              </div>
+              <span style="padding:3px 11px; border-radius:999px; background:var(--good-soft); color:var(--good); font-size:11.5px; font-weight:700">completed</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+              <div style="flex:1; height:7px; border-radius:99px; background:var(--surface2); overflow:hidden"><div style="width:100%; height:100%; background:var(--good); border-radius:99px"></div></div>
+              <span style="font-size:12px; color:var(--muted); font-weight:600">100%</span>
+            </div>
+            <div style="font-size:12px; color:var(--faint); margin-top:8px">1 ok · 0 running · 0 queued · 0 failed</div>
+          </div>
+        </div>
+
+        <!-- Job detail -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Job detail">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px">
+            <h3 style="margin:0; font-size:16px; font-weight:800; letter-spacing:-0.01em">Job #41 — Stanford CS</h3>
+            <div style="display:flex; gap:7px">
+              <button style="padding:7px 13px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Fetch publications</button>
+              <button style="padding:7px 14px; border-radius:9px; border:0; background:var(--primary); color:var(--on-primary); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Import approved</button>
+              <button style="padding:7px 13px; border-radius:9px; border:1px solid transparent; background:var(--bad-soft); color:var(--bad); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--bad)">Cancel</button>
+            </div>
+          </div>
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--faint); text-transform:uppercase; margin-bottom:8px">Candidates (38)</div>
+          <div style="display:grid; gap:8px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:11px; padding:12px 15px">
+              <div>
+                <strong style="font-size:13.5px">Ada Lovelace</strong>
+                <div style="font-size:12px; color:var(--muted)">ada@stanford.edu · 10 pubs</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:7px">
+                <span style="padding:3px 10px; border-radius:7px; background:var(--good-soft); color:var(--good); font-size:11px; font-weight:700">clean</span>
+                <span style="padding:3px 10px; border-radius:7px; background:var(--surface2); color:var(--muted); font-size:11px; font-weight:600">ready_for_review</span>
+                <button style="padding:6px 12px; border-radius:8px; border:0; background:var(--good-soft); color:var(--good); font-size:12px; font-weight:700; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Approve</button>
+                <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Reject</button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:11px; padding:12px 15px">
+              <div>
+                <strong style="font-size:13.5px">John Doe</strong>
+                <div style="font-size:12px; color:var(--muted)">no email · 0 pubs</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:7px">
+                <span style="padding:3px 10px; border-radius:7px; background:var(--bad-soft); color:var(--bad); font-size:11px; font-weight:700">missing_email</span>
+                <span style="padding:3px 10px; border-radius:7px; background:var(--surface2); color:var(--muted); font-size:11px; font-weight:600">ready_for_review</span>
+                <button style="padding:6px 12px; border-radius:8px; border:0; background:var(--good-soft); color:var(--good); font-size:12px; font-weight:700; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Approve</button>
+                <button style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Reject</button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:11px; padding:12px 15px">
+              <div>
+                <strong style="font-size:13.5px">Grace Hopper</strong>
+                <div style="font-size:12px; color:var(--muted)">grace@stanford.edu · 8 pubs</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:7px">
+                <span style="padding:3px 10px; border-radius:7px; background:var(--good-soft); color:var(--good); font-size:11px; font-weight:700">clean</span>
+                <span style="padding:3px 10px; border-radius:7px; background:var(--accent-soft); color:var(--accent-text); font-size:11px; font-weight:700">imported</span>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--faint); text-transform:uppercase; margin:16px 0 8px">Logs</div>
+          <pre style="margin:0; background:var(--navy-deep); color:var(--on-deep-muted); padding:14px 16px; border-radius:11px; font-size:11.5px; line-height:1.7; overflow-x:auto; font-family:ui-monospace, monospace"><span style="color:var(--accent)">[info]</span> publication_fetch_completed — OpenAlex publication fetch completed
+<span style="color:var(--accent)">[info]</span> result_saved — Saved 38 candidate result(s)
+<span style="color:var(--accent)">[info]</span> extraction_completed — Found 38 profile candidate(s)</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 3: /admin/onboarding ============ -->
+    <section id="onboarding" data-screen-label="Agentic onboarding" aria-label="Agentic onboarding wizard" style="display:grid; gap:18px; margin-top:48px; padding-top:40px; border-top:1px solid var(--border)">
+      <div>
+        <div style="font-size:11.5px; font-weight:700; letter-spacing:0.08em; color:var(--faint); text-transform:uppercase">Local admin · Crawl4AI + LLM</div>
+        <h2 style="margin:4px 0 6px; font-size:24px; font-weight:800; letter-spacing:-0.02em">Agentic onboarding</h2>
+        <p style="margin:0; font-size:13.5px; line-height:1.6; color:var(--muted); max-width:720px; text-wrap:pretty">Provide a faculty directory URL. The agent crawls the roster, extracts each professor, enriches homepages and publications, and generates AI summaries — all staged for review before publish.</p>
+      </div>
+
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)">
+        <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Faculty page URL
+          <input value="https://cs.stanford.edu/people/faculty" style="padding:11px 14px; border:1px solid var(--border); border-radius:10px; font-size:13.5px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+        </label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px">
+          <input placeholder="University" value="Stanford University" style="width:230px; padding:11px 14px; border:1px solid var(--border); border-radius:10px; font-size:13.5px; font-family:inherit; background:var(--bg); color:var(--text)">
+          <input placeholder="Department" value="Computer Science" style="width:230px; padding:11px 14px; border:1px solid var(--border); border-radius:10px; font-size:13.5px; font-family:inherit; background:var(--bg); color:var(--text)">
+          <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer"><input type="checkbox" defaultChecked="{{ true }}" style="width:16px; height:16px; accent-color:var(--accent)"> Automatic pipeline</label>
+          <button style="margin-left:auto; padding:11px 20px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Start extraction →</button>
+        </div>
+      </div>
+
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; box-shadow:var(--shadow)" aria-label="Live job state">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+          <strong style="font-size:15px">Job e9a1c2 — Stanford CS</strong>
+          <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11.5px; font-weight:700"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary)"></span>running</span>
+        </div>
+        <div style="font-size:12.5px; color:var(--muted); margin-top:5px">Summarizing 22/38: Fei Chen…</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 20px">
+          <button style="padding:8px 14px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Enrich homepages</button>
+          <button style="padding:8px 14px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Fetch publications</button>
+          <button style="padding:8px 14px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Generate summaries</button>
+          <button style="padding:8px 16px; border-radius:9px; border:0; background:var(--primary); color:var(--on-primary); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Publish to database</button>
+          <button style="padding:8px 14px; border-radius:9px; border:1px solid transparent; background:var(--bad-soft); color:var(--bad); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--bad)">Stop</button>
+        </div>
+        <div style="font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--faint); text-transform:uppercase; margin-bottom:6px">Extracted professors (38)</div>
+        <table style="border-collapse:collapse; width:100%; font-size:13px">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px 12px 9px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Name</th>
+              <th style="text-align:left; padding:8px 12px 9px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Position</th>
+              <th style="text-align:left; padding:8px 12px 9px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Email</th>
+              <th style="text-align:right; padding:8px 24px 9px 0; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">Pubs</th>
+              <th style="text-align:left; padding:8px 0 9px; font-size:11.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--border)">AI summary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:12px 12px 12px 0; border-bottom:1px solid var(--border); font-weight:600">Ada Lovelace</td>
+              <td style="padding:12px 12px 12px 0; border-bottom:1px solid var(--border); color:var(--muted)">Assistant Professor</td>
+              <td style="padding:12px 12px 12px 0; border-bottom:1px solid var(--border); color:var(--muted)">ada@stanford.edu</td>
+              <td style="padding:12px 24px 12px 0; border-bottom:1px solid var(--border); text-align:right; font-weight:600">10</td>
+              <td style="padding:12px 0; border-bottom:1px solid var(--border); color:var(--muted)">Robot learning and vision-based systems…</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 12px 12px 0; font-weight:600">Grace Hopper</td>
+              <td style="padding:12px 12px 12px 0; color:var(--muted)">Professor</td>
+              <td style="padding:12px 12px 12px 0; color:var(--muted)">grace@stanford.edu</td>
+              <td style="padding:12px 24px 12px 0; text-align:right; font-weight:600">8</td>
+              <td style="padding:12px 0; color:var(--muted)">Programming systems and ML-assisted compilation…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

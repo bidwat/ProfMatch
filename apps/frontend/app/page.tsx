@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getStats } from '@/lib/api';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { ExplorerStatsResponse } from '@/lib/types';
 
 function formatStat(value?: number) {
@@ -45,7 +46,7 @@ const studentFeatures = [
 const exampleTopics = ['Artificial Intelligence', 'Computational Biology', 'Public Health', 'Robotics', 'Psychology', 'Climate Science'];
 
 const faqEntries = [
-  ['Is ProfMatch free?', 'Browsing professor profiles, keyword search, and filters are free and do not require an account. An account adds saved shortlists and personalized matching.'],
+  ['Is Univya free?', 'Browsing professor profiles, keyword search, and filters are free and do not require an account. An account adds saved shortlists and personalized matching.'],
   ['What does the match percentage mean?', 'It is a research-fit score: how strongly a professor’s recent papers, summary, and tags overlap with your stated interests. It is not an admission chance and never a guarantee of a reply.'],
   ['Where does professor data come from?', 'Public faculty pages, personal and lab websites, and publication databases like OpenAlex — each profile keeps its source links and a confidence label.'],
   ['Can I report incorrect data?', 'Yes. Every profile has a report path, and reports go to an admin review queue before the database changes.'],
@@ -72,7 +73,7 @@ export default function LandingPage() {
     <div className="landing-page landing-page-expanded">
       <header className="landing-public-nav landing-nav-sticky">
         <Link className="brand" href="/">
-          <span className="brand-mark">PM</span><span>ProfMatch</span>
+          <span>Univya<span className="brand-dot">.</span></span>
         </Link>
         <nav className="landing-nav-links" aria-label="Landing navigation">
           <Link href="/professors" prefetch={false}>Browse professors</Link>
@@ -83,6 +84,7 @@ export default function LandingPage() {
           <a href="#faq">FAQ</a>
         </nav>
         <div className="row">
+          <ThemeToggle />
           <Link className="ghost small" href="/signin" prefetch={false}>Sign in</Link>
           <Link className="button primary" href="/signup" prefetch={false}>Get started →</Link>
         </div>
@@ -94,7 +96,7 @@ export default function LandingPage() {
             <div className="badge">✦ Research-fit professor discovery</div>
             <h1>Find professors whose recent work matches your research story.</h1>
             <div className="landing-accent-line" />
-            <p className="lead">ProfMatch turns your academic background, interests, degree goals, and preferences into an explainable shortlist of potential MS/PhD advisors — with recent paper context, profile summaries, and clear reasons for every recommendation.</p>
+            <p className="lead">Univya turns your academic background, interests, degree goals, and preferences into an explainable shortlist of potential MS/PhD advisors — with recent paper context, profile summaries, and clear reasons for every recommendation.</p>
             <form
               className="landing-search-form"
               role="search"
@@ -188,7 +190,7 @@ export default function LandingPage() {
           </div>
           <div className="landing-compare-grid">
             <div className="landing-compare-col without">
-              <h3>Without ProfMatch</h3>
+              <h3>Without Univya</h3>
               <ul>
                 <li>Search department faculty pages one university at a time</li>
                 <li>Read bios that may be years out of date</li>
@@ -197,7 +199,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div className="landing-compare-col with">
-              <h3>With ProfMatch</h3>
+              <h3>With Univya</h3>
               <ul>
                 <li>Search professor profiles across universities in one place</li>
                 <li>See AI summaries informed by recent publications, with sources</li>

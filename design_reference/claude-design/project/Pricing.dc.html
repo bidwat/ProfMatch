@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div data-screen-label="Pricing" style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <!-- ============ NAV ============ -->
+  <header style="position:sticky; top:0; z-index:50; background:color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--border)">
+    <div style="max-width:1080px; margin:0 auto; padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <a href="Landing.dc.html" style="font-weight:800; font-size:19px; letter-spacing:-0.02em; color:var(--text); text-decoration:none">Univya<span style="color:var(--accent)">.</span></a>
+      <nav style="display:flex; align-items:center; gap:24px; font-size:14px; font-weight:500">
+        <a href="Discover.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Browse professors</a>
+        <a href="Pricing.dc.html" style="color:var(--text); font-weight:700; text-decoration:none">Pricing</a>
+      </nav>
+      <div style="display:flex; align-items:center; gap:10px">
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:14px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+        <a href="Auth.dc.html" style="padding:8px 15px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text); text-decoration:none; border:1px solid var(--border); background:var(--surface)" style-hover="border-color:var(--faint)">Sign in</a>
+        <a href="Auth.dc.html" style="padding:8px 16px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--on-primary); background:var(--primary); text-decoration:none" style-hover="filter:brightness(1.12)">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:880px; margin:0 auto; padding:32px">
+
+    <div style="text-align:center; padding:48px 0 40px">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">Pricing</div>
+      <h1 style="margin:12px auto 0; font-size:38px; font-weight:800; letter-spacing:-0.025em; max-width:640px; text-wrap:balance">Browsing is free. Personalization and workflow are paid.</h1>
+      <p style="margin:16px auto 0; font-size:15.5px; line-height:1.6; color:var(--muted); max-width:560px; text-wrap:pretty">Public professor discovery stays free forever — it’s how Univya earns trust. Paid plans unlock matching and application workflow built on your research profile.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch">
+
+      <!-- Free plan -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; display:flex; flex-direction:column; box-shadow:var(--shadow)">
+        <span style="align-self:start; padding:5px 14px; border-radius:999px; background:var(--surface2); color:var(--muted); font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Free</span>
+        <h2 style="margin:16px 0 4px; font-size:22px; font-weight:800; letter-spacing:-0.015em">Public discovery</h2>
+        <p style="margin:0 0 22px; font-size:14px; color:var(--muted)">For every prospective research student.</p>
+        <div style="display:grid; gap:12px; font-size:14px; line-height:1.5; margin-bottom:28px">
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Browse professor profiles</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Keyword search and filters</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>AI summaries with source links</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Recent publications with confidence labels</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Report incorrect data</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Request missing departments</span></div>
+        </div>
+        <a href="Discover.dc.html" style="margin-top:auto; display:block; text-align:center; padding:13px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14.5px; font-weight:600; text-decoration:none" style-hover="border-color:var(--faint)">Start searching</a>
+      </div>
+
+      <!-- Pro plan -->
+      <div style="background:var(--navy-deep); border-radius:20px; padding:32px; display:flex; flex-direction:column; color:var(--on-deep); position:relative">
+        <span style="align-self:start; padding:5px 14px; border-radius:999px; background:var(--accent); color:#06241F; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Pro · pricing coming soon</span>
+        <h2 style="margin:16px 0 4px; font-size:22px; font-weight:800; letter-spacing:-0.015em">Personalized workflow</h2>
+        <p style="margin:0 0 22px; font-size:14px; color:var(--on-deep-muted)">For applicants who want research-fit matching and an organized outreach pipeline.</p>
+        <div style="display:grid; gap:12px; font-size:14px; line-height:1.5; margin-bottom:28px">
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Personalized research-fit matching</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Match threshold controls and evidence</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Saved professor shortlists</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Professor comparison</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Application board with outreach stages</span></div>
+          <div style="display:flex; gap:11px"><span style="color:var(--accent); font-weight:700">✓</span><span>Outreach email drafts (never auto-sent)</span></div>
+        </div>
+        <a href="Auth.dc.html" style="margin-top:auto; display:block; text-align:center; padding:13px; border-radius:12px; background:var(--accent); color:#06241F; font-size:14.5px; font-weight:700; text-decoration:none" style-hover="filter:brightness(1.1)">Create your research profile</a>
+      </div>
+    </div>
+
+    <!-- Trust note -->
+    <div style="margin:20px 0 64px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 30px; display:flex; gap:18px; align-items:start">
+      <div style="width:40px; height:40px; flex-shrink:0; border-radius:12px; background:var(--accent-soft); color:var(--accent-text); display:grid; place-items:center; font-weight:800; font-size:16px">✓</div>
+      <div>
+        <h3 style="margin:0 0 6px; font-size:16px; font-weight:800; letter-spacing:-0.01em">Trust comes first</h3>
+        <p style="margin:0; font-size:14px; line-height:1.65; color:var(--muted); text-wrap:pretty">Professors and universities never pay for ranking or visibility. Match scores measure <strong style="color:var(--text)">research fit</strong> — the overlap between your interests and a professor’s recent, source-backed work. They are not admission chances and never a guarantee of a reply.</p>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

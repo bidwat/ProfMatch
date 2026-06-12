@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <header style="max-width:1080px; margin:0 auto; padding:20px 32px; display:flex; align-items:center; justify-content:space-between">
+    <a href="Landing.dc.html" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--muted); text-decoration:none" style-hover="color:var(--text)">← Back to home</a>
+    <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:14px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+  </header>
+
+  <main style="max-width:1020px; margin:0 auto; padding:24px 32px 80px; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start">
+
+    <!-- ============ SIGN IN ============ -->
+    <section data-screen-label="Sign in" aria-label="Sign in">
+      <div style="font-size:11.5px; font-weight:700; letter-spacing:0.1em; color:var(--faint); text-transform:uppercase; margin-bottom:12px">/signin — error state</div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:36px; box-shadow:var(--shadow)">
+        <div style="font-weight:800; font-size:21px; letter-spacing:-0.02em">Univya<span style="color:var(--accent)">.</span></div>
+        <h1 style="margin:20px 0 6px; font-size:24px; font-weight:800; letter-spacing:-0.02em">Welcome back</h1>
+        <p style="margin:0 0 24px; font-size:14px; line-height:1.55; color:var(--muted)">Sign in to continue building your professor shortlist.</p>
+        <form style="display:grid; gap:16px">
+          <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Email
+            <input type="email" placeholder="you@university.edu" value="jordan@uni.edu" style="padding:12px 15px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+          </label>
+          <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Password
+            <input type="password" placeholder="Password" value="••••••••••" style="padding:12px 15px; border:1px solid var(--bad); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+          </label>
+          <div role="alert" style="display:flex; align-items:center; gap:9px; padding:11px 15px; border-radius:11px; background:var(--bad-soft); color:var(--bad); font-size:13px; font-weight:600">
+            <span style="width:7px; height:7px; border-radius:50%; background:var(--bad); flex-shrink:0"></span>
+            Invalid email or password.
+          </div>
+          <button type="submit" style="padding:13px; border:0; border-radius:11px; background:var(--primary); color:var(--on-primary); font-size:14.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Sign in →</button>
+        </form>
+        <p style="margin:20px 0 0; font-size:13px; color:var(--muted); text-align:center">Need an account? <a href="#" style="color:var(--accent-text); font-weight:600; text-decoration:none" style-hover="text-decoration:underline">Create one</a></p>
+      </div>
+    </section>
+
+    <!-- ============ SIGN UP ============ -->
+    <section data-screen-label="Sign up" aria-label="Sign up">
+      <div style="font-size:11.5px; font-weight:700; letter-spacing:0.1em; color:var(--faint); text-transform:uppercase; margin-bottom:12px">/signup</div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:36px; box-shadow:var(--shadow)">
+        <div style="font-weight:800; font-size:21px; letter-spacing:-0.02em">Univya<span style="color:var(--accent)">.</span></div>
+        <h1 style="margin:20px 0 6px; font-size:24px; font-weight:800; letter-spacing:-0.02em">Create your profile</h1>
+        <p style="margin:0 0 24px; font-size:14px; line-height:1.55; color:var(--muted)">Start your professor matching workspace with a few account details.</p>
+        <form style="display:grid; gap:16px">
+          <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Full name
+            <input placeholder="Jordan Lee" value="Jordan Lee" style="padding:12px 15px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+          </label>
+          <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Email
+            <input type="email" placeholder="you@university.edu" value="jordan@uni.edu" style="padding:12px 15px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+          </label>
+          <label style="display:grid; gap:7px; font-size:13px; font-weight:700">Password
+            <input type="password" placeholder="At least 8 characters" style="padding:12px 15px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text)">
+          </label>
+          <button type="submit" style="padding:13px; border:0; border-radius:11px; background:var(--primary); color:var(--on-primary); font-size:14.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Continue to profile →</button>
+        </form>
+        <p style="margin:20px 0 0; font-size:13px; color:var(--muted); text-align:center">Already have an account? <a href="#" style="color:var(--accent-text); font-weight:600; text-decoration:none" style-hover="text-decoration:underline">Sign in</a></p>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

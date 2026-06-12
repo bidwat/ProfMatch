@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div data-screen-label="Landing" style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <!-- ============ NAV ============ -->
+  <header style="position:sticky; top:0; z-index:50; background:color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--border)">
+    <div style="max-width:1140px; margin:0 auto; padding:0 32px; height:64px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <a href="Landing.dc.html" style="font-weight:800; font-size:20px; letter-spacing:-0.02em; color:var(--text); text-decoration:none">Univya<span style="color:var(--accent)">.</span></a>
+      <nav style="display:flex; align-items:center; gap:26px; font-size:14px; font-weight:500">
+        <a href="Discover.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Browse professors</a>
+        <a href="#how" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">How it works</a>
+        <a href="Pricing.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Pricing</a>
+        <a href="#faq" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">FAQ</a>
+      </nav>
+      <div style="display:flex; align-items:center; gap:10px">
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" title="Toggle dark mode" style="width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:15px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+        <a href="Auth.dc.html" style="padding:9px 16px; border-radius:10px; font-size:14px; font-weight:600; color:var(--text); text-decoration:none; border:1px solid var(--border); background:var(--surface)" style-hover="border-color:var(--faint)">Sign in</a>
+        <a href="Auth.dc.html" style="padding:9px 18px; border-radius:10px; font-size:14px; font-weight:600; color:var(--on-primary); background:var(--primary); text-decoration:none" style-hover="filter:brightness(1.12)">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1140px; margin:0 auto; padding:0 32px">
+
+    <!-- ============ HERO ============ -->
+    <section aria-label="Hero" style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:64px; align-items:center; padding:80px 0 72px">
+      <div style="display:grid; gap:22px; justify-items:start">
+        <span style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:12.5px; font-weight:700; letter-spacing:0.02em"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent)"></span>Research-fit advisor discovery</span>
+        <h1 style="margin:0; font-size:52px; line-height:1.06; font-weight:800; letter-spacing:-0.025em; text-wrap:balance">Find professors whose recent work matches your research story.</h1>
+        <p style="margin:0; font-size:17px; line-height:1.6; color:var(--muted); max-width:520px; text-wrap:pretty">Univya turns your background, interests, and degree goals into an explainable shortlist of potential MS/PhD advisors — with recent-paper evidence and clear reasons for every match.</p>
+        <form role="search" style="display:flex; gap:10px; width:100%; max-width:540px; margin-top:4px">
+          <input type="search" placeholder="Professor, university, department, or topic…" style="flex:1; min-width:0; padding:14px 18px; border:1px solid var(--border); border-radius:12px; font-size:15px; font-family:inherit; background:var(--surface); color:var(--text); box-shadow:var(--shadow)">
+          <button type="submit" style="padding:14px 22px; border:0; border-radius:12px; background:var(--primary); color:var(--on-primary); font-size:15px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap" style-hover="filter:brightness(1.12)">Search</button>
+        </form>
+        <div aria-label="Example topics" style="display:flex; flex-wrap:wrap; gap:8px">
+          <a href="Discover.dc.html" style="padding:6px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:500; text-decoration:none" style-hover="color:var(--text); border-color:var(--faint)">Artificial Intelligence</a>
+          <a href="Discover.dc.html" style="padding:6px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:500; text-decoration:none" style-hover="color:var(--text); border-color:var(--faint)">Computational Biology</a>
+          <a href="Discover.dc.html" style="padding:6px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:500; text-decoration:none" style-hover="color:var(--text); border-color:var(--faint)">Public Health</a>
+          <a href="Discover.dc.html" style="padding:6px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:500; text-decoration:none" style-hover="color:var(--text); border-color:var(--faint)">Robotics</a>
+          <a href="Discover.dc.html" style="padding:6px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px; font-weight:500; text-decoration:none" style-hover="color:var(--text); border-color:var(--faint)">Climate Science</a>
+        </div>
+        <div aria-label="Dataset stats" style="display:flex; gap:0; margin-top:14px">
+          <div style="padding-right:28px">
+            <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em">1,037</div>
+            <div style="font-size:12.5px; color:var(--muted)">Professors indexed</div>
+          </div>
+          <div style="padding:0 28px; border-left:1px solid var(--border)">
+            <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em">4,397</div>
+            <div style="font-size:12.5px; color:var(--muted)">Papers indexed</div>
+          </div>
+          <div style="padding-left:28px; border-left:1px solid var(--border)">
+            <div style="font-size:26px; font-weight:800; letter-spacing:-0.02em">912</div>
+            <div style="font-size:12.5px; color:var(--muted)">Profiles with papers</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match preview composition -->
+      <div aria-label="Match preview" style="background:var(--navy-soft); border-radius:24px; padding:36px 32px; display:grid; gap:14px; position:relative">
+        <div style="font-size:11.5px; font-weight:700; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase">Match preview</div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow); display:flex; align-items:center; gap:16px">
+          <div style="width:64px; height:64px; flex-shrink:0; border-radius:50%; background:conic-gradient(var(--accent) 78%, var(--surface2) 0); display:grid; place-items:center">
+            <div style="width:48px; height:48px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-weight:800; font-size:14px">78%</div>
+          </div>
+          <div style="min-width:0">
+            <div style="font-weight:700; font-size:15.5px">Ada Lovelace · Stanford</div>
+            <div style="font-size:13px; color:var(--muted); line-height:1.5">Recent papers align with robot learning, computer vision, and sim-to-real transfer.</div>
+          </div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px 20px; box-shadow:var(--shadow)">
+          <div style="font-size:12px; font-weight:700; color:var(--accent-text); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:8px">Why matched</div>
+          <div style="display:flex; flex-wrap:wrap; gap:7px">
+            <span style="padding:4px 11px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">robot learning</span>
+            <span style="padding:4px 11px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">vision foundation models</span>
+            <span style="padding:4px 11px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">3 relevant papers</span>
+          </div>
+        </div>
+        <div style="background:var(--navy-deep); border-radius:16px; padding:18px 20px; color:var(--on-deep)">
+          <div style="font-weight:700; font-size:14.5px">Know why someone matched</div>
+          <div style="font-size:12.5px; color:var(--on-deep-muted); margin-top:3px">Topics · recent papers · fit reasons · uncertainty notes</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRODUCT PREVIEW ============ -->
+    <section aria-label="Product preview" style="padding:64px 0; border-top:1px solid var(--border)">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">Product preview</div>
+      <h2 style="margin:10px 0 36px; font-size:32px; font-weight:800; letter-spacing:-0.02em; max-width:640px; text-wrap:balance">Everything you need to evaluate professor fit, in one workflow.</h2>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; display:grid; gap:14px; box-shadow:var(--shadow)">
+          <div style="height:150px; border-radius:10px; border:1px solid var(--border); background:repeating-linear-gradient(45deg, var(--surface2) 0px, var(--surface2) 8px, transparent 8px, transparent 18px); display:grid; place-items:center"><span style="font-family:ui-monospace, monospace; font-size:11.5px; color:var(--faint)">screenshot: discover directory</span></div>
+          <div style="padding:0 6px 8px">
+            <div style="font-weight:700; font-size:15.5px; line-height:1.35">Browse professors without opening dozens of tabs</div>
+            <p style="margin:6px 0 0; font-size:13.5px; line-height:1.55; color:var(--muted)">Search by name, university, department, research area, and recruiting signal from one directory.</p>
+          </div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; display:grid; gap:14px; box-shadow:var(--shadow)">
+          <div style="height:150px; border-radius:10px; border:1px solid var(--border); background:repeating-linear-gradient(45deg, var(--surface2) 0px, var(--surface2) 8px, transparent 8px, transparent 18px); display:grid; place-items:center"><span style="font-family:ui-monospace, monospace; font-size:11.5px; color:var(--faint)">screenshot: ranked matches</span></div>
+          <div style="padding:0 6px 8px">
+            <div style="font-weight:700; font-size:15.5px; line-height:1.35">See why each professor fits your profile</div>
+            <p style="margin:6px 0 0; font-size:13.5px; line-height:1.55; color:var(--muted)">Ranked results explain the overlap with paper evidence and honest caveats.</p>
+          </div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; display:grid; gap:14px; box-shadow:var(--shadow)">
+          <div style="height:150px; border-radius:10px; border:1px solid var(--border); background:repeating-linear-gradient(45deg, var(--surface2) 0px, var(--surface2) 8px, transparent 8px, transparent 18px); display:grid; place-items:center"><span style="font-family:ui-monospace, monospace; font-size:11.5px; color:var(--faint)">screenshot: professor profile</span></div>
+          <div style="padding:0 6px 8px">
+            <div style="font-weight:700; font-size:15.5px; line-height:1.35">Review the details before you shortlist</div>
+            <p style="margin:6px 0 0; font-size:13.5px; line-height:1.55; color:var(--muted)">Summaries, tags, publications, contact links, and source confidence in one place.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROBLEM COMPARISON ============ -->
+    <section aria-label="Problem comparison" style="padding:64px 0; border-top:1px solid var(--border)">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">The problem</div>
+      <h2 style="margin:10px 0 36px; font-size:32px; font-weight:800; letter-spacing:-0.02em; max-width:680px; text-wrap:balance">Finding an advisor shouldn’t require dozens of tabs and a spreadsheet.</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:30px">
+          <h3 style="margin:0 0 18px; font-size:17px; font-weight:700; color:var(--muted)">The old way</h3>
+          <div style="display:grid; gap:14px; font-size:14.5px; line-height:1.5; color:var(--muted)">
+            <div style="display:flex; gap:12px"><span style="color:var(--bad); font-weight:700">✕</span><span>Search department faculty pages one university at a time</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--bad); font-weight:700">✕</span><span>Read bios that may be years out of date</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--bad); font-weight:700">✕</span><span>Guess whether a professor’s current work fits your interests</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--bad); font-weight:700">✕</span><span>Track candidates in a spreadsheet you maintain by hand</span></div>
+          </div>
+        </div>
+        <div style="background:var(--navy-deep); border-radius:16px; padding:30px; color:var(--on-deep)">
+          <h3 style="margin:0 0 18px; font-size:17px; font-weight:700">With Univya</h3>
+          <div style="display:grid; gap:14px; font-size:14.5px; line-height:1.5; color:var(--on-deep-muted)">
+            <div style="display:flex; gap:12px"><span style="color:var(--accent); font-weight:700">✓</span><span style="color:var(--on-deep)">Search professor profiles across universities in one place</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--accent); font-weight:700">✓</span><span style="color:var(--on-deep)">AI summaries informed by recent publications, with sources</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--accent); font-weight:700">✓</span><span style="color:var(--on-deep)">Explainable research-fit scores with paper evidence</span></div>
+            <div style="display:flex; gap:12px"><span style="color:var(--accent); font-weight:700">✓</span><span style="color:var(--on-deep)">Save a shortlist tied to your account</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section id="how" aria-label="How it works" style="padding:64px 0; border-top:1px solid var(--border)">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">How it works</div>
+      <h2 style="margin:10px 0 36px; font-size:32px; font-weight:800; letter-spacing:-0.02em; max-width:640px; text-wrap:balance">From your interests to a focused advisor shortlist.</h2>
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px">
+        <div style="display:grid; gap:10px; align-content:start; padding:24px; background:var(--surface); border:1px solid var(--border); border-radius:16px">
+          <div style="font-size:13px; font-weight:800; color:var(--accent-text)">01</div>
+          <div style="font-weight:700; font-size:15.5px; line-height:1.35">Describe your research goals</div>
+          <p style="margin:0; font-size:13px; line-height:1.55; color:var(--muted)">Interests, background, target degree, and preferences — once.</p>
+        </div>
+        <div style="display:grid; gap:10px; align-content:start; padding:24px; background:var(--surface); border:1px solid var(--border); border-radius:16px">
+          <div style="font-size:13px; font-weight:800; color:var(--accent-text)">02</div>
+          <div style="font-weight:700; font-size:15.5px; line-height:1.35">Browse matching faculty records</div>
+          <p style="margin:0; font-size:13px; line-height:1.55; color:var(--muted)">A ranked shortlist drawn from source-backed profiles.</p>
+        </div>
+        <div style="display:grid; gap:10px; align-content:start; padding:24px; background:var(--surface); border:1px solid var(--border); border-radius:16px">
+          <div style="font-size:13px; font-weight:800; color:var(--accent-text)">03</div>
+          <div style="font-weight:700; font-size:15.5px; line-height:1.35">Review paper-backed reasons</div>
+          <p style="margin:0; font-size:13px; line-height:1.55; color:var(--muted)">What matched, which papers, and where the system is uncertain.</p>
+        </div>
+        <div style="display:grid; gap:10px; align-content:start; padding:24px; background:var(--surface); border:1px solid var(--border); border-radius:16px">
+          <div style="font-size:13px; font-weight:800; color:var(--accent-text)">04</div>
+          <div style="font-weight:700; font-size:15.5px; line-height:1.35">Save professors for later</div>
+          <p style="margin:0; font-size:13px; line-height:1.55; color:var(--muted)">Shortlist, compare, and track outreach on your board.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AUDIENCE ============ -->
+    <section aria-label="Audience features" style="padding:64px 0; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:20px">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:30px; box-shadow:var(--shadow)">
+        <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">For applicants</div>
+        <h2 style="margin:10px 0 18px; font-size:22px; font-weight:800; letter-spacing:-0.015em; text-wrap:balance">Built around the decisions students actually make.</h2>
+        <div style="display:grid; gap:13px; font-size:14px; line-height:1.55; color:var(--muted)">
+          <div><strong style="color:var(--text)">Academic profile</strong> — interests, background, degree, preferences, once.</div>
+          <div><strong style="color:var(--text)">Ranked recommendations</strong> — ordered by research fit and evidence.</div>
+          <div><strong style="color:var(--text)">Evidence-backed explanations</strong> — what matched and where the system is uncertain.</div>
+          <div><strong style="color:var(--text)">Saved professors</strong> — a shortlist you can return to anytime.</div>
+        </div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:30px; box-shadow:var(--shadow)">
+        <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">Why it helps</div>
+        <h2 style="margin:10px 0 18px; font-size:22px; font-weight:800; letter-spacing:-0.015em; text-wrap:balance">Spend time evaluating fit, not collecting links.</h2>
+        <div style="display:grid; gap:13px; font-size:14px; line-height:1.55; color:var(--muted)">
+          <div><strong style="color:var(--text)">Recent work first</strong> — current publications, not stale bios.</div>
+          <div><strong style="color:var(--text)">Clear uncertainty</strong> — unknown means unknown, never glossed over.</div>
+          <div><strong style="color:var(--text)">Less manual scanning</strong> — compare faculty across universities at once.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DEPT REQUEST ============ -->
+    <section aria-label="Department request" style="padding:0 0 64px">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 30px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap">
+        <div>
+          <div style="font-weight:700; font-size:16px">Don’t see your university or department?</div>
+          <div style="font-size:13.5px; color:var(--muted); margin-top:3px">Request it with the faculty page URL and our admins will review it for import.</div>
+        </div>
+        <a href="#" style="padding:11px 20px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-weight:600; text-decoration:none; white-space:nowrap" style-hover="border-color:var(--faint)">Request a department →</a>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" aria-label="FAQ" style="padding:64px 0; border-top:1px solid var(--border)">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--accent-text); text-transform:uppercase">FAQ</div>
+      <h2 style="margin:10px 0 32px; font-size:32px; font-weight:800; letter-spacing:-0.02em">Common questions, answered plainly.</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start">
+        <details style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <summary style="font-weight:700; font-size:15px; cursor:pointer">Is Univya free?</summary>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:var(--muted)">Browsing, keyword search, and filters are free without an account. An account adds saved shortlists and personalized matching.</p>
+        </details>
+        <details style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <summary style="font-weight:700; font-size:15px; cursor:pointer">What does the match percentage mean?</summary>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:var(--muted)">A research-fit score — overlap between your interests and a professor’s recent, source-backed work. Not an admission chance.</p>
+        </details>
+        <details style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <summary style="font-weight:700; font-size:15px; cursor:pointer">Where does professor data come from?</summary>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:var(--muted)">Public faculty pages, personal and lab websites, and OpenAlex — each profile keeps source links and a confidence label.</p>
+        </details>
+        <details style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px">
+          <summary style="font-weight:700; font-size:15px; cursor:pointer">Can I report incorrect data?</summary>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:var(--muted)">Yes. Every profile has a report path reviewed by admins before public data changes.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section aria-label="Final CTA" style="padding:0 0 80px">
+      <div style="background:var(--navy-deep); border-radius:24px; padding:64px 48px; text-align:center; color:var(--on-deep)">
+        <h2 style="margin:0 auto; font-size:34px; font-weight:800; letter-spacing:-0.02em; max-width:560px; text-wrap:balance">Build a shortlist backed by recent research evidence.</h2>
+        <p style="margin:14px auto 28px; font-size:15.5px; line-height:1.6; color:var(--on-deep-muted); max-width:480px; text-wrap:pretty">Create your profile, review explainable matches, and save the professors you want to revisit.</p>
+        <div style="display:flex; gap:12px; justify-content:center">
+          <a href="Auth.dc.html" style="padding:13px 26px; border-radius:12px; background:var(--accent); color:#06241F; font-size:15px; font-weight:700; text-decoration:none" style-hover="filter:brightness(1.1)">Get started →</a>
+          <a href="Discover.dc.html" style="padding:13px 26px; border-radius:12px; border:1px solid rgba(235,240,250,.25); color:var(--on-deep); font-size:15px; font-weight:600; text-decoration:none" style-hover="border-color:rgba(235,240,250,.5)">Browse professors</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="border-top:1px solid var(--border)">
+    <div style="max-width:1140px; margin:0 auto; padding:32px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap">
+      <span style="font-weight:800; font-size:16px; letter-spacing:-0.02em">Univya<span style="color:var(--accent)">.</span></span>
+      <nav style="display:flex; gap:22px; font-size:13px">
+        <a href="Discover.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Browse professors</a>
+        <a href="Pricing.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Pricing</a>
+        <a href="#" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Crawler policy</a>
+        <a href="#" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Contact</a>
+        <a href="Univya Overview.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">All redesign pages</a>
+      </nav>
+      <span style="font-size:12.5px; color:var(--faint)">© 2026 Univya</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

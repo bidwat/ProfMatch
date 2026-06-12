@@ -27,7 +27,7 @@ export default function PricingPage() {
       <div style={{ textAlign: 'center', margin: '40px 0 28px' }}>
         <h1 style={{ fontSize: 34 }}>Browsing is free. Personalization and workflow are paid.</h1>
         <p className="muted" style={{ maxWidth: 620, margin: '10px auto 0', lineHeight: 1.65 }}>
-          Public professor discovery stays free forever — it is how ProfMatch earns trust.
+          Public professor discovery stays free forever — it is how Univya earns trust.
           Paid plans unlock matching and application workflow built on your research profile.
         </p>
       </div>

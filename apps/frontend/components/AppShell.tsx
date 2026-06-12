@@ -7,6 +7,7 @@ import { getCurrentUser, getUserState, logoutUser } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import { Avatar } from '@/components/ProfessorCard';
 import { Icon } from '@/components/Icon';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { PageSkeleton } from '@/components/Skeleton';
 import type { LocalUser } from '@/lib/types';
 
@@ -137,7 +138,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       <header className="app-top-nav">
         <Link className="brand top-brand" href={user ? '/dashboard' : '/'}>
-          <span className="brand-mark">PM</span><span>ProfMatch</span>
+          <span>Univya<span className="brand-dot">.</span></span>
         </Link>
 
         <nav className="top-nav-links" aria-label="Primary navigation">
@@ -160,6 +161,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Link className="button primary" href="/signup">Sign up</Link>
             </>
           )}
+          <ThemeToggle />
           <button className="ghost mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(v => !v)}><Icon name={open ? 'close' : 'menu'} size={16} /></button>
         </div>
       </header>

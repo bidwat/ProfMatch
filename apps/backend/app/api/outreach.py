@@ -21,7 +21,7 @@ PURPOSES = {
 }
 
 REVIEW_REMINDER = (
-    "ProfMatch does not send this email. Review the professor's website, verify any "
+    "Univya does not send this email. Review the professor's website, verify any "
     "contact instructions, and personalize this draft before sending. Do not send "
     "identical emails to many professors."
 )

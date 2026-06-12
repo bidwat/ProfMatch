@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — /dashboard</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.5}
+  header,main{padding:18px 24px;max-width:1080px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:18px}
+  .grid2{display:grid;gap:16px;grid-template-columns:1fr 1fr;margin-top:16px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:2px 9px;font-size:11px}
+  .count{border-radius:6px;background:#eee;padding:1px 8px;font-size:11px;font-weight:700}
+  .muted{color:#666}.small{font-size:12px}
+  .avatar{width:48px;height:48px;border-radius:8px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #e5e5e5}
+</style>
+</head>
+<body>
+
+<header class="row between" aria-label="Authenticated navigation">
+  <strong>⬡ ProfMatch</strong>
+  <nav class="row"><a href="#"><b>Home</b></a><a href="#">Matches</a><a href="#">Discover</a><a href="#">Saved</a><a href="#">Board</a></nav>
+  <span class="row"><span class="avatar" style="width:30px;height:30px;font-size:11px">JL</span> Jordan Lee <button class="btn">Sign Out</button></span>
+</header>
+
+<main>
+  <!-- Academic profile strip -->
+  <section class="card" aria-label="Academic profile summary">
+    <div class="row between">
+      <span class="row"><span class="avatar">JL</span>
+        <span><h3 style="margin:0">Jordan Lee</h3><span class="muted small">PhD applicant · Fall 2027</span></span></span>
+      <a href="#" class="small">✎ Edit profile</a>
+    </div>
+    <div class="row" style="margin-top:12px;gap:32px">
+      <span><strong class="small">Target degree</strong><div>PhD</div></span>
+      <span><strong class="small">Interests</strong><div class="row"><span class="chip">robot learning</span><span class="chip">computer vision</span><span class="chip">+2</span></div></span>
+      <span><strong class="small">Preferred universities</strong><div class="muted">Stanford, MIT</div></span>
+      <span><strong class="small">Locations</strong><div class="muted">USA, Canada</div></span>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <!-- Top matches panel -->
+    <section class="card" aria-label="Top matches panel">
+      <div class="row between"><span class="row"><h3 style="margin:0">✨ Top matches</h3><span class="count">12</span></span><a href="#" class="small">View all →</a></div>
+      <div class="item"><span><strong>Ada Lovelace</strong><div class="muted small">Stanford · Robotics, ML</div></span><strong>78%</strong></div>
+      <div class="item"><span><strong>Randall Davis</strong><div class="muted small">MIT · HCI, ML</div></span><strong>74%</strong></div>
+      <div class="item"><span><strong>Fei Chen</strong><div class="muted small">CMU · Vision, Robotics</div></span><strong>69%</strong></div>
+      <button class="btn primary" style="margin-top:12px">Refresh matches</button>
+    </section>
+
+    <!-- Saved professors panel -->
+    <section class="card" aria-label="Saved professors panel">
+      <div class="row between"><span class="row"><h3 style="margin:0">🔖 Saved</h3><span class="count">5</span></span><a href="#" class="small">View all →</a></div>
+      <div class="item"><span><strong>Grace Hopper</strong><div class="muted small">Stanford · Compilers</div></span><span class="chip">Contacted</span></div>
+      <div class="item"><span><strong>Ada Lovelace</strong><div class="muted small">Stanford · Robotics</div></span><span class="chip">Reading papers</span></div>
+      <div class="item"><span><strong>Alan Turing</strong><div class="muted small">Stanford · Theory</div></span><span class="chip">Discovered</span></div>
+      <div class="row" style="margin-top:12px"><button class="btn">Open board</button><button class="btn">Compare</button></div>
+    </section>
+  </div>
+
+  <!-- Empty-state variant -->
+  <section class="card" style="text-align:center;margin-top:16px" aria-label="Empty state">
+    <h3>No matches yet.</h3>
+    <p class="muted">Complete your research profile to get an explainable, evidence-backed advisor shortlist.</p>
+    <button class="btn primary">Create research profile →</button>
+  </section>
+</main>
+</body>
+</html>

@@ -57,7 +57,7 @@ export default function SigninPage() {
     <div className="page narrow">
       <div className="card" style={{ maxWidth: 430, margin: '60px auto' }}>
         <Link className="accent small-text" href="/">← Back to home</Link>
-        <div className="brand" style={{ padding: 0, marginTop: 14 }}><span className="brand-mark">PM</span><span>ProfMatch</span></div>
+        <div className="brand" style={{ padding: 0, marginTop: 14 }}><span>Univya<span className="brand-dot">.</span></span></div>
         <h2>Welcome back</h2>
         <p className="muted" style={{ marginBottom: 20 }}>Sign in to continue building your professor shortlist.</p>
         <form className="form" onSubmit={submit} style={{ marginTop: 16 }}>

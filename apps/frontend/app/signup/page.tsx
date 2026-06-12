@@ -39,7 +39,7 @@ export default function SignupPage() {
     <div className="page narrow">
       <div className="card" style={{ maxWidth: 430, margin: '60px auto' }}>
         <Link className="accent small-text" href="/">← Back to home</Link>
-        <div className="brand" style={{ padding: 0, marginTop: 14 }}><span className="brand-mark">PM</span><span>ProfMatch</span></div>
+        <div className="brand" style={{ padding: 0, marginTop: 14 }}><span>Univya<span className="brand-dot">.</span></span></div>
         <h2>Create your profile</h2>
         <p className="muted" style={{ marginBottom: 20 }}>Start your professor matching workspace with a few account details.</p>
         <form className="form" onSubmit={submit}>

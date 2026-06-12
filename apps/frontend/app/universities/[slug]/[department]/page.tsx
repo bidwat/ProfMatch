@@ -35,7 +35,7 @@ export default function DepartmentPage({ params: paramsPromise }: { params: Prom
         const match = r.groups.find(g => slugify(g.university) === params.slug && slugify(g.department) === params.department);
         if (!match) { setNotFound(true); setLoading(false); return null; }
         setNames({ university: match.university, department: match.department });
-        document.title = `${match.department} – ${match.university} | ProfMatch`;
+        document.title = `${match.department} – ${match.university} | Univya`;
         return listProfessors({ university: [match.university], department: [match.department], sort: 'name-asc', limit: 100 });
       })
       .then(r => {

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discover — /professors</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.5}
+  header,main{padding:20px 24px;max-width:1080px;margin:0 auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}
+  .card{border:1px solid #ccc;border-radius:12px;padding:16px;margin-bottom:12px}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 10px;font-size:12px;background:#fff}
+  .chip.removable::after{content:" ✕"}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;background:#eee}
+  .badge.high{background:#e2efe6}.badge.med{background:#f4ecd9}.badge.low{background:#f3e0de}
+  .muted{color:#666}.small{font-size:12px}
+  .avatar{width:52px;height:52px;border-radius:8px;background:#ddd;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  input[type=search],select{padding:8px 10px;border:1px solid #aaa;border-radius:8px;font-size:13px}
+  .filterbtn{border:1px dashed #888;background:#fafafa;padding:7px 12px;border-radius:8px;font-size:13px}
+  .signal::before{content:"●";margin-right:5px;font-size:9px;vertical-align:1px}
+</style>
+</head>
+<body>
+
+<header aria-label="App navigation (signed-out variant)">
+  <div class="row between">
+    <strong>⬡ ProfMatch</strong>
+    <nav class="row"><a href="#">Discover</a><a href="#">Universities</a></nav>
+    <span class="row"><button class="btn">Sign in</button><button class="btn primary">Sign up</button></span>
+  </div>
+</header>
+
+<main>
+  <div class="row between">
+    <div><h2 style="margin:0">Discover</h2><span class="muted small">1,037 professors · 24 loaded</span></div>
+  </div>
+
+  <div class="row" style="margin:14px 0" aria-label="Search, sort, and filters">
+    <input type="search" placeholder="Search all fields…" value="machine learning" style="flex:1;min-width:220px">
+    <button class="filterbtn">⇅ Sort by: Name A–Z ▾</button>
+    <button class="filterbtn"># Tags (2) ▾</button>
+    <button class="filterbtn">🏛 Universities (1) ▾</button>
+    <button class="filterbtn">📄 Departments ▾</button>
+    <button class="filterbtn">🛡 Recruiting: All statuses ▾</button>
+  </div>
+
+  <div class="row" style="margin-bottom:14px" aria-label="Active filters">
+    <span class="small muted">Tags:</span><span class="chip removable">Machine Learning</span><span class="chip removable">Robotics</span>
+    <span class="small muted">University:</span><span class="chip removable">Stanford University</span>
+    <button class="btn">✕ Clear all</button>
+  </div>
+
+  <!-- Result card (repeats) -->
+  <article class="card" aria-label="Professor result card">
+    <div class="row between">
+      <span class="row"><span class="avatar">AL</span>
+        <span><strong style="font-size:17px">Ada Lovelace</strong>
+        <div class="muted small">Assistant Professor · Stanford University</div>
+        <div class="muted small">Computer Science</div></span></span>
+      <span style="text-align:center"><strong>12</strong><div class="muted small">papers indexed</div></span>
+    </div>
+    <div class="row" style="margin:10px 0"><span class="chip">Machine Learning</span><span class="chip">Robotics</span><span class="chip">Computer Vision</span><span class="chip">+4</span></div>
+    <p class="muted">Works on robot learning and vision-based autonomous systems, with recent papers on foundation models for manipulation and sim-to-real transfer…</p>
+    <div class="row between">
+      <span class="row small"><span class="signal">Recruiting evidence</span><span class="badge high">High confidence</span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn primary">🔖 Save</button></span>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="row between">
+      <span class="row"><span class="avatar">GH</span>
+        <span><strong style="font-size:17px">Grace Hopper</strong>
+        <div class="muted small">Professor · Stanford University</div>
+        <div class="muted small">Computer Science</div></span></span>
+      <span style="text-align:center"><strong>8</strong><div class="muted small">papers indexed</div></span>
+    </div>
+    <div class="row" style="margin:10px 0"><span class="chip">Compilers</span><span class="chip">Systems</span><span class="chip">Machine Learning</span></div>
+    <p class="muted">Research on programming systems and ML-assisted compilation; recent work explores verified optimization passes…</p>
+    <div class="row between">
+      <span class="row small"><span class="signal">Recruiting unknown</span><span class="badge med">Medium confidence</span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn">🔖 Saved</button></span>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="row between">
+      <span class="row"><span class="avatar">AT</span>
+        <span><strong style="font-size:17px">Alan Turing</strong>
+        <div class="muted small">Professor · Stanford University</div>
+        <div class="muted small">Computer Science</div></span></span>
+      <span style="text-align:center"><strong>21</strong><div class="muted small">papers indexed</div></span>
+    </div>
+    <div class="row" style="margin:10px 0"><span class="chip">Theory of Computation</span><span class="chip">Machine Learning</span></div>
+    <p class="muted">Foundations of computation and learning theory; recent papers on computability limits of large models…</p>
+    <div class="row between">
+      <span class="row small"><span class="signal">Not recruiting</span><span class="badge low">Low confidence</span></span>
+      <span class="row"><button class="btn">👁 Expand</button><button class="btn primary">🔖 Save</button></span>
+    </div>
+  </article>
+
+  <div style="text-align:center"><button class="btn">Load more professors</button></div>
+
+  <!-- Empty state variant -->
+  <div class="card" style="text-align:center;margin-top:30px" aria-label="Empty state">
+    <h3>No professors match these filters.</h3>
+    <p class="muted">Try clearing filters or searching for a broader research area.</p>
+    <button class="btn">Clear filters</button>
+  </div>
+</main>
+</body>
+</html>

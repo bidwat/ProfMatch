@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('homepage shows ProfMatch landing', async ({ page }) => {
+test('homepage shows Univya landing', async ({ page }) => {
   await page.route('**/api/auth/me', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
   await page.route('**/api/auth/state', async route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ detail: 'Not authenticated' }) }))
   await page.route('**/api/stats', async route => route.fulfill({
@@ -10,7 +10,7 @@ test('homepage shows ProfMatch landing', async ({ page }) => {
   }))
   await page.goto('/')
 
-  await expect(page).toHaveTitle(/ProfMatch/)
+  await expect(page).toHaveTitle(/Univya/)
   await expect(page.locator('h1')).toContainText('Find professors whose recent work matches')
   await expect(page.getByPlaceholder(/Search by professor, university, department/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Search professors' })).toBeVisible()

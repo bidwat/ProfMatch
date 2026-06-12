@@ -56,7 +56,7 @@ export function OutreachDraftModal({ isOpen, onClose, professorId, professorName
               <Modal.Heading id="outreach-title">Draft outreach email · {professorName}</Modal.Heading>
             </Modal.Header>
             <Modal.Body style={{ display: 'grid', gap: 14 }}>
-              <div className="notice">ProfMatch does not send this email. Review the professor&apos;s website and personalize the draft before sending.</div>
+              <div className="notice">Univya does not send this email. Review the professor&apos;s website and personalize the draft before sending.</div>
               <label className="label">
                 Purpose
                 <select className="select" value={purpose} onChange={e => setPurpose(e.target.value)}>

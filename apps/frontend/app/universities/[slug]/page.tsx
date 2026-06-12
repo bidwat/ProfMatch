@@ -27,7 +27,7 @@ export default function UniversityPage({ params: paramsPromise }: { params: Prom
   ), [departments]);
 
   useEffect(() => {
-    if (universityName) document.title = `${universityName} – Professors and Departments | ProfMatch`;
+    if (universityName) document.title = `${universityName} – Professors and Departments | Univya`;
   }, [universityName]);
 
   if (loading) return <div className="page narrow"><div className="card soft" style={{ marginTop: 32 }}>Loading university…</div></div>;

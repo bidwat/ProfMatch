@@ -37,7 +37,7 @@ export default function ProfessorDetailPage({ params: paramsPromise }: { params:
   useEffect(() => {
     getProfessor(params.id).then(response => {
       setData(response);
-      document.title = `${response.professor.name} – ${response.professor.university} | ProfMatch`;
+      document.title = `${response.professor.name} – ${response.professor.university} | Univya`;
     }).catch(e => setError(e.message || 'Could not load professor'));
     track('profile_opened', { professor_id: Number(params.id) });
 

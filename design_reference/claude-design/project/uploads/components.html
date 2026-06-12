@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared components — modals, toasts, chips, shells</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55;background:#f0f0f0}
+  main{padding:24px;max-width:900px;margin:0 auto;display:grid;gap:28px}
+  h2{margin:0 0 4px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+  .btn{border:1px solid #444;background:#fff;padding:8px 15px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.primary{background:#222;color:#fff}.btn.danger{background:#a22;color:#fff;border-color:#a22}.btn.ghost{border:0;background:none;text-decoration:underline}
+  .modal{background:#fff;border:1px solid #bbb;border-radius:14px;padding:24px;max-width:440px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+  .modal h3{margin:4px 0}
+  .icon{width:40px;height:40px;border-radius:10px;background:#eee;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .muted{color:#666}.small{font-size:12px}
+  label{display:grid;gap:6px;font-weight:600;font-size:13px;margin:10px 0}
+  input,textarea,select{padding:9px 11px;border:1px solid #aaa;border-radius:8px;font-size:14px;font-weight:400;width:100%}
+  .chip{border:1px solid #bbb;border-radius:999px;padding:3px 11px;font-size:12px;background:#fff}
+  .badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600}
+  .badge.high{background:#e2efe6}.badge.med{background:#f4ecd9}.badge.low{background:#f3e0de}
+  .toast{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #bbb;border-radius:10px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-size:13px}
+  .toast i{width:8px;height:8px;border-radius:50%;background:#3a7}.toast.warn i{background:#c90}.toast.err i{background:#c33}
+  .notice{border:1px solid #cba;background:#faf6ec;border-radius:8px;padding:10px 13px;font-size:13px}
+  .shell{background:#fff;border:1px solid #ccc;border-radius:10px;padding:10px 16px}
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <h2>Navigation shells</h2>
+  <div class="shell row between" aria-label="Signed-out shell">
+    <strong>⬡ ProfMatch</strong>
+    <nav class="row"><a href="#">Discover</a><a href="#">Universities</a></nav>
+    <span class="row"><button class="btn">Sign in</button><button class="btn primary">Sign up</button></span>
+  </div>
+  <div class="shell row between" style="margin-top:10px" aria-label="Signed-in shell">
+    <strong>⬡ ProfMatch</strong>
+    <nav class="row"><a href="#">Home</a><a href="#">Matches</a><a href="#">Discover</a><a href="#">Saved</a><a href="#">Board</a><a href="#">Admin</a></nav>
+    <span class="row">👤 Jordan Lee <button class="btn ghost">Sign Out</button></span>
+  </div>
+</section>
+
+<section>
+  <h2>Login required modal</h2>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="row between"><span class="icon">PM</span><button class="btn ghost">✕</button></div>
+    <h3>Log in required</h3>
+    <p class="muted">Log in to save professors to your account and build a shortlist.</p>
+    <div style="display:grid;gap:10px;margin-top:14px">
+      <button class="btn primary">Sign in</button>
+      <button class="btn">Create an account</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Report incorrect data modal</h2>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="row between"><h3>Report incorrect data</h3><button class="btn ghost">✕</button></div>
+    <p class="muted small">Reports go to an admin review queue. Nothing changes on the public profile until an admin verifies the correction.</p>
+    <label>What is wrong?
+      <select><option>Wrong email</option><option>Wrong title</option><option>Wrong photo</option><option>Wrong bio or summary</option><option>Wrong publications</option><option>Wrong research tags</option><option>Duplicate professor</option><option>Retired or moved</option><option>Something else</option></select></label>
+    <label>Describe the problem
+      <textarea rows="3">The listed email bounces; the faculty page shows a new address.</textarea></label>
+    <label>Source URL (optional)
+      <input placeholder="https://… page that shows the correct information"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:8px">
+      <button class="btn">Cancel</button><button class="btn primary">Submit report</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Outreach draft modal</h2>
+  <div class="modal" style="max-width:560px" role="dialog" aria-modal="true">
+    <div class="row between"><h3>Draft outreach email · Ada Lovelace</h3><button class="btn ghost">✕</button></div>
+    <div class="notice">ProfMatch does not send this email. Review the professor’s website and personalize the draft before sending.</div>
+    <label>Purpose
+      <select><option>PhD inquiry</option><option>Master's research inquiry</option><option>Undergraduate research inquiry</option><option>Research assistantship</option><option>General introduction</option><option>Follow-up email</option></select></label>
+    <label>Anything specific to mention? (optional)
+      <textarea rows="2">My imitation-learning thesis connects to her sim-to-real work.</textarea></label>
+    <div style="background:#f7f7f7;border:1px solid #ddd;border-radius:10px;padding:14px;margin-top:8px">
+      <strong>Subject: Prospective PhD student — robot learning with vision foundation models</strong>
+      <p class="small" style="white-space:pre-wrap">Dear Professor Lovelace,
+
+I am an MS student working on data-efficient imitation learning, and your recent paper “Robot Learning with Vision Foundation Models” (RSS 2025) closely matches the direction of my thesis…</p>
+      <div class="muted small">Suggested paper to mention: Robot Learning with Vision Foundation Models</div>
+      <ul class="muted small"><li>Mention your sim-to-real experiment results</li><li>Verify her current contact instructions on the lab page</li></ul>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn">Close</button><button class="btn">Copy draft</button><button class="btn primary">Regenerate</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Confirm dialog (danger variant)</h2>
+  <div class="modal" role="alertdialog" aria-modal="true">
+    <span class="icon" style="background:#f3d6d3">!</span>
+    <h3>Delete Stanford University · Computer Science?</h3>
+    <p class="muted">This permanently removes 96 professors and 612 publications from the public index. Staged scan data is not affected.</p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn">Cancel</button><button class="btn danger">Delete department</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Toasts</h2>
+  <div class="row">
+    <span class="toast"><i></i> Professor saved.</span>
+    <span class="toast warn"><i></i> Could not save the board. Changes may not persist.</span>
+    <span class="toast err"><i></i> Draft generation is unavailable right now. Try again.</span>
+    <span class="toast"><i></i> Moved to Contacted.</span>
+  </div>
+</section>
+
+<section>
+  <h2>Chips & confidence badges</h2>
+  <div class="row">
+    <span class="chip">Machine Learning</span><span class="chip">Robotics</span><span class="chip">+4</span>
+    <span class="badge high" title="Source confidence 92%">High confidence</span>
+    <span class="badge med" title="Source confidence 71%">Medium confidence</span>
+    <span class="badge low" title="Source confidence 48%">Low confidence</span>
+    <span class="small">● Recruiting evidence</span><span class="small muted">● Recruiting unknown</span>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

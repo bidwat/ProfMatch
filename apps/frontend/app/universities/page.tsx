@@ -45,7 +45,7 @@ export default function UniversitiesPage() {
     <div className="page narrow">
       <div style={{ margin: '36px 0 22px' }}>
         <h1 style={{ fontSize: 32, margin: 0 }}>Universities</h1>
-        <p className="muted" style={{ marginTop: 8 }}>Browse the institutions indexed on ProfMatch. Every professor profile is public and source-backed.</p>
+        <p className="muted" style={{ marginTop: 8 }}>Browse the institutions indexed on Univya. Every professor profile is public and source-backed.</p>
         <div style={{ maxWidth: 420, marginTop: 14 }}>
           <Input value={query} onChange={e => setQuery(e.target.value)} placeholder="Filter universities…" aria-label="Filter universities" />
         </div>

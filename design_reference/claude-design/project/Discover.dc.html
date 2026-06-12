@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div data-screen-label="Discover" style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <!-- ============ NAV (signed-out app shell) ============ -->
+  <header style="position:sticky; top:0; z-index:50; background:color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--border)">
+    <div style="max-width:1080px; margin:0 auto; padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <a href="Landing.dc.html" style="font-weight:800; font-size:19px; letter-spacing:-0.02em; color:var(--text); text-decoration:none">Univya<span style="color:var(--accent)">.</span></a>
+      <nav style="display:flex; align-items:center; gap:24px; font-size:14px; font-weight:500">
+        <a href="Discover.dc.html" style="color:var(--text); font-weight:700; text-decoration:none">Discover</a>
+        <a href="#" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Universities</a>
+      </nav>
+      <div style="display:flex; align-items:center; gap:10px">
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:14px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+        <a href="Auth.dc.html" style="padding:8px 15px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text); text-decoration:none; border:1px solid var(--border); background:var(--surface)" style-hover="border-color:var(--faint)">Sign in</a>
+        <a href="Auth.dc.html" style="padding:8px 16px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--on-primary); background:var(--primary); text-decoration:none" style-hover="filter:brightness(1.12)">Sign up</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1080px; margin:0 auto; padding:32px">
+
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+      <h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.02em">Discover</h1>
+      <span style="font-size:13px; color:var(--muted)">1,037 professors · 24 loaded</span>
+    </div>
+
+    <!-- ============ SEARCH + FILTERS ============ -->
+    <div aria-label="Search, sort, and filters" style="display:flex; gap:10px; flex-wrap:wrap; margin:20px 0 14px">
+      <input type="search" value="machine learning" placeholder="Search all fields…" style="flex:1; min-width:240px; padding:11px 16px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-family:inherit; background:var(--surface); color:var(--text)">
+      <button style="padding:10px 15px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px" style-hover="border-color:var(--faint)">Sort: Name A–Z <span style="color:var(--faint); font-size:10px">▾</span></button>
+      <button style="padding:10px 15px; border-radius:11px; border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent-text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px">Tags <span style="background:var(--accent); color:#fff; border-radius:999px; padding:0 7px; font-size:11px; font-weight:700; line-height:17px">2</span> <span style="font-size:10px">▾</span></button>
+      <button style="padding:10px 15px; border-radius:11px; border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent-text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px">Universities <span style="background:var(--accent); color:#fff; border-radius:999px; padding:0 7px; font-size:11px; font-weight:700; line-height:17px">1</span> <span style="font-size:10px">▾</span></button>
+      <button style="padding:10px 15px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px" style-hover="border-color:var(--faint); color:var(--text)">Departments <span style="font-size:10px; color:var(--faint)">▾</span></button>
+      <button style="padding:10px 15px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px" style-hover="border-color:var(--faint); color:var(--text)">Recruiting: All <span style="font-size:10px; color:var(--faint)">▾</span></button>
+    </div>
+
+    <!-- Active filters -->
+    <div aria-label="Active filters" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:22px">
+      <span style="font-size:12px; color:var(--faint); font-weight:600">Filtering by</span>
+      <button style="display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; border:0; background:var(--navy-soft); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Machine Learning <span style="color:var(--faint)">✕</span></button>
+      <button style="display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; border:0; background:var(--navy-soft); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Robotics <span style="color:var(--faint)">✕</span></button>
+      <button style="display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; border:0; background:var(--navy-soft); color:var(--text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(0.96)">Stanford University <span style="color:var(--faint)">✕</span></button>
+      <button style="border:0; background:none; color:var(--muted); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; text-decoration:underline; text-underline-offset:3px" style-hover="color:var(--text)">Clear all</button>
+    </div>
+
+    <!-- ============ RESULT CARDS ============ -->
+    <div style="display:grid; gap:14px">
+
+      <article aria-label="Professor result card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow)">
+        <div style="display:flex; justify-content:space-between; gap:18px">
+          <div style="display:flex; gap:15px; min-width:0">
+            <div style="width:52px; height:52px; flex-shrink:0; border-radius:14px; background:var(--navy-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:16px">AL</div>
+            <div style="min-width:0">
+              <div style="font-weight:700; font-size:16.5px; letter-spacing:-0.01em">Ada Lovelace</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:2px">Assistant Professor · Stanford University · Computer Science</div>
+            </div>
+          </div>
+          <div style="text-align:right; flex-shrink:0">
+            <div style="font-weight:800; font-size:18px">12</div>
+            <div style="font-size:11.5px; color:var(--faint)">papers indexed</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:7px; margin:14px 0 10px">
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Machine Learning</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Robotics</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Computer Vision</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500; color:var(--faint)">+4</span>
+        </div>
+        <p style="margin:0 0 16px; font-size:14px; line-height:1.6; color:var(--muted); text-wrap:pretty">Works on robot learning and vision-based autonomous systems, with recent papers on foundation models for manipulation and sim-to-real transfer…</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap">
+          <div style="display:flex; align-items:center; gap:10px">
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--good)"><span style="width:7px; height:7px; border-radius:50%; background:var(--good)"></span>Recruiting evidence</span>
+            <span title="Source confidence 92%" style="padding:3px 10px; border-radius:7px; background:var(--good-soft); color:var(--good); font-size:11.5px; font-weight:700">High confidence</span>
+          </div>
+          <div style="display:flex; gap:9px">
+            <button style="padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">View profile</button>
+            <button style="padding:9px 18px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Save</button>
+          </div>
+        </div>
+      </article>
+
+      <article aria-label="Professor result card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow)">
+        <div style="display:flex; justify-content:space-between; gap:18px">
+          <div style="display:flex; gap:15px; min-width:0">
+            <div style="width:52px; height:52px; flex-shrink:0; border-radius:14px; background:var(--accent-soft); color:var(--accent-text); display:grid; place-items:center; font-weight:800; font-size:16px">GH</div>
+            <div style="min-width:0">
+              <div style="font-weight:700; font-size:16.5px; letter-spacing:-0.01em">Grace Hopper</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:2px">Professor · Stanford University · Computer Science</div>
+            </div>
+          </div>
+          <div style="text-align:right; flex-shrink:0">
+            <div style="font-weight:800; font-size:18px">8</div>
+            <div style="font-size:11.5px; color:var(--faint)">papers indexed</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:7px; margin:14px 0 10px">
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Compilers</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Systems</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Machine Learning</span>
+        </div>
+        <p style="margin:0 0 16px; font-size:14px; line-height:1.6; color:var(--muted); text-wrap:pretty">Research on programming systems and ML-assisted compilation; recent work explores verified optimization passes…</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap">
+          <div style="display:flex; align-items:center; gap:10px">
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--muted)"><span style="width:7px; height:7px; border-radius:50%; background:var(--faint)"></span>Recruiting unknown</span>
+            <span title="Source confidence 71%" style="padding:3px 10px; border-radius:7px; background:var(--warn-soft); color:var(--warn); font-size:11.5px; font-weight:700">Medium confidence</span>
+          </div>
+          <div style="display:flex; gap:9px">
+            <button style="padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">View profile</button>
+            <button style="padding:9px 18px; border-radius:10px; border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent-text); font-size:13px; font-weight:700; font-family:inherit; cursor:pointer">✓ Saved</button>
+          </div>
+        </div>
+      </article>
+
+      <article aria-label="Professor result card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow)">
+        <div style="display:flex; justify-content:space-between; gap:18px">
+          <div style="display:flex; gap:15px; min-width:0">
+            <div style="width:52px; height:52px; flex-shrink:0; border-radius:14px; background:var(--navy-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:16px">AT</div>
+            <div style="min-width:0">
+              <div style="font-weight:700; font-size:16.5px; letter-spacing:-0.01em">Alan Turing</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:2px">Professor · Stanford University · Computer Science</div>
+            </div>
+          </div>
+          <div style="text-align:right; flex-shrink:0">
+            <div style="font-weight:800; font-size:18px">21</div>
+            <div style="font-size:11.5px; color:var(--faint)">papers indexed</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:7px; margin:14px 0 10px">
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Theory of Computation</span>
+          <span style="padding:4px 12px; border-radius:999px; background:var(--surface2); font-size:12px; font-weight:500">Machine Learning</span>
+        </div>
+        <p style="margin:0 0 16px; font-size:14px; line-height:1.6; color:var(--muted); text-wrap:pretty">Foundations of computation and learning theory; recent papers on computability limits of large models…</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap">
+          <div style="display:flex; align-items:center; gap:10px">
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--bad)"><span style="width:7px; height:7px; border-radius:50%; background:var(--bad)"></span>Not recruiting</span>
+            <span title="Source confidence 48%" style="padding:3px 10px; border-radius:7px; background:var(--bad-soft); color:var(--bad); font-size:11.5px; font-weight:700">Low confidence</span>
+          </div>
+          <div style="display:flex; gap:9px">
+            <button style="padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">View profile</button>
+            <button style="padding:9px 18px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Save</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div style="text-align:center; margin:26px 0 10px">
+      <button style="padding:11px 24px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Load more professors</button>
+    </div>
+
+    <!-- ============ EMPTY STATE VARIANT ============ -->
+    <section aria-label="Empty state variant" style="margin-top:48px">
+      <div style="font-size:11.5px; font-weight:700; letter-spacing:0.1em; color:var(--faint); text-transform:uppercase; margin-bottom:10px">Empty state variant</div>
+      <div style="background:var(--surface); border:1px dashed var(--border); border-radius:16px; padding:48px; text-align:center">
+        <div style="width:48px; height:48px; border-radius:14px; background:var(--surface2); display:inline-grid; place-items:center; color:var(--faint); font-size:20px; font-weight:700">?</div>
+        <h3 style="margin:16px 0 6px; font-size:18px; font-weight:700">No professors match these filters</h3>
+        <p style="margin:0 auto 18px; font-size:14px; color:var(--muted); max-width:380px">Try clearing filters or searching for a broader research area.</p>
+        <button style="padding:10px 20px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Clear filters</button>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

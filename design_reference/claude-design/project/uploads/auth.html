@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auth — /signin + /signup</title>
+<style>
+  *{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;color:#222;line-height:1.55;background:#fafafa}
+  .card{border:1px solid #ccc;border-radius:12px;padding:26px;max-width:430px;margin:50px auto;background:#fff}
+  .btn{border:1px solid #444;background:#222;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;width:100%;cursor:pointer}
+  label{display:grid;gap:6px;font-weight:600;font-size:13px;margin-bottom:14px}
+  input{padding:10px 12px;border:1px solid #aaa;border-radius:8px;font-size:14px;font-weight:400}
+  .muted{color:#666}.small{font-size:12px}
+  .error{border:1px solid #d99;background:#fbeaea;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:14px}
+  .pagebreak{border:0;border-top:4px double #999;margin:50px 0}
+</style>
+</head>
+<body>
+
+<!-- ============ /signin ============ -->
+<section class="card" aria-label="Sign in">
+  <a class="small" href="#">← Back to home</a>
+  <div style="margin-top:12px"><strong>⬡ ProfMatch</strong></div>
+  <h2>Welcome back</h2>
+  <p class="muted">Sign in to continue building your professor shortlist.</p>
+  <form>
+    <label>Email<input type="email" placeholder="you@university.edu" value="jordan@uni.edu"></label>
+    <label>Password<input type="password" placeholder="Password" value="••••••••••"></label>
+    <div class="error">Invalid email or password.</div>
+    <button class="btn" type="submit">Sign in →</button>
+  </form>
+  <p class="muted small">Need an account? <a href="#">Create one</a></p>
+</section>
+
+<hr class="pagebreak">
+
+<!-- ============ /signup ============ -->
+<section class="card" aria-label="Sign up">
+  <a class="small" href="#">← Back to home</a>
+  <div style="margin-top:12px"><strong>⬡ ProfMatch</strong></div>
+  <h2>Create your profile</h2>
+  <p class="muted">Start your professor matching workspace with a few account details.</p>
+  <form>
+    <label>Full name<input placeholder="Jordan Lee" value="Jordan Lee"></label>
+    <label>Email<input type="email" placeholder="you@university.edu" value="jordan@uni.edu"></label>
+    <label>Password<input type="password" placeholder="At least 8 characters"></label>
+    <button class="btn" type="submit">Continue to profile →</button>
+  </form>
+  <p class="muted small">Already have an account? <a href="#">Sign in</a></p>
+</section>
+
+</body>
+</html>

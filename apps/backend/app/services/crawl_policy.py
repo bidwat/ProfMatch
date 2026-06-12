@@ -8,7 +8,7 @@ contact pointer accurate in docs/policies/crawler-policy.md.
 import os
 
 DEFAULT_CRAWLER_USER_AGENT = (
-    "ProfMatchBot/1.0 (+https://prof-match-chi.vercel.app/crawler-policy; "
+    "UnivyaBot/1.0 (+https://prof-match-chi.vercel.app/crawler-policy; "
     "research-advisor discovery; contact: bidwatcs@gmail.com)"
 )
 

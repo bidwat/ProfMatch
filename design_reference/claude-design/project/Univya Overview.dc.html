@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div data-screen-label="Overview" style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <header style="border-bottom:1px solid var(--border)">
+    <div style="max-width:1080px; margin:0 auto; padding:0 32px; height:64px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <div style="display:flex; align-items:baseline; gap:14px">
+        <span style="font-weight:800; font-size:20px; letter-spacing:-0.02em">Univya<span style="color:var(--accent)">.</span></span>
+        <span style="font-size:13px; color:var(--muted)">Redesign overview · formerly ProfMatch</span>
+      </div>
+      <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:15px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+    </div>
+  </header>
+
+  <main style="max-width:1080px; margin:0 auto; padding:40px 32px 80px">
+
+    <div style="background:var(--navy-deep); border-radius:20px; padding:40px 44px; color:var(--on-deep); margin-bottom:36px">
+      <h1 style="margin:0; font-size:32px; font-weight:800; letter-spacing:-0.02em; max-width:620px; text-wrap:balance">The Univya redesign — every page, one design language.</h1>
+      <p style="margin:12px 0 0; font-size:15px; line-height:1.6; color:var(--on-deep-muted); max-width:560px; text-wrap:pretty">Navy primary, teal accent, Plus Jakarta Sans throughout. Each page has a light and dark theme — use the ☾ / ☀ toggle in any header; your choice carries across pages.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px">
+
+      <a href="Landing.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Landing page</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Public</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Hero with live search, match preview, problem comparison, how-it-works, FAQ, and final CTA.</p>
+      </a>
+
+      <a href="Discover.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Discover</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Public</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Professor directory: search, multi-select filters, result cards with recruiting + confidence signals, empty state.</p>
+      </a>
+
+      <a href="Dashboard.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Dashboard</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Signed in</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Profile summary strip, top matches with fit rings, saved professors with board stages, no-profile empty state.</p>
+      </a>
+
+      <a href="Match.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Matches + intake</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Signed in</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Ranked results with explainable “why matched” evidence, live threshold slider, risk flags, and the 3-step intake wizard.</p>
+      </a>
+
+      <a href="Pricing.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Pricing</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Public</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Free public discovery vs. Pro personalized workflow, plus the trust-first positioning note.</p>
+      </a>
+
+      <a href="Auth.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Auth</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Public</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Sign-in with error state and sign-up, side by side.</p>
+      </a>
+
+      <a href="Admin.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Admin suite</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--navy-soft); color:var(--primary); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Internal</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">All three admin views on one page: dashboard, scan jobs with QA review, and the agentic onboarding wizard.</p>
+      </a>
+
+      <a href="Components.dc.html" style="display:grid; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 28px; text-decoration:none; color:var(--text); box-shadow:var(--shadow)" style-hover="border-color:var(--accent)">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <span style="font-weight:800; font-size:17px; letter-spacing:-0.01em">Components</span>
+          <span style="padding:3px 11px; border-radius:999px; background:var(--surface2); color:var(--muted); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase">Reference</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--muted)">Nav shells, modals (login gate, report, confirm, outreach draft), toasts, chips, and confidence badges.</p>
+      </a>
+    </div>
+
+    <div style="margin-top:36px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px 30px">
+      <h2 style="margin:0 0 14px; font-size:15px; font-weight:800; letter-spacing:-0.01em">Design language at a glance</h2>
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:center">
+        <div style="display:flex; gap:8px; align-items:center">
+          <span style="width:30px; height:30px; border-radius:9px; background:#0B1A36; border:1px solid var(--border)"></span>
+          <span style="width:30px; height:30px; border-radius:9px; background:#1D3A6E; border:1px solid var(--border)"></span>
+          <span style="width:30px; height:30px; border-radius:9px; background:#0D9488; border:1px solid var(--border)"></span>
+          <span style="width:30px; height:30px; border-radius:9px; background:#E8EEF8; border:1px solid var(--border)"></span>
+          <span style="width:30px; height:30px; border-radius:9px; background:#F5F7FB; border:1px solid var(--border)"></span>
+          <span style="font-size:12.5px; color:var(--muted); margin-left:6px">Navy deep · navy primary · teal accent · soft navy · mist</span>
+        </div>
+        <div style="font-size:12.5px; color:var(--muted)"><strong style="color:var(--text)">Type</strong> Plus Jakarta Sans 400–800</div>
+        <div style="font-size:12.5px; color:var(--muted)"><strong style="color:var(--text)">Radius</strong> 10 / 16 / 20 px</div>
+        <div style="font-size:12.5px; color:var(--muted)"><strong style="color:var(--text)">Status</strong> green=good · amber=caution · red=error, always banded</div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+    };
+  }
+}
+</script>
+</body>
+</html>

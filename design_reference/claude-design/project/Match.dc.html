@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EDF1F7; --border:#E2E8F1;
+    --text:#13213C; --muted:#5C6B87; --faint:#8C98AF;
+    --primary:#1D3A6E; --on-primary:#FFFFFF;
+    --navy-deep:#0B1A36; --navy-soft:#E8EEF8;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.68);
+    --accent:#0D9488; --accent-text:#0B6E64; --accent-soft:#D8F0EC;
+    --good:#177A4C; --good-soft:#DFF1E6;
+    --warn:#92610A; --warn-soft:#FAF0D8;
+    --bad:#B23B30; --bad-soft:#F9E8E5;
+    --shadow:0 1px 2px rgba(13,27,58,.05), 0 10px 30px rgba(13,27,58,.07);
+  }
+  body[data-theme="dark"] {
+    --bg:#0A1220; --surface:#111C30; --surface2:#1A2742; --border:#27354F;
+    --text:#E7ECF5; --muted:#9AA8C2; --faint:#6E7C97;
+    --primary:#3F66C0; --on-primary:#FFFFFF;
+    --navy-deep:#0D1A33; --navy-soft:#1B2944;
+    --on-deep:#F2F5FB; --on-deep-muted:rgba(235,240,250,.62);
+    --accent:#2BB8A8; --accent-text:#6FD9CC; --accent-soft:#133431;
+    --good:#4CC58A; --good-soft:#15352A;
+    --warn:#DFB257; --warn-soft:#392D14;
+    --bad:#E0796E; --bad-soft:#3B201C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg); color:var(--text)">
+
+  <!-- ============ NAV (signed-in shell) ============ -->
+  <header style="position:sticky; top:0; z-index:50; background:color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--border)">
+    <div style="max-width:1020px; margin:0 auto; padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between; gap:24px">
+      <div style="display:flex; align-items:center; gap:32px">
+        <a href="Landing.dc.html" style="font-weight:800; font-size:19px; letter-spacing:-0.02em; color:var(--text); text-decoration:none">Univya<span style="color:var(--accent)">.</span></a>
+        <nav style="display:flex; align-items:center; gap:22px; font-size:14px; font-weight:500">
+          <a href="Dashboard.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Home</a>
+          <a href="Match.dc.html" style="color:var(--text); font-weight:700; text-decoration:none">Matches</a>
+          <a href="Discover.dc.html" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Discover</a>
+          <a href="#" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Saved</a>
+          <a href="#" style="color:var(--muted); text-decoration:none" style-hover="color:var(--text)">Board</a>
+        </nav>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px">
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:14px; cursor:pointer; display:grid; place-items:center" style-hover="color:var(--text); border-color:var(--faint)">{{ themeIcon }}</button>
+        <span style="width:30px; height:30px; border-radius:9px; background:var(--navy-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:11px">JL</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1020px; margin:0 auto; padding:32px">
+
+    <!-- ============ MATCH RESULTS ============ -->
+    <section data-screen-label="Match results" aria-label="Matches page">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">
+        <div>
+          <h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.02em">Matches</h1>
+          <span style="font-size:13px; color:var(--muted)">Ranked by research fit for your profile · 12 results</span>
+        </div>
+        <button style="padding:10px 19px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Refresh matches</button>
+      </div>
+
+      <!-- Threshold controls -->
+      <div aria-label="Threshold controls" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 26px; margin:22px 0 18px; box-shadow:var(--shadow)">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap">
+          <div style="display:grid; gap:10px">
+            <div style="font-size:14.5px">Show professors with at least <strong style="color:var(--accent-text)">{{ threshold }}%</strong> research fit</div>
+            <input type="range" min="0" max="100" defaultValue="40" onInput="{{ onThreshold }}" aria-label="Match threshold" style="width:280px; accent-color:var(--accent)">
+          </div>
+          <span style="padding:6px 14px; border-radius:999px; background:var(--accent-soft); color:var(--accent-text); font-size:12.5px; font-weight:700">Threshold active · {{ aboveCount }} above {{ threshold }}%</span>
+        </div>
+        <p style="margin:14px 0 0; font-size:12.5px; line-height:1.55; color:var(--faint)">If fewer than 10 results clear the threshold, the top 10 are shown as a fallback. These settings change recommendation breadth — they do not change admission chances.</p>
+      </div>
+
+      <div style="display:grid; gap:14px">
+        <!-- Match card 1 -->
+        <article aria-label="Match result card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow)">
+          <div style="display:flex; justify-content:space-between; gap:18px">
+            <div style="display:flex; gap:15px">
+              <div style="width:52px; height:52px; flex-shrink:0; border-radius:14px; background:var(--navy-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:16px">AL</div>
+              <div>
+                <div style="font-weight:700; font-size:16.5px; letter-spacing:-0.01em">Ada Lovelace</div>
+                <div style="font-size:13px; color:var(--muted); margin-top:2px">Assistant Professor · Stanford University · Computer Science</div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0">
+              <div style="width:58px; height:58px; border-radius:50%; background:conic-gradient(var(--accent) 78%, var(--surface2) 0); display:grid; place-items:center">
+                <div style="width:44px; height:44px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-weight:800; font-size:13.5px">78%</div>
+              </div>
+              <span style="font-size:10.5px; color:var(--faint); font-weight:600; letter-spacing:0.04em; text-transform:uppercase">research fit</span>
+            </div>
+          </div>
+          <div style="background:var(--surface2); border-radius:12px; padding:14px 18px; margin:14px 0">
+            <div style="font-size:11.5px; font-weight:700; letter-spacing:0.07em; color:var(--accent-text); text-transform:uppercase; margin-bottom:6px">Why matched</div>
+            <p style="margin:0; font-size:13.5px; line-height:1.6; color:var(--muted); text-wrap:pretty">Research overlap includes <strong style="color:var(--text)">robot, learning, vision, manipulation</strong>. Profile tags include Robotics, Machine Learning. Recent publication evidence includes “Robot Learning with Vision Foundation Models” (2025).</p>
+            <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:10px">
+              <span style="padding:3px 11px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:12px; font-weight:500">robot learning</span>
+              <span style="padding:3px 11px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:12px; font-weight:500">vision</span>
+              <span style="padding:3px 11px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:12px; font-weight:500">manipulation</span>
+              <span style="font-size:12px; color:var(--faint); align-self:center">3 relevant papers matched</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:10px; background:var(--warn-soft); color:var(--warn); font-size:12.5px; font-weight:600; margin-bottom:14px">
+            <span style="width:7px; height:7px; border-radius:50%; background:var(--warn); flex-shrink:0"></span>
+            Risk: recruiting status is unknown — verify before outreach.
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap">
+            <div style="display:flex; gap:16px; font-size:12.5px; color:var(--muted)">
+              <span>Recruiting <strong style="color:var(--text)">35%</strong></span>
+              <span>Confidence <strong style="color:var(--text)">92%</strong></span>
+            </div>
+            <div style="display:flex; gap:9px">
+              <button style="padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">View evidence</button>
+              <button style="padding:9px 18px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Save</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Match card 2 -->
+        <article aria-label="Match result card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow)">
+          <div style="display:flex; justify-content:space-between; gap:18px">
+            <div style="display:flex; gap:15px">
+              <div style="width:52px; height:52px; flex-shrink:0; border-radius:14px; background:var(--accent-soft); color:var(--accent-text); display:grid; place-items:center; font-weight:800; font-size:16px">RD</div>
+              <div>
+                <div style="font-weight:700; font-size:16.5px; letter-spacing:-0.01em">Randall Davis</div>
+                <div style="font-size:13px; color:var(--muted); margin-top:2px">Professor · MIT · EECS</div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0">
+              <div style="width:58px; height:58px; border-radius:50%; background:conic-gradient(var(--accent) 74%, var(--surface2) 0); display:grid; place-items:center">
+                <div style="width:44px; height:44px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-weight:800; font-size:13.5px">74%</div>
+              </div>
+              <span style="font-size:10.5px; color:var(--faint); font-weight:600; letter-spacing:0.04em; text-transform:uppercase">research fit</span>
+            </div>
+          </div>
+          <div style="background:var(--surface2); border-radius:12px; padding:14px 18px; margin:14px 0">
+            <div style="font-size:11.5px; font-weight:700; letter-spacing:0.07em; color:var(--accent-text); text-transform:uppercase; margin-bottom:6px">Why matched</div>
+            <p style="margin:0; font-size:13.5px; line-height:1.6; color:var(--muted); text-wrap:pretty">Recent papers align with <strong style="color:var(--text)">HCI, machine learning, and mixed-reality systems</strong>; explicit positive recruiting evidence.</p>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap">
+            <div style="display:flex; gap:16px; font-size:12.5px; color:var(--muted)">
+              <span>Recruiting <strong style="color:var(--good)">100%</strong></span>
+              <span>Confidence <strong style="color:var(--text)">88%</strong></span>
+            </div>
+            <div style="display:flex; gap:9px">
+              <button style="padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">View evidence</button>
+              <button style="padding:9px 18px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Save</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div style="text-align:center; margin:24px 0">
+        <button style="padding:11px 24px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint)">Load 20 more</button>
+      </div>
+
+      <!-- No-profile empty state -->
+      <div aria-label="No profile state" style="margin-top:24px">
+        <div style="font-size:11.5px; font-weight:700; letter-spacing:0.1em; color:var(--faint); text-transform:uppercase; margin-bottom:10px">Empty state variant — no profile</div>
+        <div style="background:var(--surface); border:1px dashed var(--border); border-radius:16px; padding:44px; text-align:center">
+          <h3 style="margin:0 0 6px; font-size:18px; font-weight:800; letter-spacing:-0.01em">No academic profile yet</h3>
+          <p style="margin:0 auto 18px; font-size:14px; color:var(--muted); max-width:400px; text-wrap:pretty">Tell us about your research interests to get an explainable advisor shortlist.</p>
+          <a href="#intake" style="display:inline-block; padding:11px 22px; border-radius:10px; background:var(--primary); color:var(--on-primary); font-size:14px; font-weight:600; text-decoration:none" style-hover="filter:brightness(1.12)">Create research profile →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INTAKE WIZARD ============ -->
+    <section id="intake" data-screen-label="Intake wizard" aria-label="Intake wizard" style="margin-top:64px; padding-top:48px; border-top:1px solid var(--border)">
+      <div style="max-width:640px; margin:0 auto">
+        <h2 style="margin:0; font-size:26px; font-weight:800; letter-spacing:-0.02em">Create your research profile</h2>
+        <p style="margin:8px 0 24px; font-size:14px; color:var(--muted)">Private by default — used only to rank professors and explain research fit.</p>
+
+        <!-- Stepper -->
+        <div aria-label="Stepper" style="display:flex; align-items:center; gap:0; margin-bottom:24px">
+          <div style="display:flex; align-items:center; gap:9px">
+            <span style="width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent-text); display:grid; place-items:center; font-size:12.5px; font-weight:800">✓</span>
+            <span style="font-size:13px; font-weight:600; color:var(--muted)">Goals</span>
+          </div>
+          <div style="flex:1; height:2px; background:var(--accent); margin:0 14px; min-width:32px; border-radius:2px"></div>
+          <div style="display:flex; align-items:center; gap:9px">
+            <span style="width:26px; height:26px; border-radius:50%; background:var(--primary); color:var(--on-primary); display:grid; place-items:center; font-size:12.5px; font-weight:800">2</span>
+            <span style="font-size:13px; font-weight:700">Interests</span>
+          </div>
+          <div style="flex:1; height:2px; background:var(--border); margin:0 14px; min-width:32px; border-radius:2px"></div>
+          <div style="display:flex; align-items:center; gap:9px">
+            <span style="width:26px; height:26px; border-radius:50%; background:var(--surface2); color:var(--faint); display:grid; place-items:center; font-size:12.5px; font-weight:800">3</span>
+            <span style="font-size:13px; font-weight:600; color:var(--faint)">Background</span>
+          </div>
+        </div>
+
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; box-shadow:var(--shadow)">
+          <label style="display:grid; gap:9px; font-size:14px; font-weight:700">Research interests
+            <textarea rows="4" placeholder="e.g. robot learning with vision foundation models; sim-to-real transfer; data-efficient imitation learning" style="padding:12px 15px; border:1px solid var(--border); border-radius:11px; font-size:14px; font-weight:400; font-family:inherit; background:var(--bg); color:var(--text); resize:vertical; line-height:1.55">robot learning, computer vision, reinforcement learning for manipulation</textarea>
+          </label>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px">
+            <span style="font-size:12px; color:var(--faint); font-weight:600">Suggested</span>
+            <button style="padding:5px 13px; border-radius:999px; border:1px dashed var(--accent); background:none; color:var(--accent-text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="background:var(--accent-soft)">+ Machine Learning</button>
+            <button style="padding:5px 13px; border-radius:999px; border:1px dashed var(--accent); background:none; color:var(--accent-text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="background:var(--accent-soft)">+ Robotics</button>
+            <button style="padding:5px 13px; border-radius:999px; border:1px dashed var(--accent); background:none; color:var(--accent-text); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="background:var(--accent-soft)">+ Computer Vision</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:20px; border-top:1px solid var(--border)">
+            <button style="padding:10px 18px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="border-color:var(--faint); color:var(--text)">← Back</button>
+            <button style="padding:10px 22px; border-radius:10px; border:0; background:var(--primary); color:var(--on-primary); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer" style-hover="filter:brightness(1.12)">Continue →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null, threshold: 40 };
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('univya-theme'); } catch (e) {}
+    this.applyTheme(saved ?? this.props.theme ?? 'light');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.theme && prevProps.theme !== this.props.theme) {
+      this.applyTheme(this.props.theme);
+    }
+  }
+
+  applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    try { localStorage.setItem('univya-theme', theme); } catch (e) {}
+    this.setState({ theme });
+  }
+
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const t = this.state.threshold;
+    // Dummy distribution of the 12 results' fit scores for the count readout
+    const scores = [78, 74, 69, 66, 61, 58, 52, 47, 38, 33, 27, 21];
+    return {
+      themeIcon: theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.applyTheme(theme === 'dark' ? 'light' : 'dark'),
+      threshold: t,
+      aboveCount: scores.filter((s) => s >= t).length,
+      onThreshold: (e) => this.setState({ threshold: Number(e.target.value) }),
+    };
+  }
+}
+</script>
+</body>
+</html>
