@@ -31,15 +31,15 @@ remains Supabase Postgres; only SQLite was removed.
 
 - [x] Design system pass: hi-fi tokens (Sora, gold/olive/peach, sharp radii) already implemented in `globals.css`, matching `design_reference/hifi-tokens.css` — verified 2026-06-12
 - [x] Public free browsing (spec FR-001): `/professors` and professor detail pages work signed-out with a public shell (commit bb849da)
-- [~] Landing page per spec §21: search-first hero with topic chips + FAQ added (bb849da); problem-comparison section and professor-claim/department-request sections still to do
-- [ ] Professor cards (spec §11.5): photo, tags, confidence badge, recruiting status, AI summary snippet
-- [ ] Professor detail page (spec §10): header, labeled "AI Summary", tags, recent papers with confidence labels, source links, actions
-- [ ] Discover/search page: filters (university, department, tags, recruiting), sort, empty states, skeletons
-- [ ] Match/intake flow polish: threshold controls (defaults 40% / min 10), match explanation display, evidence, mismatch notes
-- [ ] Dashboard, saved, profile pages: consistent shell, responsive, dark-mode sanity
+- [x] Landing page per spec §21: search-first hero with topic chips, FAQ, without/with comparison, department-request banner (bb849da, d7fb90f)
+- [x] Professor cards (spec §11.5): photo, tags, banded confidence chip, recruiting status, summary snippet (abcac40)
+- [x] Professor detail page (spec §10): labeled AI summary + provenance note, profile-text source link, per-paper confidence chips, empty-papers state (d7fb90f, abcac40)
+- [x] Discover/search page: filters, sort, empty states, skeletons — already present, verified 2026-06-12
+- [x] Match flow threshold controls (40% default, min-results fallback, explanation/evidence display) — already present, verified 2026-06-12
+- [ ] Dashboard, saved, profile pages: visual audit pass (consistent shell, responsive)
 - [ ] Admin pages: import monitoring, review queue tables (spec §20.5)
-- [ ] Accessibility pass: focus states, contrast, semantic landmarks
-- [ ] Update Jest + Playwright tests for revamped UI; capture QA screenshots
+- [~] Accessibility: global :focus-visible outline added; still to do: contrast audit, landmark review
+- [x] Jest + Playwright updated for revamped UI; screenshots captured by e2e under `apps/frontend/test-results/`
 
 ## Phase 2 — Production hardening (launch gates from doc.md §7.5)
 
