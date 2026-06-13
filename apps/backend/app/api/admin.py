@@ -98,18 +98,6 @@ def validate_public_url(value: str) -> str:
     return url
 
 
-class AgenticOnboardRequest(BaseModel):
-    url: str = Field(..., min_length=8, max_length=2000)
-    university: str = "Unknown University"
-    department: str = "Computer Science"
-    automatic: bool = False
-
-    @field_validator("url")
-    @classmethod
-    def validate_url(cls, value: str) -> str:
-        return validate_public_url(value)
-
-
 class IndexedDepartment(BaseModel):
     university: str
     department: str
@@ -257,14 +245,6 @@ def reject_scan_result(result_id: int, _: User = Depends(require_admin), session
     return {"result": result}
 
 
-@router.post("/scan-results/{result_id}/import")
-def import_scan_result(result_id: int, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    result = ScanJobService(session).import_scan_result(result_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Scan result not found")
-    return {"result": result}
-
-
 @router.post("/scan-jobs/{job_id}/fetch-publications")
 def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
     job = ScanJobService(session).get_scan_job(job_id)
@@ -276,11 +256,6 @@ def fetch_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: 
         use_llm_verification=req.use_llm_verification,
     )
     return {"summary": summary}
-
-
-@router.post("/scan-jobs/{job_id}/revise-publications")
-def revise_scan_job_publications(job_id: int, req: RevisePublicationsRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    return fetch_scan_job_publications(job_id, req, _, session)
 
 
 @router.post("/scan-jobs/{job_id}/import-approved")
@@ -342,168 +317,6 @@ def execute_scan_task(adapter: str, enrich_profiles: bool, enrich_publications: 
         logger = logging.getLogger("profmatch.agentic")
         logger.error(f"Test scan failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
         set_job_status("error", f"Test scan failed: {result.stderr.splitlines()[-1] if result.stderr.splitlines() else 'Unknown error'}")
-
-
-def execute_agentic_onboarding(url: str):
-    from apps.backend.app.services.agentic_scraper_service import AgenticScraperService
-    service = AgenticScraperService()
-    try:
-        set_job_status("running", f"Agent analyzing {url}...")
-        result = service.generate_adapter(url)
-        if result["status"] == "success":
-            set_job_status("running", f"Successfully generated {result['adapter']} adapter. Running test scan...")
-            execute_scan_task(
-                adapter=result["adapter"],
-                enrich_profiles=False,
-                enrich_publications=False
-            )
-        else:
-            set_job_status("error", f"Agentic onboarding rejected: {result.get('message')}")
-    except Exception as e:
-        import logging
-        logging.getLogger("profmatch.agentic").error(f"Agentic onboarding failed: {e}", exc_info=True)
-        set_job_status("error", f"Agentic onboarding failed: {e}")
-
-
-@router.post("/agentic/onboard")
-def onboard_university(req: AgenticOnboardRequest, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    job_id = service.create_job(req.url, req.university, req.department)
-    
-    async def run_bg():
-        if req.automatic:
-            await service.run_automatic_pipeline(job_id)
-        else:
-            await service.run_extract_roster(job_id)
-        
-    import asyncio
-    background_tasks.add_task(lambda: asyncio.run(run_bg()))
-    return {"status": "started", "job_id": job_id, "message": "Agentic extraction started in the background."}
-
-def _summarize_agentic_jobs() -> list[dict[str, Any]]:
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    jobs = service.list_jobs()
-    for j in jobs:
-        if "professors" in j:
-            j["professor_count"] = len(j["professors"])
-            del j["professors"]
-    return jobs
-
-
-def _job_group(job: dict[str, Any]) -> str:
-    status = str(job.get("status") or "").lower()
-    step = str(job.get("step") or "").lower()
-    if status in {"running", "pending"}:
-        return "ongoing"
-    if status == "completed" and step not in {"publish", "auto_done"}:
-        return "ready_to_publish"
-    if status == "completed":
-        return "completed"
-    if status == "error":
-        return "completed"
-    return "ongoing"
-
-
-@router.get("/agentic/jobs")
-def list_agentic_jobs(_: User = Depends(require_admin)):
-    return {"jobs": _summarize_agentic_jobs()}
-
-
-@router.get("/agentic/jobs/grouped")
-def list_agentic_jobs_grouped(_: User = Depends(require_admin)):
-    grouped = {"ongoing": [], "ready_to_publish": [], "completed": []}
-    for job in _summarize_agentic_jobs():
-        grouped[_job_group(job)].append(job)
-    return grouped
-
-@router.get("/agentic/job/{job_id}/events")
-async def stream_agentic_job(job_id: str, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-
-    async def events():
-        service = AgenticOnboardingService()
-        while True:
-            job = service.get_job(job_id)
-            if not job:
-                yield f"event: error\ndata: {json.dumps({'message': 'Job not found'})}\n\n"
-                break
-            yield f"data: {json.dumps(job)}\n\n"
-            if str(job.get("status") or "").lower() not in {"running", "pending"}:
-                break
-            await asyncio.sleep(5)
-
-    return StreamingResponse(events(), media_type="text/event-stream")
-
-
-@router.get("/agentic/job/{job_id}")
-def get_agentic_job(job_id: str, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    job = service.get_job(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
-
-@router.post("/agentic/job/{job_id}/stop")
-def stop_agentic_job(job_id: str, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    if not service.stop_job(job_id):
-        raise HTTPException(status_code=400, detail="Could not stop job. It may not be running.")
-    return {"status": "stopped", "message": "Job stopped successfully."}
-
-@router.delete("/agentic/job/{job_id}")
-def delete_agentic_job(job_id: str, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    if not service.delete_job(job_id):
-        raise HTTPException(status_code=404, detail="Job not found.")
-    return {"status": "deleted"}
-
-@router.post("/agentic/job/{job_id}/enrich-homepage")
-def agentic_enrich_homepage(job_id: str, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    
-    async def run_bg():
-        await service.run_enrich_homepages(job_id)
-        
-    import asyncio
-    background_tasks.add_task(lambda: asyncio.run(run_bg()))
-    return {"status": "started", "message": "Enriching homepages in background..."}
-
-@router.post("/agentic/job/{job_id}/fetch-publications")
-def agentic_fetch_publications(job_id: str, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    background_tasks.add_task(service.run_fetch_publications, job_id=job_id)
-    return {"status": "started", "message": "Fetching publications in background..."}
-
-@router.post("/agentic/job/{job_id}/generate-summary")
-def agentic_generate_summary(job_id: str, background_tasks: BackgroundTasks, _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    background_tasks.add_task(service.run_generate_summary, job_id=job_id)
-    return {"status": "started", "message": "Generating AI summaries in background..."}
-
-@router.post("/agentic/job/{job_id}/publish")
-def agentic_publish(job_id: str, background_tasks: BackgroundTasks, session: Session = Depends(get_session), _: User = Depends(require_admin)):
-    from apps.backend.app.services.agentic_onboarding_service import AgenticOnboardingService
-    service = AgenticOnboardingService()
-    
-    # We must run it synchronously or pass a fresh session if it was truly background, 
-    # but for this MVP let's just execute it inline to avoid session thread issues or we can create a fresh session inside the service.
-    # We will pass a function that creates its own session to the background task.
-    def bg_publish():
-        from apps.backend.app.db import engine
-        from sqlmodel import Session as SMSession
-        with SMSession(engine) as s:
-            service.run_publish(job_id, s)
-            
-    background_tasks.add_task(bg_publish)
-    return {"status": "started", "message": "Publishing to the database in background..."}
 
 
 @router.get("/indexed-departments", response_model=IndexedDepartmentsResponse)

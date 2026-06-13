@@ -96,10 +96,6 @@ export interface ExplorerStatsResponse {
   universities: UniversityStat[];
 }
 
-export interface ListUniversitiesResponse {
-  universities: string[];
-}
-
 export interface StudentProfile {
   name: string;
   photo_url?: string;
@@ -237,12 +233,6 @@ export interface IndexedDepartment {
   department: string;
   professor_count: number;
   publication_count: number;
-}
-
-export interface AgenticJobGroups {
-  ongoing: any[];
-  ready_to_publish: any[];
-  completed: any[];
 }
 
 export interface ScanJob {

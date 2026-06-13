@@ -272,3 +272,29 @@ html.dark{--uv-on-deep:#F2F5FB;--uv-on-deep-muted:rgba(235,240,250,.62)}
 .landing-faq-item strong{font-size:14px;font-weight:600;line-height:1.4}
 .landing-faq-item p{margin:0;color:var(--ink-65);font-size:13px;line-height:1.65}
 @media(max-width:767px){.landing-search-form{flex-direction:column}.landing-search-form .button{justify-content:center}.landing-search-chips{justify-content:center}}
+
+/* Shared admin/data table */
+.table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--paper)}
+.data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+.data-table thead th{position:sticky;top:0;z-index:1;text-align:left;padding:11px 14px;background:var(--paper-sidebar);color:var(--ink-65);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+.data-table thead th.num,.data-table tbody td.num{text-align:center}
+.data-table thead th.end,.data-table tbody td.end{text-align:right}
+.data-table tbody td{padding:12px 14px;border-bottom:1px solid var(--divider);vertical-align:top;color:var(--ink)}
+.data-table tbody tr:last-child td{border-bottom:0}
+.data-table tbody tr.table-row{cursor:pointer;transition:background .12s ease}
+.data-table tbody tr.table-row:hover{background:var(--paper-hover)}
+.data-table tbody tr.table-row.selected{background:var(--tint-gold)}
+.data-table tbody tr.table-row.selected td{border-bottom-color:var(--gold-300)}
+.data-table .cell-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.data-table .cell-sub{color:var(--ink-65);font-size:11.5px;margin-top:2px;display:block}
+
+/* Full-screen splash (post-login transition) */
+.splash{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--uv-bg,var(--paper))}
+.splash-inner{display:grid;justify-items:center;gap:18px;text-align:center;animation:splash-fade .3s ease}
+.splash .brand{font-size:26px}
+.splash-spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold-300);border-radius:50%;animation:spin .8s linear infinite}
+.splash-msg{color:var(--ink-65);font-size:14px}
+@keyframes splash-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Landing stat skeleton (consistent shimmer with .skeleton-line) */
+.stat-skeleton{display:inline-block;width:74px;height:30px;border-radius:var(--r-sm);background:linear-gradient(90deg,var(--ink-04),var(--ink-08),var(--ink-04));background-size:220% 100%;animation:skeleton-shimmer 1.15s ease-in-out infinite;vertical-align:middle}

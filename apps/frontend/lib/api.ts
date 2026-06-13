@@ -1,4 +1,4 @@
-import type { AdminScanDetail, AgenticJobGroups, AuthResponse, ExplorerStatsResponse, GetProfessorResponse, IndexedDepartment, ListAdminScansResponse, ListProfessorsResponse, ListUniversitiesResponse, MatchResponse, ProfessorFacetsResponse, ScanJob, ScanLog, ScanResult, ScanTask, StudentProfile, UserStateResponse } from './types';
+import type { AdminScanDetail, AuthResponse, ExplorerStatsResponse, GetProfessorResponse, IndexedDepartment, ListAdminScansResponse, ListProfessorsResponse, MatchResponse, ProfessorFacetsResponse, ScanJob, ScanLog, ScanResult, ScanTask, StudentProfile, UserStateResponse } from './types';
 
 export class ApiError extends Error {
   status: number;
@@ -47,10 +47,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function getStats() {
   return request<ExplorerStatsResponse>('/api/stats');
-}
-
-export function getUniversities() {
-  return request<ListUniversitiesResponse>('/api/universities');
 }
 
 export function listProfessors(params: Record<string, string | number | string[] | undefined>) {
@@ -165,19 +161,11 @@ export function rejectScanResult(id: number | string) {
   return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/reject`, { method: 'POST' });
 }
 
-export function importScanResult(id: number | string) {
-  return request<{ result: ScanResult }>(`/api/admin/scan-results/${encodeURIComponent(String(id))}/import`, { method: 'POST' });
-}
-
 export function fetchScanJobPublications(id: number | string, payload: { max_publications?: number; use_llm_verification?: boolean } = {}) {
   return request<{ summary: Record<string, any> }>(`/api/admin/scan-jobs/${encodeURIComponent(String(id))}/fetch-publications`, {
     method: 'POST',
     body: JSON.stringify({ max_publications: payload.max_publications ?? 10, use_llm_verification: payload.use_llm_verification ?? false }),
   });
-}
-
-export function reviseScanJobPublications(id: number | string, payload: { max_publications?: number; use_llm_verification?: boolean } = {}) {
-  return fetchScanJobPublications(id, payload);
 }
 
 export function importApprovedScanResults(id: number | string) {
@@ -205,49 +193,6 @@ export function runAdminScan(payload: { adapter: string; enrich_profiles?: boole
     method: 'POST',
     body: JSON.stringify(payload),
   });
-}
-
-export function onboardUniversity(payload: { url: string; university: string; department: string; automatic?: boolean }) {
-  return request<{ status: string; job_id: string; message: string }>('/api/admin/agentic/onboard', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
-export function listAgenticJobs() {
-  return request<{ jobs: any[] }>('/api/admin/agentic/jobs');
-}
-
-export function listAgenticJobGroups() {
-  return request<AgenticJobGroups>('/api/admin/agentic/jobs/grouped');
-}
-
-export function getAgenticJob(id: string) {
-  return request<any>(`/api/admin/agentic/job/${encodeURIComponent(id)}`);
-}
-
-export function enrichAgenticHomepage(id: string) {
-  return request<{ status: string; message: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}/enrich-homepage`, { method: 'POST' });
-}
-
-export function fetchAgenticPublications(id: string) {
-  return request<{ status: string; message: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}/fetch-publications`, { method: 'POST' });
-}
-
-export function generateAgenticSummary(id: string) {
-  return request<{ status: string; message: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}/generate-summary`, { method: 'POST' });
-}
-
-export function publishAgenticJob(id: string) {
-  return request<{ status: string; message: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}/publish`, { method: 'POST' });
-}
-
-export function stopAgenticJob(id: string) {
-  return request<{ status: string; message: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}/stop`, { method: 'POST' });
-}
-
-export function deleteAgenticJob(id: string) {
-  return request<{ status: string }>(`/api/admin/agentic/job/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export function getScanStatus() {

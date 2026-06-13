@@ -88,10 +88,10 @@ export default function LandingPage() {
                 <button key={topic} type="button" className="uv-chip-outline" onClick={() => searchProfessors(topic)}>{topic}</button>
               ))}
             </div>
-            <div className="uv-stats" aria-label="Dataset stats">
-              <div><strong>{formatStat(stats?.professor_count)}</strong><span>Professors indexed</span></div>
-              <div><strong>{formatStat(stats?.publication_count)}</strong><span>Papers indexed</span></div>
-              <div><strong>{formatStat(stats?.professors_with_publications)}</strong><span>Profiles with papers</span></div>
+            <div className="uv-stats" aria-label="Dataset stats" aria-busy={stats === null}>
+              <div><strong>{stats === null ? <span className="stat-skeleton" /> : formatStat(stats.professor_count)}</strong><span>Professors indexed</span></div>
+              <div><strong>{stats === null ? <span className="stat-skeleton" /> : formatStat(stats.publication_count)}</strong><span>Papers indexed</span></div>
+              <div><strong>{stats === null ? <span className="stat-skeleton" /> : formatStat(stats.professors_with_publications)}</strong><span>Profiles with papers</span></div>
             </div>
           </div>
 

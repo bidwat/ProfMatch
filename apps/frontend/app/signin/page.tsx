@@ -15,6 +15,7 @@ export default function SigninPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     if (!localStore.getUser()) return;
@@ -33,6 +34,8 @@ export default function SigninPage() {
     try {
       const response = await loginUser({ email: form.email, password: form.password });
       localStore.setUser({ name: response.user.display_name, email: response.user.email, createdAt: response.user.created_at, role: response.user.role });
+      // Auth succeeded — leave the form and show the splash while we finish setup + navigate.
+      setRedirecting(true);
       const state = await getUserState().catch(() => null);
       const next = searchParams.get('next');
       if (state?.student_profile) {
@@ -49,9 +52,21 @@ export default function SigninPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not sign in.');
-    } finally {
+      setRedirecting(false);
       setSubmitting(false);
     }
+  }
+
+  if (redirecting) {
+    return (
+      <div className="splash" role="status" aria-live="polite">
+        <div className="splash-inner">
+          <div className="brand"><span>Univya<span className="brand-dot">.</span></span></div>
+          <div className="splash-spinner" aria-hidden="true" />
+          <p className="splash-msg">Signing you in and refreshing your matches…</p>
+        </div>
+      </div>
+    );
   }
 
   return (

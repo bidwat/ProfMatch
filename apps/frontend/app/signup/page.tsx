@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,12 +29,24 @@ export default function SignupPage() {
         password: form.password,
       });
       localStore.setUser({ name: response.user.display_name, email: response.user.email, createdAt: response.user.created_at, role: response.user.role });
+      setRedirecting(true);
       router.push('/profile');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create account.');
-    } finally {
       setSubmitting(false);
     }
+  }
+
+  if (redirecting) {
+    return (
+      <div className="splash" role="status" aria-live="polite">
+        <div className="splash-inner">
+          <div className="brand"><span>Univya<span className="brand-dot">.</span></span></div>
+          <div className="splash-spinner" aria-hidden="true" />
+          <p className="splash-msg">Setting up your workspace…</p>
+        </div>
+      </div>
+    );
   }
 
   return (

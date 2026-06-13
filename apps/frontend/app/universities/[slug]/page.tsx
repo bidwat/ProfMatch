@@ -5,6 +5,7 @@ import { use, useEffect, useMemo, useState } from 'react';
 import { Card } from '@heroui/react';
 import { getUniversitiesOverview, type DepartmentGroup } from '@/lib/api';
 import { slugify } from '@/lib/slug';
+import { CardListSkeleton } from '@/components/Skeleton';
 
 export default function UniversityPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
   const params = use(paramsPromise);
@@ -30,7 +31,7 @@ export default function UniversityPage({ params: paramsPromise }: { params: Prom
     if (universityName) document.title = `${universityName} – Professors and Departments | Univya`;
   }, [universityName]);
 
-  if (loading) return <div className="page narrow"><div className="card soft" style={{ marginTop: 32 }}>Loading university…</div></div>;
+  if (loading) return <div className="page narrow"><div style={{ marginTop: 32 }}><CardListSkeleton count={5} /></div></div>;
   if (error) return <div className="page narrow"><div className="error" style={{ marginTop: 32 }}>{error}</div></div>;
 
   if (!universityName) {

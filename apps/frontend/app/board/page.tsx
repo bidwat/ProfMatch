@@ -7,6 +7,7 @@ import { getProfessor, getUserState, patchUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import { track } from '@/lib/analytics';
 import { Toast } from '@/components/Toast';
+import { CardListSkeleton } from '@/components/Skeleton';
 import type { GetProfessorResponse } from '@/lib/types';
 
 // Default stages per spec §16.4 (professor-centered application workflow).
@@ -96,7 +97,7 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {loading && <div className="card soft" style={{ margin: 24 }}>Loading your board…</div>}
+      {loading && <div style={{ margin: 24 }}><CardListSkeleton count={4} lines={3} /></div>}
 
       {!loading && rows.length === 0 && (
         <div className="card soft" style={{ margin: 24, textAlign: 'center', padding: 36 }}>

@@ -93,21 +93,23 @@ export default function AdminScansPage() {
       </div>
 
       <div className="grid two" style={{ marginTop: 22, alignItems: 'start' }}>
-        <div className="card" style={{ overflowX: 'auto' }}>
+        <div className="card">
           <h3>Durable scan jobs</h3>
-          <p className="muted small-text">Postgres-backed job/task state survives refreshes and worker restarts.</p>
+          <p className="muted small-text" style={{ marginBottom: 12 }}>Postgres-backed job/task state survives refreshes and worker restarts.</p>
           {durableJobs.length === 0 ? <p className="muted" style={{ marginTop: 12 }}>No durable scan jobs yet. Start one from Agentic Onboarding.</p> : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-              <thead><tr className="muted small-text"><th align="left">Job</th><th>Status</th><th>Progress</th><th>Tasks</th></tr></thead>
-              <tbody>{durableJobs.map(job => (
-                <tr key={job.id} onClick={() => setSelectedJobId(job.id)} className={selectedJobId === job.id ? 'table-row selected' : 'table-row'}>
-                  <td style={{ padding: 10 }}><strong>#{job.id}</strong><br /><span className="muted small-text">{formatDate(job.created_at)} · {job.job_type}</span></td>
-                  <td style={{ padding: 10 }}><Badge value={job.status} /></td>
-                  <td style={{ padding: 10 }}><div className="progress"><span style={{ width: `${job.progress_percent}%` }} /></div><span className="muted small-text">{Math.round(job.progress_percent)}%</span></td>
-                  <td style={{ padding: 10 }} className="muted small-text">{job.succeeded_tasks} ok · {job.running_tasks} running · {job.queued_tasks} queued · {job.failed_tasks} failed</td>
-                </tr>
-              ))}</tbody>
-            </table>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead><tr><th>Job</th><th>Status</th><th>Progress</th><th>Tasks</th></tr></thead>
+                <tbody>{durableJobs.map(job => (
+                  <tr key={job.id} onClick={() => setSelectedJobId(job.id)} className={selectedJobId === job.id ? 'table-row selected' : 'table-row'}>
+                    <td><strong>#{job.id}</strong><span className="cell-sub">{formatDate(job.created_at)} · {job.job_type}</span></td>
+                    <td><Badge value={job.status} /></td>
+                    <td style={{ minWidth: 120 }}><div className="progress"><span style={{ width: `${job.progress_percent}%` }} /></div><span className="cell-sub">{Math.round(job.progress_percent)}%</span></td>
+                    <td className="muted small-text">{job.succeeded_tasks} ok · {job.running_tasks} running · {job.queued_tasks} queued · {job.failed_tasks} failed</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
           )}
         </div>
         <DurableJobDetail jobId={selectedJobId} onRefresh={fetchScans} />
@@ -157,22 +159,24 @@ export default function AdminScansPage() {
 
       {scans.length > 0 && (
         <div className="grid two" style={{ marginTop: 22, alignItems: 'start' }}>
-          <div className="card" style={{ overflowX: 'auto' }}>
-            <h3>Runs</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-              <thead><tr className="muted small-text"><th align="left">Scan</th><th>Status</th><th>Records</th><th>Issues</th><th>Gate</th></tr></thead>
-              <tbody>
-                {scans.map(scan => (
-                  <tr key={scan.id} onClick={() => setSelectedId(scan.id)} className={selectedId === scan.id ? 'table-row selected' : 'table-row'}>
-                    <td style={{ padding: 10 }}><strong>{scan.university}</strong><br /><span className="muted small-text">{scan.date} · {scan.adapter_name || 'adapter unknown'}</span></td>
-                    <td style={{ padding: 10 }}><Badge value={scan.qa_status || scan.run_status || 'unknown'} /></td>
-                    <td style={{ padding: 10 }} className="muted small-text">{scan.professors} faculty<br />{scan.publications} publications</td>
-                    <td style={{ padding: 10 }} className="muted small-text">{scan.errors} errors · {scan.warnings} warnings · {scan.duplicates} duplicates</td>
-                    <td style={{ padding: 10 }}><Badge value={scan.db_import_allowed ? 'import-ready' : 'review-required'} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="card">
+            <h3 style={{ marginBottom: 12 }}>Runs</h3>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead><tr><th>Scan</th><th>Status</th><th>Records</th><th>Issues</th><th>Gate</th></tr></thead>
+                <tbody>
+                  {scans.map(scan => (
+                    <tr key={scan.id} onClick={() => setSelectedId(scan.id)} className={selectedId === scan.id ? 'table-row selected' : 'table-row'}>
+                      <td><strong>{scan.university}</strong><span className="cell-sub">{scan.date} · {scan.adapter_name || 'adapter unknown'}</span></td>
+                      <td><Badge value={scan.qa_status || scan.run_status || 'unknown'} /></td>
+                      <td className="muted small-text">{scan.professors} faculty<span className="cell-sub">{scan.publications} publications</span></td>
+                      <td className="muted small-text">{scan.errors} errors · {scan.warnings} warnings · {scan.duplicates} duplicates</td>
+                      <td><Badge value={scan.db_import_allowed ? 'import-ready' : 'review-required'} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="card">
@@ -242,7 +246,7 @@ function DurableJobDetail({ jobId, onRefresh }: { jobId: number | null; onRefres
 
     <DetailSection title="Candidate results">
       {results.length === 0 ? <p className="muted small-text">No candidates saved yet.</p> : <div className="record-list">{results.slice(0, 25).map(result => <div key={result.id} className="record-block">
-        <div className="row between"><strong>{result.professor_name}</strong><Badge value={result.status} /></div>
+        <div className="row between"><strong>{result.professor_name}</strong><div className="row" style={{ gap: 6 }}><ConfidenceChip value={result.source_confidence} /><Badge value={result.status} /></div></div>
         <p className="muted small-text">{result.title || 'Title unknown'} · {result.university} · {result.publications_payload?.length || 0}/10 publications · import: {result.import_status}</p>
         <p className="muted small-text">Fetching publications replaces the staged publication list with OpenAlex results.</p>
         {result.qa_issues?.length > 0 && <p className="muted small-text">QA: {result.qa_issues.map(issue => issue.code || issue.message).join(', ')}</p>}
@@ -417,6 +421,13 @@ function RecordBlock({ record }: { record: Record<string, any> }) {
 function Badge({ value }: { value: string }) {
   const ok = /ready|success|allowed|disabled/.test(value);
   return <span className={`tag ${ok ? 'success' : ''}`}>{value}</span>;
+}
+
+function ConfidenceChip({ value }: { value?: number | null }) {
+  if (value == null || value <= 0) return <span className="tag" title="No OpenAlex match yet">conf —</span>;
+  const pct = Math.round(value * 100);
+  const band = pct >= 85 ? 'success' : pct >= 65 ? '' : 'error';
+  return <span className={`tag ${band}`} title="OpenAlex author + affiliation match confidence">conf {pct}%</span>;
 }
 
 function formatDate(value?: string | null) {

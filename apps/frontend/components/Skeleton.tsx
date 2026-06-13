@@ -31,6 +31,21 @@ export function ProfessorListSkeleton({ count = 4 }: { count?: number }) {
   return <>{Array.from({ length: count }, (_, index) => <ProfessorCardSkeleton key={index} />)}</>;
 }
 
+export function CardListSkeleton({ count = 4, lines = 2 }: { count?: number; lines?: number }) {
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      {Array.from({ length: count }, (_, index) => (
+        <div className="card skeleton-card" key={index} aria-hidden="true">
+          <div className="row between"><SkeletonLine width="180px" height={16} /><SkeletonLine width="64px" height={22} /></div>
+          {Array.from({ length: lines }, (_, line) => (
+            <SkeletonLine key={line} width={line === lines - 1 ? '70%' : '100%'} height={12} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function PageSkeleton() {
   return (
     <div className="page">

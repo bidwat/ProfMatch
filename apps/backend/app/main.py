@@ -20,7 +20,6 @@ from apps.backend.app.api.stats import router as stats_router
 from apps.backend.app.api.match import router as match_router
 from apps.backend.app.api.auth import router as auth_router
 from apps.backend.app.api.admin import router as admin_router
-from apps.backend.app.api.scrape_runs import router as scrape_runs_router
 from apps.backend.app.api.recommendations import router as recommendations_router
 from apps.backend.app.api.student_profiles import router as student_profiles_router
 from apps.backend.app.api.reports import router as reports_router
@@ -204,7 +203,6 @@ app.include_router(universities_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
 app.include_router(match_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
-app.include_router(scrape_runs_router, prefix="/api")
 app.include_router(recommendations_router, prefix="/api")
 app.include_router(student_profiles_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
