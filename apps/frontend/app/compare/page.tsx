@@ -6,6 +6,7 @@ import { Button, Chip } from '@heroui/react';
 import { getProfessor, getUserState } from '@/lib/api';
 import { localStore } from '@/lib/local-store';
 import { ConfidenceChip, Signal, cleanTitle } from '@/components/ProfessorCard';
+import { CardListSkeleton } from '@/components/Skeleton';
 import type { GetProfessorResponse, MatchResponse } from '@/lib/types';
 
 const MAX_COMPARE = 4;
@@ -48,7 +49,7 @@ export default function ComparePage() {
         <p className="muted">Pick two to four saved professors and compare research fit, evidence, and contact signals side by side.</p>
       </div>
 
-      {loading && <div className="card soft" style={{ margin: 24 }}>Loading saved professors…</div>}
+      {loading && <div style={{ margin: 24 }}><CardListSkeleton count={3} /></div>}
 
       {!loading && rows.length === 0 && (
         <div className="card soft" style={{ margin: 24, textAlign: 'center', padding: 36 }}>

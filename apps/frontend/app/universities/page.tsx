@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card, Input } from '@heroui/react';
 import { getUniversitiesOverview, type DepartmentGroup } from '@/lib/api';
 import { slugify } from '@/lib/slug';
+import { CardListSkeleton } from '@/components/Skeleton';
 
 interface UniversitySummary {
   name: string;
@@ -52,7 +53,7 @@ export default function UniversitiesPage() {
       </div>
 
       {error && <div className="error">{error}</div>}
-      {loading && <div className="card soft">Loading universities…</div>}
+      {loading && <CardListSkeleton count={6} />}
       {!loading && !error && universities.length === 0 && (
         <div className="card soft" style={{ textAlign: 'center', padding: 32 }}>
           <h3>No universities match.</h3>

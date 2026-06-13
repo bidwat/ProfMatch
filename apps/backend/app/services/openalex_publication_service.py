@@ -57,10 +57,6 @@ class OpenAlexPublicationRevisionService:
         self.job_service.append_scan_log(job_id, None, "info", "publication_fetch_completed", "OpenAlex publication fetch completed", summary)
         return summary
 
-    def revise_job_publications(self, job_id: int, *, max_publications: int = 10, use_llm_verification: bool = False) -> dict[str, Any]:
-        return self.fetch_job_publications(job_id, max_publications=max_publications, use_llm_verification=use_llm_verification)
-        return summary
-
     def fetch_result_publications(self, result: ScanResult, *, max_publications: int = 10) -> dict[str, Any]:
         if not result.professor_name.strip():
             return {"revised": False, "publication_count": 0, "reason": "missing professor name"}
@@ -102,9 +98,6 @@ class OpenAlexPublicationRevisionService:
             {"result_id": result.id, "author_id": enrichment.source_author_id, "confidence": enrichment.confidence},
         )
         return {"revised": True, "publication_count": len(result.publications_payload)}
-
-    def revise_result_publications(self, result: ScanResult, *, max_publications: int = 10) -> dict[str, Any]:
-        return self.fetch_result_publications(result, max_publications=max_publications)
 
     def refresh_indexed_department_publications(
         self,

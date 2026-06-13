@@ -4,16 +4,14 @@ import { Button } from '@heroui/react';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getAdminMetrics, getCurrentUser, getScanStatus, listAdminReports, listAgenticJobGroups, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications, updateAdminReport } from '@/lib/api';
+import { deleteIndexedDepartment, enrichIndexedDepartmentProfiles, getAdminMetrics, getCurrentUser, getScanStatus, listAdminReports, listIndexedDepartments, listRecommendationRequests, refreshIndexedDepartment, refreshIndexedDepartmentPublications, updateAdminReport } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import type { AgenticJobGroups, IndexedDepartment } from '@/lib/types';
+import type { IndexedDepartment } from '@/lib/types';
 
 export default function AdminDashboardPage() {
   const [groups, setGroups] = useState<IndexedDepartment[]>([]);
-  const [jobs, setJobs] = useState<AgenticJobGroups>({ ongoing: [], ready_to_publish: [], completed: [] });
   const [requests, setRequests] = useState<any[]>([]);
   const [jobStatus, setJobStatus] = useState<{ status: string; message: string }>({ status: 'idle', message: 'No active jobs' });
-  const [activeTab, setActiveTab] = useState<'ongoing' | 'ready_to_publish' | 'completed'>('ongoing');
   const [message, setMessage] = useState('');
   const [authorized, setAuthorized] = useState(false);
   const [refreshing, setRefreshing] = useState<string | null>(null);
@@ -28,7 +26,6 @@ export default function AdminDashboardPage() {
 
   const load = () => {
     listIndexedDepartments().then(r => setGroups(r.groups)).catch(e => setMessage(e.message || 'Could not load indexed departments.'));
-    listAgenticJobGroups().then(setJobs).catch(() => undefined);
     listRecommendationRequests().then(r => setRequests(r.requests)).catch(() => undefined);
     getScanStatus().then(setJobStatus).catch(() => undefined);
     listAdminReports('new').then(r => setReports(r.reports)).catch(() => undefined);
@@ -78,7 +75,6 @@ export default function AdminDashboardPage() {
     try {
       const result = await refreshIndexedDepartment({ university: refreshGroup.university, department: refreshGroup.department, faculty_page_url: refreshUrl });
       setMessage(result.message);
-      setActiveTab('ongoing');
       setRefreshGroup(null);
       setRefreshUrl('');
       load();
@@ -143,8 +139,6 @@ export default function AdminDashboardPage() {
     }
   }
 
-  const tabJobs = jobs[activeTab] || [];
-
   if (!authorized) {
     return <div className="page narrow"><div className="card"><h2>Admin Dashboard</h2><p className="muted">{message || 'Checking admin access…'}</p></div></div>;
   }
@@ -166,7 +160,7 @@ export default function AdminDashboardPage() {
       <div className="grid">
         <div className="card stat"><strong>{groups.length}</strong><span>indexed departments</span></div>
         <div className="card stat"><strong>{totals.professors}</strong><span>indexed professors</span></div>
-        <div className="card stat"><strong>{jobs.ongoing.length}</strong><span>ongoing workflows</span></div>
+        <div className="card stat"><strong>{totals.publications}</strong><span>indexed publications</span></div>
         <div className="card stat"><strong>{requests.length}</strong><span>requested items</span></div>
       </div>
 
@@ -186,31 +180,35 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <section className="card" style={{ overflowX: 'auto', marginTop: 22 }}>
-        <h3>Indexed Universities and Departments</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, tableLayout: 'fixed' }}>
-          <thead><tr className="muted small-text"><th align="left" style={{ width: '30%' }}>University</th><th align="left" style={{ width: '30%' }}>Department</th><th style={{ width: '12%' }}>Professors</th><th style={{ width: '12%' }}>Publications</th><th align="right" style={{ width: '16%' }}>Actions</th></tr></thead>
-          <tbody>
-            {groups.map(group => {
-              const key = `${group.university}-${group.department}`;
-              return (
-                <tr key={key} className="table-row">
-                  <td style={{ padding: 10, overflow: 'hidden', textOverflow: 'ellipsis' }}><strong>{group.university}</strong></td>
-                  <td style={{ padding: 10, overflow: 'hidden', textOverflow: 'ellipsis' }} className="muted">{group.department}</td>
-                  <td style={{ padding: 10 }} align="center">{group.professor_count}</td>
-                  <td style={{ padding: 10 }} align="center">{group.publication_count}</td>
-                  <td style={{ padding: 10 }} align="right">
-                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</Button>{' '}
-                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => setEnrichGroup(group)}>Enrich profiles</Button>{' '}
-                    <Button variant="secondary" isDisabled={refreshing === key} onPress={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</Button>{' '}
-                    <Button variant="danger-soft" onPress={() => setDeleteGroup(group)}>Delete</Button>
-                  </td>
-                </tr>
-              );
-            })}
-            {groups.length === 0 && <tr><td colSpan={5} style={{ padding: 18 }} className="muted">No indexed departments yet.</td></tr>}
-          </tbody>
-        </table>
+      <section className="card" style={{ marginTop: 22 }}>
+        <h3 style={{ marginBottom: 12 }}>Indexed Universities and Departments</h3>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead><tr><th>University</th><th>Department</th><th className="num">Professors</th><th className="num">Publications</th><th className="end">Actions</th></tr></thead>
+            <tbody>
+              {groups.map(group => {
+                const key = `${group.university}-${group.department}`;
+                return (
+                  <tr key={key}>
+                    <td><strong>{group.university}</strong></td>
+                    <td className="muted">{group.department}</td>
+                    <td className="num">{group.professor_count}</td>
+                    <td className="num">{group.publication_count}</td>
+                    <td>
+                      <div className="cell-actions">
+                        <Button size="sm" variant="secondary" isDisabled={refreshing === key} onPress={() => setPublicationRefreshGroup(group)}>{refreshing === key ? 'Starting…' : 'Fetch 10 pubs'}</Button>
+                        <Button size="sm" variant="secondary" isDisabled={refreshing === key} onPress={() => setEnrichGroup(group)}>Enrich profiles</Button>
+                        <Button size="sm" variant="secondary" isDisabled={refreshing === key} onPress={() => { setRefreshGroup(group); setRefreshUrl(''); }}>Rescan faculty</Button>
+                        <Button size="sm" variant="danger-soft" onPress={() => setDeleteGroup(group)}>Delete</Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {groups.length === 0 && <tr><td colSpan={5} className="muted" style={{ textAlign: 'center', padding: 22 }}>No indexed departments yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <div className="grid two" style={{ marginTop: 22, alignItems: 'start' }}>
@@ -268,21 +266,10 @@ export default function AdminDashboardPage() {
             <h3>Agentic scan dashboard</h3>
             <Link className="accent" href="/admin/onboarding">Open wizard</Link>
           </div>
-          <div className="tabs" style={{ marginTop: 12 }}>
-            <button className={`tab ${activeTab === 'ongoing' ? 'active' : ''}`} onClick={() => setActiveTab('ongoing')}>Ongoing ({jobs.ongoing.length})</button>
-            <button className={`tab ${activeTab === 'ready_to_publish' ? 'active' : ''}`} onClick={() => setActiveTab('ready_to_publish')}>Ready ({jobs.ready_to_publish.length})</button>
-            <button className={`tab ${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>Completed ({jobs.completed.length})</button>
-          </div>
-          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-            {tabJobs.length === 0 ? <p className="muted">No jobs in this tab.</p> : tabJobs.map(job => (
-              <Link className="card soft" key={job.id} href={`/admin/onboarding?job=${job.id}`}>
-                <div className="row between">
-                  <div><strong>{job.university || 'Unknown university'}</strong><p className="muted small-text">{job.department || 'Department unknown'} · {job.step || job.status}</p></div>
-                  <span className="tag">{job.status}</span>
-                </div>
-                <p className="muted small-text" style={{ marginTop: 8 }}>{job.message}</p>
-              </Link>
-            ))}
+          <p className="muted small-text" style={{ marginTop: 12 }}>Durable scan jobs, task progress, OpenAlex publication fetch, candidate review with confidence scores, and Supabase import all live in the Scan Dashboard.</p>
+          <div className="row" style={{ gap: 8, marginTop: 14 }}>
+            <Link className="button primary" href="/admin/onboarding">New agentic scan</Link>
+            <Link className="button secondary" href="/admin/scans">Open Scan Dashboard</Link>
           </div>
         </section>
       </div>
