@@ -121,12 +121,6 @@ class RefreshIndexedDepartmentRequest(BaseModel):
         return validate_public_url(value)
 
 
-class DeleteIndexedDepartmentRequest(BaseModel):
-    university: str
-    department: str
-    confirm: bool = False
-
-
 class ScanJobItemRequest(BaseModel):
     university: str = Field(..., min_length=1, max_length=300)
     department: str = Field(default="Computer Science", min_length=1, max_length=300)
@@ -413,10 +407,18 @@ def enrich_indexed_department_profiles(req: EnrichIndexedProfilesRequest, backgr
 
 
 @router.delete("/indexed-departments")
-def delete_indexed_department(req: DeleteIndexedDepartmentRequest, _: User = Depends(require_admin), session: Session = Depends(get_session)):
-    if not req.confirm:
+def delete_indexed_department(
+    university: str,
+    department: str = "",
+    confirm: bool = False,
+    _: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    # Params come via query string, not a request body: DELETE bodies are
+    # routinely dropped by proxies, which would silently no-op the delete.
+    if not confirm:
         raise HTTPException(status_code=400, detail="Deletion requires explicit confirmation")
-    return ProfessorService(session).delete_indexed_group(req.university, req.department)
+    return ProfessorService(session).delete_indexed_group(university, department)
 
 
 @router.get("/scans/status")
