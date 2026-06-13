@@ -186,9 +186,10 @@ def test_admin_indexed_departments_and_delete_are_admin_only(tmp_path):
         assert listed.json()["groups"][0]["professor_count"] == 1
         assert listed.json()["groups"][0]["publication_count"] == 1
 
-        blocked_delete = client.request("DELETE", "/api/admin/indexed-departments", json={"university": "Indexed U", "department": "CS", "confirm": False})
+        blocked_delete = client.delete("/api/admin/indexed-departments", params={"university": "Indexed U", "department": "CS", "confirm": False})
         assert blocked_delete.status_code == 400
-        deleted = client.request("DELETE", "/api/admin/indexed-departments", json={"university": "Indexed U", "department": "CS", "confirm": True})
+        # Stray whitespace/casing on the request must still match the stored row.
+        deleted = client.delete("/api/admin/indexed-departments", params={"university": "  indexed u ", "department": "CS", "confirm": True})
         assert deleted.status_code == 200
         assert deleted.json()["professors_deleted"] == 1
     finally:

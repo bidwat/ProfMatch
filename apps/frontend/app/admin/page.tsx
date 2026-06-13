@@ -131,7 +131,11 @@ export default function AdminDashboardPage() {
     setMessage('');
     try {
       const result = await deleteIndexedDepartment({ university: deleteGroup.university, department: deleteGroup.department, confirm: true });
-      setMessage(`Deleted ${result.professors_deleted} professors and ${result.publications_deleted} publications.`);
+      setMessage(
+        result.professors_deleted === 0
+          ? `No rows matched "${deleteGroup.university} · ${deleteGroup.department}" — nothing was deleted.`
+          : `Deleted ${result.professors_deleted} professors and ${result.publications_deleted} publications.`,
+      );
       setDeleteGroup(null);
       load();
     } catch (e: any) {

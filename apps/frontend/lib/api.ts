@@ -230,9 +230,15 @@ export function enrichIndexedDepartmentProfiles(payload: { university: string; d
 }
 
 export function deleteIndexedDepartment(payload: { university: string; department: string; confirm: boolean }) {
-  return request<{ status: string; professors_deleted: number; publications_deleted: number }>('/api/admin/indexed-departments', {
+  // Params go on the query string — DELETE request bodies are routinely dropped
+  // by proxies, which silently no-ops the delete.
+  const qs = new URLSearchParams({
+    university: payload.university,
+    department: payload.department,
+    confirm: String(payload.confirm),
+  });
+  return request<{ status: string; professors_deleted: number; publications_deleted: number }>(`/api/admin/indexed-departments?${qs.toString()}`, {
     method: 'DELETE',
-    body: JSON.stringify(payload),
   });
 }
 

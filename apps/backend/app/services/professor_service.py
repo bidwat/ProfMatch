@@ -166,8 +166,19 @@ class ProfessorService:
         return groups
 
     def delete_indexed_group(self, university: str, department: str) -> dict:
+        # Match trimmed + case-insensitively so rows that carry stray whitespace
+        # or differ only by casing are still removed, and treat an empty/None
+        # department symmetrically (a plain `== None` compiles to `= NULL`,
+        # which never matches, silently deleting nothing).
+        uni = (university or "").strip()
+        dept = (department or "").strip()
+        uni_match = func.lower(func.trim(Professor.university)) == uni.lower()
+        if dept:
+            dept_match = func.lower(func.trim(func.coalesce(Professor.department, ""))) == dept.lower()
+        else:
+            dept_match = func.trim(func.coalesce(Professor.department, "")) == ""
         professors = self.session.exec(
-            select(Professor).where(Professor.university == university, Professor.department == department)
+            select(Professor).where(uni_match, dept_match)
         ).all()
         ids = [p.id for p in professors if p.id is not None]
         deleted_publications = 0
